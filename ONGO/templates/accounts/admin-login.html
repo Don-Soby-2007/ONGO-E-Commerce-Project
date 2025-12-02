@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,8 +41,10 @@
                             placeholder="Enter your username"
                             class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                             required
+                            onkeyup="checkUsername()"
                         >
                     </div>
+                    <span id="usernameError" class="text-sm text-red-500 mt-1 hidden">Invalid username. Only alphabets and spaces allowed (at least 3 characters and maximum 20 characters).</span>
                 </div>
 
                 <div>
@@ -62,11 +66,13 @@
                             required
                         >
                     </div>
+                    <span id="passwordError" class="text-sm text-red-500 mt-1 hidden">Invalid password. Must be at least 8 characters, include uppercase, lowercase, number, and a special character.</span>
                 </div>
 
                 <button
                     type="submit"
-                    class="w-full bg-red-500 text-white font-semibold py-3 rounded-xl hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 transition-all">
+                    class="w-full bg-red-500 text-white font-semibold py-3 rounded-xl hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 transition-all"
+                    disacbled >
                     Login
                 </button>
             </form>
@@ -79,11 +85,7 @@
         </div>
     </div>
 
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            console.log('Login form submitted');
-        });
-    </script>
+    <script src="{% static 'js/accounts/admin-login.js' %}"></script>
+
 </body>
 </html>
