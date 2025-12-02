@@ -23,7 +23,8 @@
                 <p class="text-gray-500">Access your dashboard</p>
             </div>
 
-            <form id="loginForm" class="space-y-6">
+            <form id="loginForm" action ="{% url 'admin_dashboard'%}" method="POST" class="space-y-6">
+                {% csrf_token %}
                 <div>
                     <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
                         Username
@@ -41,7 +42,6 @@
                             placeholder="Enter your username"
                             class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                             required
-                            onkeyup="checkUsername()"
                         >
                     </div>
                     <span id="usernameError" class="text-sm text-red-500 mt-1 hidden">Invalid username. Only alphabets and spaces allowed (at least 3 characters and maximum 20 characters).</span>
@@ -62,7 +62,7 @@
                             id="password"
                             name="password"
                             placeholder="Enter your password"
-                            class="w-full pl-12 pr-4 py-3 border border-grey-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                            class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                             required
                         >
                     </div>

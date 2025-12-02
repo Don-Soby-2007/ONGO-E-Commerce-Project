@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-black">Welcome Back</h1>
+            <p class="text-gray-500 mt-2">Log in to your account</p>
+        </div>
+
+        <!-- Form -->
+        <form class="space-y-6">
+            <!-- Email/Username Field -->
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email or Username</label>
+                <input 
+                    type="text" 
+                    id="email" 
+                    placeholder="you@example.com" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+            </div>
+
+            <!-- Password Field -->
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <div class="relative">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        placeholder="••••••••" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    />
+                    <button 
+                        type="button" 
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Forgot Password Link -->
+            <div class="text-right">
+                <a href="#" class="text-sm text-gray-500 hover:text-gray-700">Forgot Password?</a>
+            </div>
+
+            <!-- Login Button -->
+            <button 
+                type="submit" 
+                class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
+            >
+                Login
+            </button>
+
+            <!-- OR Divider -->
+            <div class="flex items-center my-6">
+                <div class="flex-grow border-t border-gray-300"></div>
+                <span class="px-4 text-sm text-gray-500">OR</span>
+                <div class="flex-grow border-t border-gray-300"></div>
+            </div>
+
+            <!-- Google Sign In Button -->
+            <button 
+                type="button" 
+                class="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 hover:bg-gray-50 transition-colors duration-200"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24">
+                    <path d="M12.545 10.239v3.821h5.445c-.712 2.315-2.647 3.912-5.445 3.912-3.332 0-6.033-2.701-6.033-6.032s2.701-6.032 6.033-6.032c1.498 0 2.866.549 3.921 1.495L12.545 10.24zm9.533-1.967H22V12h-2.968v8.032h-3.92V12h-2.968v-3.729h2.968V5.333h3.92v2.939z" fill="#4285F4"/>
+                    <path d="M12.545 10.239v3.821h5.445c-.712 2.315-2.647 3.912-5.445 3.912-3.332 0-6.033-2.701-6.033-6.032s2.701-6.032 6.033-6.032c1.498 0 2.866.549 3.921 1.495L12.545 10.24z" fill="#34A853"/>
+                    <path d="M12.545 10.239v3.821h5.445c-.712 2.315-2.647 3.912-5.445 3.912-3.332 0-6.033-2.701-6.033-6.032s2.701-6.032 6.033-6.032c1.498 0 2.866.549 3.921 1.495L12.545 10.24z" fill="#FBBC05"/>
+                    <path d="M12.545 10.239v3.821h5.445c-.712 2.315-2.647 3.912-5.445 3.912-3.332 0-6.033-2.701-6.033-6.032s2.701-6.032 6.033-6.032c1.498 0 2.866.549 3.921 1.495L12.545 10.24z" fill="#EA4335"/>
+                </svg>
+                Sign in with Google
+            </button>
+
+            <!-- Sign Up Link -->
+            <div class="text-center mt-4">
+                <p class="text-sm text-gray-500">
+                    Don't have an account? 
+                    <a href="#" class="font-medium text-gray-900 hover:text-gray-700">Sign Up</a>
+                </p>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
