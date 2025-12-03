@@ -20,7 +20,7 @@
             </div>
 
             <!-- Add novalidate to disable browser validation (we use custom JS) -->
-            <form class="space-y-4" method="POST" action="{% url 'user_signup' %}" novalidate>
+            <form class="space-y-4" method="POST" action="{% url 'signup' %}" novalidate>
                 {% csrf_token %}
 
                 <!-- Username -->
@@ -156,7 +156,7 @@
                 <!-- Login Link -->
                 <div class="text-center mt-6 text-sm">
                     Already have an account? 
-                    <a href="{% url 'user_login' %}" class="font-medium text-red-600 hover:text-red-500">Log in</a>
+                    <a href="{% url 'login' %}" class="font-medium text-red-600 hover:text-red-500">Log in</a>
                 </div>
 
                 <div class="text-center mt-4 text-xs text-gray-500">
@@ -166,8 +166,23 @@
                 </div>
             </form>
         </div>
-    </div>
+        {% if messages %}
+        <div class="mt-4">
+            {% for message in messages %}
+                <div class="p-4 mb-2 text-sm 
+                {% if message.tags == 'error' %}
+                text-red-700 bg-red-100 rounded-lg
+                {% elif message.tags == 'success' %}
+                text-green-700 bg-green-100 rounded-lg
+                {% else %}
+                text-gray-700 bg-gray-100 rounded-lg
+                {% endif %}" role="alert">
+                    {{ message }}   
+                </div>
+            {% endfor %}
+        {% endif %}
 
+    </div>
     <script src="{% static 'js/accounts/user-signup.js' %}"></script>
 </body>
 </html>

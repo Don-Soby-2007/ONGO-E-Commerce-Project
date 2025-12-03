@@ -29,7 +29,7 @@ def user_login_view(request):
 
 
 class SignupView(View):
-    template_name = 'accounts/user-signup.html'
+    template_name = 'accounts/user-sigup.html'
 
     def get(self, request):
         return render(request, self.template_name)
