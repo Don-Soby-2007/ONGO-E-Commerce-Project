@@ -6,5 +6,6 @@ urlpatterns = [
     path('admin/dashboard/', views.admin_dashboard_view, name='admin_dashboard'),
 
     path('', views.user_login_view, name='user_login'),
-    path('signup/', views.user_signup_view, name='user_signup'),
+    path('signup/', views.SignupView.as_view, name='user_signup'),
+    path('otp-verify/', views.OtpVerificationView.as_view(), name='otp_verify'),
 ]

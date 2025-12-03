@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,22 +12,23 @@
         <!-- Header -->
         <div class="text-center mb-6">
             <div class="w-12 h-12 bg-black rounded-full flex items-center justify-center mx-auto mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 6v-7a7 7 0 00-5.356-6.857 7 7 0 00-10.718 0A7 7 0 007 7v7M9 12l2 2 4-4" />
-                </svg>
+                <h2 class="text-white text-lg font-bold">O</h2>
             </div>
             <h1 class="text-xl font-bold text-black">Enter Verification Code</h1>
-            <p class="text-gray-500 mt-1">We've sent a 6-digit code to your phone number.</p>
+            <p class="text-gray-500 mt-1">We've sent a 6-digit code to your email.</p>
         </div>
 
+        <form method="POST" action="{% url 'otp_verify' %}" id="otpForm">
+            {% csrf_token %}
         <!-- OTP Input Fields -->
         <div class="flex justify-center space-x-2 mb-6">
             <input 
                 type="text" 
+                id= "otp1"
                 maxlength="1" 
                 class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveNext(this, 'otp2')"
-            />
+            >
             <input 
                 type="text" 
                 id="otp2" 
@@ -34,7 +36,7 @@
                 class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveNext(this, 'otp3')"
                 onkeydown="moveBack(this, 'otp1')"
-            />
+            >
             <input 
                 type="text" 
                 id="otp3" 
@@ -42,7 +44,7 @@
                 class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveNext(this, 'otp4')"
                 onkeydown="moveBack(this, 'otp2')"
-            />
+            >
             <input 
                 type="text" 
                 id="otp4" 
@@ -50,7 +52,7 @@
                 class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveNext(this, 'otp5')"
                 onkeydown="moveBack(this, 'otp3')"
-            />
+            >
             <input 
                 type="text" 
                 id="otp5" 
@@ -58,7 +60,8 @@
                 class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveNext(this, 'otp6')"
                 onkeydown="moveBack(this, 'otp4')"
-            />
+            >
+            
             <input 
                 type="text" 
                 id="otp6" 
@@ -66,8 +69,10 @@
                 class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 oninput="this.value = this.value.replace(/[^0-9]/g, '');"
                 onkeydown="moveBack(this, 'otp5')"
-            />
+            >
         </div>
+
+        <input type="hidden" name="otp" id="otp">
 
         <!-- Verify Button -->
         <button 
@@ -76,6 +81,7 @@
         >
             Verify
         </button>
+        </form>
 
         <!-- Resend OTP Link -->
         <div class="text-center mt-4">
@@ -86,19 +92,8 @@
         </div>
     </div>
 
-    <script>
-        // JavaScript for OTP input navigation
-        function moveNext(current, nextId) {
-            if (current.value.length === 1) {
-                document.getElementById(nextId).focus();
-            }
-        }
-
-        function moveBack(current, prevId) {
-            if (current.value.length === 0 && event.key === "Backspace") {
-                document.getElementById(prevId).focus();
-            }
-        }
+    <script src="{% static 'accounts/js/otp-verification.js' %}">
+        
     </script>
 </body>
 </html>
