@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <div class="w-12 h-12 bg-black rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 6v-7a7 7 0 00-5.356-6.857 7 7 0 00-10.718 0A7 7 0 007 7v7M9 12l2 2 4-4" />
+                </svg>
+            </div>
+            <h1 class="text-xl font-bold text-black">Enter Verification Code</h1>
+            <p class="text-gray-500 mt-1">We've sent a 6-digit code to your phone number.</p>
+        </div>
+
+        <!-- OTP Input Fields -->
+        <div class="flex justify-center space-x-2 mb-6">
+            <input 
+                type="text" 
+                maxlength="1" 
+                class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveNext(this, 'otp2')"
+            />
+            <input 
+                type="text" 
+                id="otp2" 
+                maxlength="1" 
+                class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveNext(this, 'otp3')"
+                onkeydown="moveBack(this, 'otp1')"
+            />
+            <input 
+                type="text" 
+                id="otp3" 
+                maxlength="1" 
+                class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveNext(this, 'otp4')"
+                onkeydown="moveBack(this, 'otp2')"
+            />
+            <input 
+                type="text" 
+                id="otp4" 
+                maxlength="1" 
+                class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveNext(this, 'otp5')"
+                onkeydown="moveBack(this, 'otp3')"
+            />
+            <input 
+                type="text" 
+                id="otp5" 
+                maxlength="1" 
+                class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveNext(this, 'otp6')"
+                onkeydown="moveBack(this, 'otp4')"
+            />
+            <input 
+                type="text" 
+                id="otp6" 
+                maxlength="1" 
+                class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                onkeydown="moveBack(this, 'otp5')"
+            />
+        </div>
+
+        <!-- Verify Button -->
+        <button 
+            type="submit" 
+            class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
+        >
+            Verify
+        </button>
+
+        <!-- Resend OTP Link -->
+        <div class="text-center mt-4">
+            <p class="text-sm text-gray-500">
+                Didn't receive the code? 
+                <a href="#" class="font-medium text-gray-900 hover:text-gray-700">Resend OTP in 00:30</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript for OTP input navigation
+        function moveNext(current, nextId) {
+            if (current.value.length === 1) {
+                document.getElementById(nextId).focus();
+            }
+        }
+
+        function moveBack(current, prevId) {
+            if (current.value.length === 0 && event.key === "Backspace") {
+                document.getElementById(prevId).focus();
+            }
+        }
+    </script>
+</body>
+</html>

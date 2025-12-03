@@ -1,166 +1,173 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up Page</title>
+    <title>Sign Up - ONGO</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
     <div class="w-full max-w-md">
         <div class="text-center mb-8">
-            <div class="flex items-center justify-center gap-3 mb-8">
-                
-                <h1 class="text-5xl font-bold text-gray-900">ONGO</h1>
-            </div>
+            <h1 class="text-5xl font-bold text-gray-900">ONGO</h1>
         </div>
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-            <!-- Header -->
+
+        <div class="bg-white rounded-lg shadow-lg p-8">
             <div class="text-center mb-6">
                 <h1 class="text-xl font-bold text-black">Create an Account</h1>
                 <p class="text-gray-500 mt-1">Start your journey with us.</p>
             </div>
 
-            <!-- Form -->
-            <form class="space-y-4">
-                <!-- Username Field -->
+            <!-- Add novalidate to disable browser validation (we use custom JS) -->
+            <form class="space-y-4" method="POST" action="{% url 'user_signup' %}" novalidate>
+                {% csrf_token %}
+
+                <!-- Username -->
                 <div>
                     <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
                     <input 
                         type="text" 
                         id="username" 
+                        name="username"
                         placeholder="Enter your name" 
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        required autocomplete="name"
                     />
+                    <span id="usernameError" class="text-sm text-red-500 mt-1 hidden">
+                        Only letters & single spaces (3–20 chars)
+                    </span>
                 </div>
 
-                <!-- Email Field -->
+                <!-- Email -->
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                     <input 
                         type="email" 
                         id="email" 
+                        name="email"
                         placeholder="Enter your email" 
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        required autocomplete="email"
                     />
+                    <span id="emailError" class="text-sm text-red-500 mt-1 hidden">Invalid email address</span>
                 </div>
 
-                <!-- Phone Number Field -->
+                <!-- Phone -->
                 <div>
                     <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone number</label>
                     <input 
                         type="tel" 
                         id="phone" 
-                        placeholder="Enter your phone number" 
+                        name="phone"
+                        placeholder="10-digit phone number" 
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        required autocomplete="tel"
                     />
+                    <span id="phoneError" class="text-sm text-red-500 mt-1 hidden">Enter a valid 10-digit number</span>
                 </div>
 
-                <!-- Password Field -->
+                <!-- Password -->
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                     <div class="relative">
                         <input 
                             type="password" 
                             id="password" 
+                            name="password"
                             placeholder="Enter your password" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                            class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                            required autocomplete="new-password"
                         />
-                        <button 
-                            type="button" 
-                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                         </button>
                     </div>
+                    <span id="passwordError" class="text-sm text-red-500 mt-1 hidden">
+                        8+ chars: uppercase, lowercase, number, symbol
+                    </span>
                 </div>
 
-                <!-- Confirm Password Field -->
+                <!-- Confirm Password -->
                 <div>
-                    <label for="confirm-password" class="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
                     <div class="relative">
                         <input 
                             type="password" 
-                            id="confirm-password" 
+                            id="confirmPassword" 
+                            name="confirm_password"
                             placeholder="Confirm your password" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                            class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                            required autocomplete="new-password"
                         />
-                        <button 
-                            type="button" 
-                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <button type="button" id="toggleConfirmPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                         </button>
                     </div>
+                    <span id="confirmPasswordError" class="text-sm text-red-500 mt-1 hidden">Passwords do not match</span>
                 </div>
 
-                <!-- Referral Code Section -->
+                <!-- Referral (Optional) -->
                 <div>
                     <label for="referral" class="block text-sm font-medium text-gray-700 mb-1">Referral Code (Optional)</label>
                     <div class="flex space-x-2">
                         <input 
                             type="text" 
                             id="referral" 
+                            name="referral_code"
                             placeholder="Enter referral code" 
                             class="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         />
-                        <button 
-                            type="button" 
-                            class="px-4 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        >
+                        <button type="button" class="px-4 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
                             Apply
                         </button>
                     </div>
                 </div>
 
-                <!-- Create Account Button -->
+                <!-- Submit Button -->
                 <button 
                     type="submit" 
-                    class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
+                    id="createAccountBtn"
+                    class="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 rounded-md transition-all duration-200"
+                    disabled
                 >
                     Create Account
                 </button>
 
-                <!-- OR Divider -->
+                <!-- Divider -->
                 <div class="flex items-center my-6">
                     <div class="flex-grow border-t border-gray-300"></div>
                     <span class="px-4 text-sm text-gray-500">Or continue with</span>
                     <div class="flex-grow border-t border-gray-300"></div>
                 </div>
 
-                <!-- Google Sign Up Button -->
-                <button 
-                    type="button" 
-                    class="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 hover:bg-gray-50 transition-colors duration-200"
-                >
-                    <img class="w-6 h-6" src="https://www.svgrepo.com/show/475656/google-color.svg" loading="lazy" alt="google logo">
-                    Sign up with Google
+                <!-- Google Button -->
+                <button type="button" class="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-md py-3 hover:bg-gray-50 transition">
+                    <img class="w-5 h-5" src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google">
+                    <span>Sign up with Google</span>
                 </button>
 
                 <!-- Login Link -->
-                <div class="text-center mt-4">
-                    <p class="text-sm text-gray-500">
-                        Already have an account? 
-                        <a href="{% url 'user_login' %}" class="font-medium text-gray-900 hover:text-gray-700">Log in</a>
-                    </p>
+                <div class="text-center mt-6 text-sm">
+                    Already have an account? 
+                    <a href="{% url 'user_login' %}" class="font-medium text-red-600 hover:text-red-500">Log in</a>
                 </div>
 
-                <!-- Terms and Privacy -->
-                <div class="text-center mt-4">
-                    <p class="text-xs text-gray-500">
-                        By creating an account, you agree to our 
-                        <a href="#" class="underline hover:text-gray-700">Terms of Service</a> and 
-                        <a href="#" class="underline hover:text-gray-700">Privacy Policy</a>.
-                    </p>
+                <div class="text-center mt-4 text-xs text-gray-500">
+                    By creating an account, you agree to our 
+                    <a href="#" class="underline">Terms</a> and 
+                    <a href="#" class="underline">Privacy Policy</a>.
                 </div>
             </form>
         </div>
     </div>
+
+    <script src="{% static 'js/accounts/user-signup.js' %}"></script>
 </body>
 </html>

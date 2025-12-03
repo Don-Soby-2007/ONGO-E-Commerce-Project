@@ -15,4 +15,7 @@ def user_login_view(request):
 
 
 def user_signup_view(request):
+    if request.method == 'POST':
+        # Handle form submission logic here
+        return render(request, 'accounts/otp-verification.html')
     return render(request, 'accounts/user-sigup.html')
