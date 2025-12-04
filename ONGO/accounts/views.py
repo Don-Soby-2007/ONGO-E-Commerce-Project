@@ -107,6 +107,8 @@ class OtpVerificationView(View):
     def get(self, request):
         if not request.session.get('pending_user_id'):
             return redirect("signup")
+        if request.session.get('verified_user_id'):
+            return redirect("user_confirmed")
         return render(request, self.template_name)
 
     def post(self, request):
