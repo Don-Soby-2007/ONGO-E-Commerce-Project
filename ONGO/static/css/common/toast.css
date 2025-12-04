@@ -1,0 +1,22 @@
+/* toast.css */
+
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.toast {
+  animation: fade-in-down 0.25s ease-out forwards;
+}
+
+/* Optional: subtle hover effect on close button */
+#toast-container .toast button:hover {
+  background-color: #f3f4f6;
+  border-radius: 4px;
+}

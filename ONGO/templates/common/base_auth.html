@@ -1,0 +1,65 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock title %}</title>
+    <link rel="stylesheet" href="{% static 'css/common/toast.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center px-4">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <div class="flex items-center justify-center gap-3 mb-8">
+                
+                <h1 class="text-5xl font-bold text-gray-900">ONGO</h1>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg p-8 max-w-md">
+            {% block forms %}{% endblock forms %}
+        </div>
+
+        <div class="text-center mt-8">
+            <p class="text-sm text-gray-500">
+                &copy; 2023 E-Commerce Inc. All Rights Reserved.
+            </p>
+        </div>
+    </div>
+
+    <!-- Toast Container (required for notifications) -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2 max-w-xs"></div>
+
+    <!-- Hidden Django messages for JS to consume -->
+    <div id="django-messages" class="hidden">
+        {% for message in messages %}
+            <div data-message="{{ message|escape }}" data-level="{{ message.tags }}"></div>
+        {% endfor %}
+    </div>
+
+    <!-- Toast Template (cloned by JS) -->
+    <template id="toast-template">
+        <div class="relative bg-white rounded-lg shadow-lg border-l-4 border-l-gray-400 overflow-hidden flex items-start w-full">
+            <div class="flex-1 p-4 pr-10">
+                <div class="text-sm font-medium text-gray-800" id="toast-message"></div>
+            </div>
+            <button class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-sm p-1 focus:outline-none" 
+                    onclick="this.closest('.toast').remove()">
+                ✕
+            </button>
+            <div class="absolute bottom-0 left-0 h-1 bg-gray-200 w-full">
+                <div class="h-full bg-red-500 w-full" id="toast-progress"></div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Your toast JS -->
+    <script src="{% static 'js/common/toast.js' %}"></script>
+
+    {% block scripts %}{% endblock scripts %}
+
+</body>
+</html>

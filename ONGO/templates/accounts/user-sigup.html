@@ -1,19 +1,8 @@
+{% extends 'common/base_auth.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - ONGO</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
-    <div class="w-full max-w-md">
-        <div class="text-center mb-8">
-            <h1 class="text-5xl font-bold text-gray-900">ONGO</h1>
-        </div>
+{% block title %}Sign Up{% endblock title %}
+{% block forms %}
 
-        <div class="bg-white rounded-lg shadow-lg p-8">
             <div class="text-center mb-6">
                 <h1 class="text-xl font-bold text-black">Create an Account</h1>
                 <p class="text-gray-500 mt-1">Start your journey with us.</p>
@@ -165,24 +154,9 @@
                     <a href="#" class="underline">Privacy Policy</a>.
                 </div>
             </form>
-        </div>
-        {% if messages %}
-        <div class="mt-4">
-            {% for message in messages %}
-                <div class="p-4 mb-2 text-sm 
-                {% if message.tags == 'error' %}
-                text-red-700 bg-red-100 rounded-lg
-                {% elif message.tags == 'success' %}
-                text-green-700 bg-green-100 rounded-lg
-                {% else %}
-                text-gray-700 bg-gray-100 rounded-lg
-                {% endif %}" role="alert">
-                    {{ message }}   
-                </div>
-            {% endfor %}
-        {% endif %}
-
-    </div>
+{% endblock forms %}
+{% block scripts %}
     <script src="{% static 'js/accounts/user-signup.js' %}"></script>
+{% endblock scripts %}
 </body>
 </html>

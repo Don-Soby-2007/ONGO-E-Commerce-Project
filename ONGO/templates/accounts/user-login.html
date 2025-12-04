@@ -1,20 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
-    <div class="w-full max-w-md">
-        <div class="text-center mb-8">
-            <div class="flex items-center justify-center gap-3 mb-8">
-                
-                <h1 class="text-5xl font-bold text-gray-900">ONGO</h1>
-            </div>
-        </div>
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+{% extends 'common/base_auth.html' %}
+{% load static %}
+{% block title %}Login{% endblock title %}
+{% block forms %}
             <!-- Header -->
             <div class="text-center mb-6">
                 <h1 class="text-2xl font-bold text-black">Welcome Back</h1>
@@ -93,7 +80,9 @@
                     </p>
                 </div>
             </form>
-        </div>
-    </div>
+{% endblock forms %}
+{% block scripts %}
+    {% comment %} <script src="{% static 'js/accounts/user-login.js' %}"></script> {% endcomment %}
+{% endblock scripts %}
 </body>
 </html>

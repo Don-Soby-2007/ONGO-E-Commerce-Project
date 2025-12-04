@@ -1,19 +1,9 @@
+{% extends 'common/base_auth.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OTP Verification</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+{% block title %}OTP Verification{% endblock title %}
+{% block forms %}
         <!-- Header -->
         <div class="text-center mb-6">
-            <div class="w-12 h-12 bg-black rounded-full flex items-center justify-center mx-auto mb-3">
-                <h2 class="text-white text-lg font-bold">O</h2>
-            </div>
             <h1 class="text-xl font-bold text-black">Enter Verification Code</h1>
             <p class="text-gray-500 mt-1">We've sent a 6-digit code to your email.</p>
         </div>
@@ -90,10 +80,9 @@
                 <a href="#" class="font-medium text-gray-900 hover:text-gray-700">Resend OTP in 00:30</a>
             </p>
         </div>
-    </div>
-
-    <script src="{% static 'js/accounts/otp-verification.js' %}">
-        
-    </script>
+{% endblock forms %}
+{% block scripts %}
+    <script src="{% static 'js/accounts/otp-verification.js' %}"></script>
+{% endblock scripts %}
 </body>
 </html>
