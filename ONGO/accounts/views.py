@@ -135,8 +135,29 @@ class OtpVerificationView(View):
 
         if user.verify_otp(otp_input):
             request.session.pop('pending_user_id', None)
+            request.session['verified_user_id'] = user_id
             messages.success(request, "OTP verified successfully. Your account is now active.")
-            return redirect("login")
+            return redirect("user_confirmed")
         else:
             messages.error(request, "Invalid or expired OTP. Please try again.")
             return render(request, self.template_name)
+
+
+def userConfirmedView(request):
+    user_id = request.session.get('verified_user_id')
+    if not user_id:
+        return redirect("signup")
+
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        logger.warning(f"User confirmed view accessed for non-existent user ID: {user_id}")
+        messages.error(request, "User not found. Please sign up again.")
+        return redirect("signup")
+
+    except DatabaseError as e:
+        logger.error(f"Database error accessing user confirmed view for user {user_id}: {e}")
+        messages.error(request, "A database error occurred. Please try again later.")
+        return redirect("signup")
+
+    return render(request, 'accounts/user-confirmed.html', {'user': user.username, 'email': user.email})

@@ -8,4 +8,5 @@ urlpatterns = [
     path('', views.user_login_view, name='login'),
     path('signup/', views.SignupView.as_view(), name='signup'),
     path('otp-verify/', views.OtpVerificationView.as_view(), name='otp_verify'),
+    path('user-confirmed/', views.userConfirmedView, name='user_confirmed'),
 ]

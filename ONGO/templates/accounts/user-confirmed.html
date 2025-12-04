@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign-up Successful!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#fdf9f7] min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full text-center space-y-6">
+        <!-- Logo -->
+        <div class="flex flex-col items-center space-y-4">
+            <div class="w-16 h-16 bg-green-500 rounded-lg flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-800">ONGO</h1>
+        </div>
+
+        <!-- Success Message -->
+        <div class="space-y-4">
+            <h2 class="text-2xl font-bold text-gray-800">Sign-up Successful!</h2>
+            <p class="text-sm text-red-500">Welcome to FashionForward! Your account has been successfully created.</p>
+        </div>
+
+        <!-- User Info -->
+        <div class="flex items-center justify-center space-x-3 bg-gray-100 rounded-lg p-3 mx-auto max-w-xs">
+            <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+            </div>
+            <div class="text-left">
+                <p class="font-medium text-gray-800">{{user}}</p>
+                <p class="text-sm text-red-500">{{email}}</p>
+            </div>
+        </div>
+
+        <!-- Back to Login Button -->
+        
+            <a href="{% url 'login' %}" class="block w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg text-center transition-colors duration-200">
+                Back to Login
+            </a>
+    </div>
+</body>
+</html>
