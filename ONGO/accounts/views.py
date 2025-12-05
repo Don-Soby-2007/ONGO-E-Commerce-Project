@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib import messages
+from django.contrib.auth import authenticate, login
 from django.core.mail import send_mail
+
 
 from django.db import DatabaseError
 
@@ -199,3 +201,61 @@ def resend_otp_view(request):
     except Exception as e:
         logger.error(f"Error Resending OTP {user_id} : {e}")
         return JsonResponse({'success': False, 'message': "Something Went Wrong. Please Try Again"})
+
+
+class LoginView(View):
+    template_name = "accounts/user-login.html"
+
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('home')
+        else:
+            return render(request, self.template_name)
+
+    def post(self, request):
+
+        email = request.POST.get('email').strip()
+        password = request.POST.get('password').strip()
+
+        try:
+            import re
+
+            if re.match(r'', email) is False:
+                messages.error(request, "Enter a valid email")
+                return render(request, self.template_name)
+
+            if re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', password) is False:
+                messages.error(request, "Password is wrong. Please Enter a valid Password")
+                return render(request, self.template_name)
+
+            user = authenticate(request, email=email, password=password)
+
+            if user is None:
+                raise User.DoesNotExist
+
+            user_obj = User.objects.get(email=email)
+
+            if user_obj.is_active and user_obj.is_verified and user_obj.is_blocked is False:
+                login(request, user)
+                return redirect('home')
+            else:
+                return render(request, self.template_name)
+
+        except User.DoesNotExist as u:
+            messages.error(request, "User doesn't exist please SignUp or check your details")
+            logger.warning(f'Error when un-exist user tries to login user: {user}: {u}')
+            return render(request, self.template_name)
+
+        except DatabaseError as d:
+            messages.error(request, "Database gone wrong. Please try again")
+            logger.warning(f'Database error during user login {user}: {d}')
+            return render(request, self.template_name)
+
+        except Exception as e:
+            messages.error(request, "Something went wrong. Please try again")
+            logger.warning(f'Something went wrong during user login {user} : {e}')
+            return render(request, self.template_name)
+
+
+def homeView(request):
+    return render(request, 'products/home.html')

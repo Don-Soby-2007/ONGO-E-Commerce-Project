@@ -11,6 +11,7 @@
     <!-- Form -->
     <form method="POST" action='{% url "login" %}' class="space-y-6">
         <!-- Email -->
+        {% csrf_token %}
         <div>
             <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Enter Your Email</label>
             <input 
