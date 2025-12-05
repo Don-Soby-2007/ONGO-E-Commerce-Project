@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.core.mail import send_mail
 
 
@@ -36,6 +36,8 @@ class SignupView(View):
     template_name = 'accounts/user-sigup.html'
 
     def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('home')
         return render(request, self.template_name)
 
     def post(self, request):
@@ -148,6 +150,9 @@ class OtpVerificationView(View):
 
 
 def userConfirmedView(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+
     user_id = request.session.get('verified_user_id')
     if not user_id:
         return redirect("login")
@@ -258,4 +263,12 @@ class LoginView(View):
 
 
 def homeView(request):
-    return render(request, 'products/home.html')
+    if request.user.is_authenticated:
+        return render(request, 'products/home.html')
+
+    return redirect('login')
+
+
+def userLogoutView(request):
+    logout(request)
+    return redirect('login')
