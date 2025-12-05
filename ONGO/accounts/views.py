@@ -106,9 +106,9 @@ class OtpVerificationView(View):
 
     def get(self, request):
         if not request.session.get('pending_user_id'):
-            return redirect("signup")
+            return redirect("login")
         if request.session.get('verified_user_id'):
-            return redirect("user_confirmed")
+            return redirect('login')
         return render(request, self.template_name)
 
     def post(self, request):
@@ -137,7 +137,10 @@ class OtpVerificationView(View):
 
         if user.verify_otp(otp_input):
             request.session.pop('pending_user_id', None)
-            request.session['verified_user_id'] = user_id
+            request.session['verified_user_id'] = user.id
+            user.is_verified = True
+            user.is_active = True
+            user.save()
             messages.success(request, "OTP verified successfully. Your account is now active.")
             return redirect("user_confirmed")
         else:
