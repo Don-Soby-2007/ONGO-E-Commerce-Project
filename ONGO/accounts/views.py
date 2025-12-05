@@ -7,6 +7,8 @@ from django.db import DatabaseError
 
 from .models import User
 
+from django.http import JsonResponse
+
 import re
 import logging
 
@@ -91,7 +93,7 @@ class SignupView(View):
 
         send_mail(
             'Your OTP Verification Code',
-            f'Your OTP code is: {otp}. It is valid for 5 minutes.',
+            f'Your OTP code is: {otp}. It is valid for 5 minutes. Please do not share it anyone',
             None,
             [user.email],
             fail_silently=False,
@@ -107,8 +109,6 @@ class OtpVerificationView(View):
     def get(self, request):
         if not request.session.get('pending_user_id'):
             return redirect("login")
-        if request.session.get('verified_user_id'):
-            return redirect('login')
         return render(request, self.template_name)
 
     def post(self, request):
@@ -138,9 +138,6 @@ class OtpVerificationView(View):
         if user.verify_otp(otp_input):
             request.session.pop('pending_user_id', None)
             request.session['verified_user_id'] = user.id
-            user.is_verified = True
-            user.is_active = True
-            user.save()
             messages.success(request, "OTP verified successfully. Your account is now active.")
             return redirect("user_confirmed")
         else:
@@ -151,7 +148,7 @@ class OtpVerificationView(View):
 def userConfirmedView(request):
     user_id = request.session.get('verified_user_id')
     if not user_id:
-        return redirect("signup")
+        return redirect("login")
 
     try:
         user = User.objects.get(pk=user_id)
@@ -166,3 +163,39 @@ def userConfirmedView(request):
         return redirect("signup")
 
     return render(request, 'accounts/user-confirmed.html', {'user': user.username, 'email': user.email})
+
+
+def resend_otp_view(request):
+    if request.method != 'POST':
+        return redirect('signup')
+
+    try:
+        user_id = request.session.get('pending_user_id')
+
+        if not user_id:
+            return JsonResponse({'success': False, 'message': "No pending OTP verification found."})
+
+        user = User.objects.get(pk=user_id)
+
+        if user:
+            otp = user.generate_otp()
+            logger.info(f"New OTP (resend otp) for user {user.email}: {otp}")
+
+            send_mail(
+                'Your New OTP Verification Code',
+                f'Your OTP code is: {otp}. It is valid for 5 minutes. Please do not share it anyone',
+                None,
+                [user.email],
+                fail_silently=False,
+            )
+            return JsonResponse({'success': True, 'message': "OTP Resended Successfully"})
+        else:
+            raise User.DoesNotExist
+
+    except User.DoesNotExist:
+        logger.warning(f"Resend OTP attempted for non-existing user ID: {user_id}")
+        return JsonResponse({'success': False, 'message': "User doesn't exists"})
+
+    except Exception as e:
+        logger.error(f"Error Resending OTP {user_id} : {e}")
+        return JsonResponse({'success': False, 'message': "Something Went Wrong. Please Try Again"})
