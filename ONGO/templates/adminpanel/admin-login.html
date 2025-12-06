@@ -10,8 +10,8 @@
             <form id="loginForm" action ="{% url 'customers'%}" method="POST" class="space-y-6">
                 {% csrf_token %}
                 <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
-                        Username
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                        Email
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -21,14 +21,14 @@
                         </div>
                         <input
                             type="text"
-                            id="username"
-                            name="username"
-                            placeholder="Enter your username"
+                            id="email"
+                            name="email"
+                            placeholder="Enter your Email"
                             class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                             required
                         >
                     </div>
-                    <span id="usernameError" class="text-sm text-red-500 mt-1 hidden">Invalid username. Only alphabets and spaces allowed (at least 3 characters and maximum 20 characters).</span>
+                    <span id="emailError" class="text-sm text-red-500 mt-1 hidden">Invalid email address</span>
                 </div>
 
                 <div>
@@ -49,20 +49,34 @@
                             class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                             required
                         >
+                        <button 
+                            id = "togglePassword"
+                            type="button" 
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
                     </div>
-                    <span id="passwordError" class="text-sm text-red-500 mt-1 hidden">Invalid password. Must be at least 8 characters, include uppercase, lowercase, number, and a special character.</span>
+                    <span id="passwordError" class="text-sm text-red-500 mt-1 hidden">
+                        8+ chars: uppercase, lowercase, number, symbol
+                    </span>                
                 </div>
 
-                <button
-                    type="submit"
-                    class="w-full bg-red-500 text-white font-semibold py-3 rounded-xl hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 transition-all"
-                    disacbled >
+                <button 
+                    type="submit" 
+                    id="loginBtn"
+                    class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
+                    disabled
+                >
                     Login
                 </button>
             </form>
 {% endblock forms %}
 {% block scripts %}
-    <script src="{% static 'js/accounts/admin-login.js' %}"></script>
+    <script src="{% static 'js/accounts/user-login.js' %}"></script>
 {% endblock scripts %}
 
 </body>

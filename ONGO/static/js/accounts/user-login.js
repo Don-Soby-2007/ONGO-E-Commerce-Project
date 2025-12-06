@@ -72,24 +72,8 @@ function setupPasswordToggles() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const fields = ['username', 'password'];
-    fields.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('input', updateSubmitButton);
-            el.addEventListener('blur', updateSubmitButton);
-        }
-    });
-
-    // Initial check
-    setupPasswordToggles();
-}
-);
-
 // Update Submit Button State
 function updateSubmitButton() {
-    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
     const isValid = username.length > 0 && password.length >= 6;
@@ -126,3 +110,18 @@ function updateSubmitButton() {
         button.classList.add('bg-gray-400', 'cursor-not-allowed');
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const fields = ['email', 'password'];
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', updateSubmitButton);
+            el.addEventListener('blur', updateSubmitButton);
+        }
+    });
+
+    // Initial check
+    setupPasswordToggles();
+}
+);
