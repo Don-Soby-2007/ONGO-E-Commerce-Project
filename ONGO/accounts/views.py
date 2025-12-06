@@ -154,6 +154,7 @@ class OtpVerificationView(View):
             return render(request, self.template_name)
 
 
+@never_cache
 def userConfirmedView(request):
     if request.user.is_authenticated:
         return redirect('home')
@@ -177,6 +178,7 @@ def userConfirmedView(request):
     return render(request, 'accounts/user-confirmed.html', {'user': user.username, 'email': user.email})
 
 
+@never_cache
 def resend_otp_view(request):
     if request.method != 'POST':
         return redirect('signup')
@@ -220,6 +222,8 @@ class LoginView(View):
     def get(self, request):
         if request.user.is_authenticated:
             return redirect('home')
+        if request.session.get('verified_user_id'):
+            request.session.pop('verified_user_id', None)
 
         return render(request, self.template_name)
 
