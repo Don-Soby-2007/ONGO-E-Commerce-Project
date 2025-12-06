@@ -90,7 +90,7 @@ function resendOTP() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': window.CSRF_TOKEN,  // Django CSRF token
+            'X-CSRFToken': window.CSRF_TOKEN || getCookie('csrftoken'),  // Django CSRF token
         }
     })
     .then(response => response.json())
@@ -122,4 +122,20 @@ function resendOTP() {
         document.getElementById('resendLink').classList.remove('text-gray-500', 'cursor-not-allowed');
         document.getElementById('resendLink').classList.add('text-gray-900', 'hover:text-gray-700', 'cursor-pointer');
     });
+}
+
+// Helper function to get CSRF token (Django specific)
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }
