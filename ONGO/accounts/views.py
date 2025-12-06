@@ -23,14 +23,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def admin_login_view(request):
-    return render(request, 'accounts/admin-login.html')
-
-
-def admin_dashboard_view(request):
-    return render(request, 'accounts/admin-dashboard.html')
-
-
 def user_login_view(request):
     return render(request, 'accounts/user-login.html')
 
