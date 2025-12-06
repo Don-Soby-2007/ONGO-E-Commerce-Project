@@ -1,8 +1,11 @@
 from django.shortcuts import render, redirect
-from django.views import View
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.views import View
+from django.views.decorators.cache import never_cache
 from django.core.mail import send_mail
+from django.utils.decorators import method_decorator
 
 
 from django.db import DatabaseError
@@ -32,6 +35,7 @@ def user_login_view(request):
     return render(request, 'accounts/user-login.html')
 
 
+@method_decorator(never_cache, name='dispatch')
 class SignupView(View):
     template_name = 'accounts/user-sigup.html'
 
@@ -107,6 +111,7 @@ class SignupView(View):
         return redirect("otp_verify")
 
 
+@method_decorator(never_cache, name='dispatch')
 class OtpVerificationView(View):
     template_name = 'accounts/otp-verification.html'
 
@@ -208,14 +213,15 @@ def resend_otp_view(request):
         return JsonResponse({'success': False, 'message': "Something Went Wrong. Please Try Again"})
 
 
+@method_decorator(never_cache, name='dispatch')
 class LoginView(View):
     template_name = "accounts/user-login.html"
 
     def get(self, request):
         if request.user.is_authenticated:
             return redirect('home')
-        else:
-            return render(request, self.template_name)
+
+        return render(request, self.template_name)
 
     def post(self, request):
 
@@ -246,9 +252,9 @@ class LoginView(View):
             else:
                 return render(request, self.template_name)
 
-        except User.DoesNotExist as u:
+        except User.DoesNotExist:
             messages.error(request, "User doesn't exist please SignUp or check your details")
-            logger.warning(f'Error when un-exist user tries to login user: {user}: {u}')
+            logger.warning(f'Error when un-exist user tries to login user: {user}')
             return render(request, self.template_name)
 
         except DatabaseError as d:
@@ -262,6 +268,8 @@ class LoginView(View):
             return render(request, self.template_name)
 
 
+@login_required
+@never_cache
 def homeView(request):
     if request.user.is_authenticated:
         return render(request, 'products/home.html')
@@ -269,6 +277,8 @@ def homeView(request):
     return redirect('login')
 
 
+@login_required
+@never_cache
 def userLogoutView(request):
     logout(request)
     return redirect('login')

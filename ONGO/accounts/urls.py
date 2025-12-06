@@ -13,6 +13,6 @@ urlpatterns = [
     path('user-confirmed/', views.userConfirmedView, name='user_confirmed'),
 
     path('', views.homeView, name='home'),
-    path('', views.userLogoutView, name='logout')
+    path('logout/', views.userLogoutView, name='logout')
 
 ]
