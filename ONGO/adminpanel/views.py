@@ -3,7 +3,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.contrib import messages
 from django.views import View
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from accounts.models import User
 
 from django.db import DatabaseError
@@ -22,12 +22,11 @@ class AdminLoginView(View):
     def get(self, request):
         if request.user.is_authenticated and request.user.is_staff:
             return redirect('customers')
-
         return render(request, self.template_name)
 
     def post(self, request):
         email = request.POST.get('email').strip()
-        password = request.POST.get('email').strip()
+        password = request.POST.get('password').strip()
 
         try:
             import re
@@ -47,7 +46,7 @@ class AdminLoginView(View):
 
             user_obj = User.objects.get(email=email)
 
-            if user_obj.is_active and user_obj.is_verified and user_obj.is_staff:
+            if user_obj.is_active and user_obj.is_staff:
                 login(request, user)
                 return redirect('customers')
             else:
@@ -69,5 +68,16 @@ class AdminLoginView(View):
             return render(request, self.template_name)
 
 
+@never_cache
 def admin_customer_view(request):
-    return render(request, 'adminpanel/customers_panel.html')
+    if request.user.is_authenticated and request.user.is_staff:
+        return render(request, 'adminpanel/customers_panel.html')
+
+    return redirect('admin_login')
+
+
+@never_cache
+def admin_logout(request):
+    if request.user.is_authenticated and request.user.is_staff:
+        logout(request)
+        return redirect('admin_login')

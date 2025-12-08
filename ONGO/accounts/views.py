@@ -32,7 +32,7 @@ class SignupView(View):
     template_name = 'accounts/user-sigup.html'
 
     def get(self, request):
-        if request.user.is_authenticated:
+        if request.user.is_authenticated and request.user.is_staff is False:
             return redirect('home')
         return render(request, self.template_name)
 
@@ -212,7 +212,7 @@ class LoginView(View):
     template_name = "accounts/user-login.html"
 
     def get(self, request):
-        if request.user.is_authenticated:
+        if request.user.is_authenticated and request.user.is_staff is False:
             return redirect('home')
         if request.session.get('verified_user_id'):
             request.session.pop('verified_user_id', None)
