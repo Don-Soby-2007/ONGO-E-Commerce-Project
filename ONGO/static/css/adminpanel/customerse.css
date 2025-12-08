@@ -1,0 +1,60 @@
+/* Custom Tailwind Configuration (using rose/pink palette for primary color) */
+:root {
+    --primary-light: #fceef0; /* Very light pink for active background */
+    --primary-main: #E91E63; /* Primary rose color */
+    --text-dark: #333333;
+    --bg-light: #F9F9F9;
+}
+
+/* Set Inter font globally */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    min-height: 100vh;
+}
+
+/* Custom Styles for Sidebar Links and Animation */
+.nav-link {
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    @apply flex items-center p-3 rounded-xl text-gray-600 hover:bg-gray-100;
+}
+
+.nav-link.active {
+    background-color: var(--primary-light);
+    color: var(--primary-main);
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.nav-link.active .icon {
+    stroke: var(--primary-main);
+}
+
+/* Custom styles for Status badges */
+.status-badge {
+    @apply px-3 py-1 text-xs font-semibold rounded-full text-center min-w-[70px];
+    transition: background-color 0.3s ease;
+}
+
+.status-active {
+    @apply bg-green-100 text-green-700;
+}
+
+.status-expired {
+    @apply bg-red-100 text-red-700;
+}
+
+.status-inactive {
+    @apply bg-yellow-100 text-yellow-700;
+}
+
+/* Animation for table rows on hover */
+.data-row {
+    transition: background-color 0.15s ease-in-out;
+    cursor: pointer;
+}
+.data-row:hover {
+    background-color: var(--primary-light); /* Hover uses the active sidebar background color */
+}

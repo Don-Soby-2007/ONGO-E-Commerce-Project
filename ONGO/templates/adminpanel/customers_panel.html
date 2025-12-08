@@ -1,240 +1,238 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ON GO - Customers</title>
+    <title>ONGO Admin | Customers</title>
+    <!-- Load Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Load Lucide Icons for high-quality SVG icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{% static 'css/adminpanel/customerse.css' %}" rel="stylesheet">
 </head>
-<body class="bg-gray-100 font-sans">
-    <!-- Header -->
-    <header class="bg-pink-50 px-6 py-4 flex justify-between items-center">
-        <div class="text-xl font-bold text-gray-800">ON GO</div>
-        <div class="flex items-center space-x-4">
-            <div class="w-10 h-10 bg-gray-300 rounded-full overflow-hidden">
-                <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="User" class="w-full h-full object-cover">
-            </div>
-        </div>
-    </header>
+<body>
+    <!-- Main Application Layout -->+
+    <div class="flex flex-col h-screen overflow-hidden">
 
-    <div class="flex h-screen">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-white shadow-lg flex flex-col">
-            <nav class="flex-1 p-4">
-                <ul class="space-y-2">
-                    <li><a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md"><i class="fas fa-home mr-3 text-gray-500"></i>Dashboard</a></li>
-                    <li><a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md"><i class="fas fa-chart-bar mr-3 text-gray-500"></i>Analytics</a></li>
-                    <li><a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md"><i class="fas fa-truck mr-3 text-gray-500"></i>Orders</a></li>
-                    <li><a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md"><i class="fas fa-box mr-3 text-gray-500"></i>Categories</a></li>
-                    <li><a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md"><i class="fas fa-list mr-3 text-gray-500"></i>Products</a></li>
-                    <li><a href="#" class="flex items-center px-4 py-3 text-gray-700 bg-pink-100 rounded-md"><i class="fas fa-users mr-3 text-gray-500"></i>Customers</a></li>
-                    <li><a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md"><i class="fas fa-ticket-alt mr-3 text-gray-500"></i>Coupons</a></li>
-                    <li><a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md"><i class="fas fa-bullhorn mr-3 text-gray-500"></i>Offer</a></li>
-                    <li><a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md"><i class="fas fa-undo mr-3 text-gray-500"></i>Returns</a></li>
-                    <li><a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md"><i class="fas fa-image mr-3 text-gray-500"></i>Banners</a></li>
-                    <li><a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md"><i class="fas fa-cog mr-3 text-gray-500"></i>Settings</a></li>
-                </ul>
-            </nav>
-            
-            <!-- Logout Button -->
-            <div class="p-4 border-t">
-                <a href="{% url 'admin_logout' %}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md">
-                    <i class="fas fa-sign-out-alt mr-3 text-gray-500"></i>Logout
-                </a>
+        <!-- 1. Top Header -->
+        <header class="h-16 flex items-center justify-between px-6 border-b border-gray-200 bg-white shadow-sm z-10">
+            <!-- Logo -->
+            <div class="text-xl font-bold tracking-widest text-gray-800">ONGO</div>
+            <!-- User Profile (Placeholder) -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                    <i data-lucide="user" class="w-5 h-5 text-gray-500"></i>
+                </div>
             </div>
-        </aside>
+        </header>
 
-        <!-- Main Content -->
-        <main class="flex-1 p-6 overflow-y-auto">
-            <h1 class="text-2xl font-bold text-gray-800 mb-6">Customers</h1>
-            
-            <!-- Search and Filter Section -->
-            <div class="flex flex-col md:flex-row gap-4 mb-6">
-                <div class="relative flex-1">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fas fa-search text-gray-400"></i>
-                    </div>
-                    <input type="text" placeholder="Search customers..." class="pl-10 pr-4 py-2 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-200">
-                </div>
-                
-                <div class="flex gap-2">
-                    <button class="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Filter by Status</button>
-                    <button class="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Sort by</button>
-                </div>
-            </div>
-            
-            <!-- Customer Table -->
-            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orders</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <!-- Customer 1 -->
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10">
-                                            <img class="h-10 w-10 rounded-full" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Sophia Carter">
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">Sophia Carter</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-pink-600">sophia.carter@example.com</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">5</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <button class="text-gray-400 hover:text-gray-600">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            
-                            <!-- Customer 2 -->
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10">
-                                            <img class="h-10 w-10 rounded-full" src="https://randomuser.me/api/portraits/women/65.jpg" alt="Olivia Bennett">
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">Olivia Bennett</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-pink-600">olivia.bennett@example.com</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">12</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <button class="text-gray-400 hover:text-gray-600">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            
-                            <!-- Customer 3 -->
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10">
-                                            <img class="h-10 w-10 rounded-full" src="https://randomuser.me/api/portraits/men/32.jpg" alt="Ethan Harper">
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">Ethan Harper</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-pink-600">ethan.h@example.com</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">1</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Expired</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <button class="text-gray-400 hover:text-gray-600">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            
-                            <!-- Customer 4 -->
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10">
-                                            <img class="h-10 w-10 rounded-full" src="https://randomuser.me/api/portraits/women/22.jpg" alt="Ava Mitchell">
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">Ava Mitchell</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-pink-600">ava.m@example.com</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">8</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <button class="text-gray-400 hover:text-gray-600">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            
-                            <!-- Customer 5 -->
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10">
-                                            <img class="h-10 w-10 rounded-full" src="https://randomuser.me/api/portraits/men/45.jpg" alt="Liam Foster">
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">Liam Foster</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-pink-600">liam.f@example.com</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">3</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Inactive</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <button class="text-gray-400 hover:text-gray-600">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <!-- Pagination -->
-            <div class="mt-6 flex items-center justify-center">
-                <nav class="inline-flex -space-x-px">
-                    <a href="#" class="px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50">Previous</a>
-                    <a href="#" class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-pink-50 hover:text-pink-700">1</a>
-                    <a href="#" class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">2</a>
-                    <a href="#" class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">3</a>
-                    <a href="#" class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">4</a>
-                    <a href="#" class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">5</a>
-                    <a href="#" class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50">Next</a>
+        <!-- 2. Main Content Area (Sidebar + Body) -->
+        <div class="flex flex-1 overflow-hidden">
+
+            <!-- 2.1. Sidebar Navigation -->
+            <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 p-4 flex flex-col justify-between overflow-y-auto">
+                <nav class="space-y-1 inline-grid grid-cols-1 gap-y-5">
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="dashboard">
+                        <i data-lucide="layout-dashboard" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Dashboard</h2>
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="analytics">
+                        <i data-lucide="bar-chart-2" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Analytics</h2>
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="orders">
+                        <i data-lucide="package" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Orders</h2>
+                   </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="categories">
+                        <i data-lucide="grip" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Categories</h2>
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="products">
+                        <i data-lucide="list-checks" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Products</h2>
+                    </a>
+                    <!-- Active Link -->
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 active" href="#" data-page="customers">
+                        <i data-lucide="users" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Customers</h2>
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="coupons">
+                        <i data-lucide="tag" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Coupons</h2>
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="offer">
+                        <i data-lucide="gift" class="icon w-5 h-5 mr-3"></i>
+                       <h2> Offer</h2>
+                   </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="returns">
+                        <i data-lucide="corner-down-left" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Returns</h2>
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="banners">
+                        <i data-lucide="image" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Banners</h2>                    
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="settings">
+                        <i data-lucide="settings" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Settings</h2>
+                    </a>
                 </nav>
-            </div>
-        </main>
+
+              <!-- Logout -->
+                <div class="mt-8 pt-4 border-t border-gray-200">
+                    <a class="text-gray-500 hover:text-gray-800 flex items-center space-x-3 py-2 px-3" href='{% url "admin_logout" %}'>
+                        <i data-lucide="log-out" class="icon w-5 h-5 mr-3"></i>
+                        Logout
+                    </a>
+                </div>
+            </aside>
+
+            <!-- 2.2. Main Content Body -->
+            <main class="flex-1 p-8 overflow-y-auto">
+                <h1 class="text-3xl font-bold mb-6 text-gray-800">Customers</h1>
+
+                <!-- Search, Filter & Sort Section -->
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                    <div class="flex flex-col md:flex-row gap-4 items-center mb-6">
+                        <!-- Search Bar -->
+                        <div class="relative flex-1 w-full md:w-auto">
+                            <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                            <input type="text" placeholder="Search customers..." class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-rose-500 focus:border-rose-500 outline-none transition duration-150" />
+                        </div>
+
+                        <!-- Filter and Sort Buttons -->
+                        <div class="flex space-x-3 w-full md:w-auto justify-end">
+                            <button class="flex items-center px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition duration-150 text-sm font-medium">
+                                Filter by Status
+                                <i data-lucide="chevron-down" class="w-4 h-4 ml-2"></i>
+                            </button>
+                            <button class="flex items-center px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition duration-150 text-sm font-medium">
+                                Sort by
+                                <i data-lucide="chevron-down" class="w-4 h-4 ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Customer Table -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-100">
+                            <thead>
+                                <tr class="text-left text-xs font-semibold uppercase text-gray-500 tracking-wider">
+                                    <th class="py-3 px-4 w-1/4">Customer</th>
+                                    <th class="py-3 px-4 w-1/4">Contact</th>
+                                    <th class="py-3 px-4 w-1/8">Orders</th>
+                                    <th class="py-3 px-4 w-1/8 text-center">Status</th>
+                                    <th class="py-3 px-4 w-1/8 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-gray-700">
+                                {% for user in users %}
+                                    <tr class="data-row">
+                                    <td class="py-3 px-4 flex items-center space-x-3">
+                                        <div class="w-9 h-9 bg-pink-100 rounded-full overflow-hidden flex-shrink-0">
+                                            <img src="https://placehold.co/90x90/FCEEF0/E91E63?text=SC" onerror="this.src='https://placehold.co/90x90/FCEEF0/E91E63?text=SC'" alt="Sophia Carter" class="w-full h-full object-cover">
+                                        </div>
+                                        <span class="font-medium">{{user.username}}</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-rose-500 font-medium text-sm">{{user.email}}</td>
+                                    <td class="py-3 px-4">5</td>
+                                    <td class="py-3 px-4 text-center">
+                                        <span class="status-badge 
+                                            {% if user.is_active and user.is_verified %}
+                                                status-active
+                                            {% elif user.is_active %}  
+                                                status-pending 
+                                            {% else %} 
+                                                status-inactive
+                                            {% endif %}">
+                                            
+                                            {% if user.is_active and user.is_verified %}
+                                                Active
+                                            {% else %} 
+                                                Blocked 
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4 text-center">
+                                        <button class="text-gray-400 hover:text-rose-500 p-1 rounded-md transition duration-150" title="Delete Customer">
+                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="flex justify-center items-center mt-6 space-x-2">
+                        <button class="p-2 text-gray-400 hover:text-gray-700 transition duration-150" title="Previous Page">
+                            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                        </button>
+                        <span class="w-8 h-8 flex items-center justify-center rounded-full text-white bg-[var(--primary-main)] font-semibold text-sm">1</span>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 transition duration-150 text-sm">2</button>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 transition duration-150 text-sm">3</button>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 transition duration-150 text-sm">4</button>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 transition duration-150 text-sm">5</button>
+                        <button class="p-2 text-gray-400 hover:text-gray-700 transition duration-150" title="Next Page">
+                            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </main>
+        </div>
     </div>
+
+    <!-- JavaScript for Icon Replacement and Interactivity -->
+    <script>
+        // Use Lucide library to replace data-lucide tags with SVG icons
+        lucide.createIcons();
+
+        // -----------------------------------------------------------------
+        // Sidebar Interactivity and Active State Management (Animation/Transition)
+        // -----------------------------------------------------------------
+
+        const sidebarLinks = document.querySelectorAll('.nav-link');
+
+        // Function to handle link clicks
+        const handleLinkClick = (event) => {
+            // Prevent default navigation for demonstration
+            event.preventDefault();
+
+            // Remove 'active' class from all links
+            sidebarLinks.forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Add 'active' class to the clicked link
+            event.currentTarget.classList.add('active');
+
+            // Optional: Log which page was theoretically navigated to
+            const pageName = event.currentTarget.getAttribute('data-page');
+            console.log(`Mapsd to: ${pageName}`);
+        };
+
+        // Attach event listeners
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', handleLinkClick);
+        });
+
+        // Ensure the initial active link is set up correctly (already done in HTML, but good practice to handle dynamically)
+        window.onload = () => {
+             // Find the link with the 'customers' data-page attribute and ensure it is active
+             const customersLink = document.querySelector('.nav-link[data-page="customers"]');
+             if (customersLink && !customersLink.classList.contains('active')) {
+                 // Fallback/Safety Check: Ensure only 'Customers' is active on load
+                 sidebarLinks.forEach(link => link.classList.remove('active'));
+                 customersLink.classList.add('active');
+             }
+             console.log("Page loaded and icons initialized.");
+        };
+    </script>
 </body>
-</html>dashboard
+</html>

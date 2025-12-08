@@ -68,12 +68,22 @@ class AdminLoginView(View):
             return render(request, self.template_name)
 
 
-@never_cache
-def admin_customer_view(request):
-    if request.user.is_authenticated and request.user.is_staff:
-        return render(request, 'adminpanel/customers_panel.html')
+@method_decorator(never_cache, name='dispatch')
+class AdminCustomersView(View):
 
-    return redirect('admin_login')
+    template_name = 'adminpanel/customers_panel.html'
+
+    def get(self, request):
+        if request.user.is_authenticated and request.user.is_staff:
+
+            user = User.objects.filter(is_staff=False).all()
+
+            users = {
+                'users': user
+            }
+            return render(request, self.template_name, users)
+
+        return redirect('admin_login')
 
 
 @never_cache
