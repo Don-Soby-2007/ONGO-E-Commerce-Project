@@ -113,6 +113,7 @@ function updateSubmitButton() {
 
 document.addEventListener('DOMContentLoaded', () => {
     const fields = ['email', 'password'];
+    const button = document.getElementById('loginBtn');
     fields.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -120,6 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
             el.addEventListener('blur', updateSubmitButton);
         }
     });
+
+    button.classList.remove('bg-red-600', 'hover:bg-red-700');
+    button.classList.add('bg-gray-400', 'cursor-not-allowed');
 
     // Initial check
     setupPasswordToggles();
