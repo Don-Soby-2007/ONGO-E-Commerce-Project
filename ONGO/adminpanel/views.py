@@ -3,6 +3,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.contrib import messages
 from django.views import View
+from django.views.generic import ListView
 from django.contrib.auth import authenticate, login, logout
 from accounts.models import User
 
@@ -69,21 +70,23 @@ class AdminLoginView(View):
 
 
 @method_decorator(never_cache, name='dispatch')
-class AdminCustomersView(View):
-
+class AdminCustomersView(ListView):
+    model = User
     template_name = 'adminpanel/customers_panel.html'
+    context_object_name = 'users'
+    paginate_by = 6
 
-    def get(self, request):
-        if request.user.is_authenticated and request.user.is_staff:
+    # def get(self, request):
+    #     if request.user.is_authenticated and request.user.is_staff:
 
-            user = User.objects.filter(is_staff=False).all()
+    #         user = User.objects.all().filter(is_staff=False)[::-1]
 
-            users = {
-                'users': user
-            }
-            return render(request, self.template_name, users)
+    #         users = {
+    #             'users': user
+    #         }
+    #         return render(request, self.template_name, users)
 
-        return redirect('admin_login')
+    #     return redirect('admin_login')
 
 
 @never_cache

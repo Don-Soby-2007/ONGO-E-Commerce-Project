@@ -14,7 +14,7 @@
     <link href="{% static 'css/adminpanel/customerse.css' %}" rel="stylesheet">
 </head>
 <body>
-    <!-- Main Application Layout -->+
+    <!-- Main Application Layout -->
     <div class="flex flex-col h-screen overflow-hidden">
 
         <!-- 1. Top Header -->
@@ -144,8 +144,6 @@
                                         <span class="status-badge 
                                             {% if user.is_active and user.is_verified %}
                                                 status-active
-                                            {% elif user.is_active %}  
-                                                status-pending 
                                             {% else %} 
                                                 status-inactive
                                             {% endif %}">
@@ -169,7 +167,7 @@
                     </div>
 
                     <!-- Pagination -->
-                    <div class="flex justify-center items-center mt-6 space-x-2">
+                    {% comment %} <div class="flex justify-center items-center mt-6 space-x-2">
                         <button class="p-2 text-gray-400 hover:text-gray-700 transition duration-150" title="Previous Page">
                             <i data-lucide="chevron-left" class="w-5 h-5"></i>
                         </button>
@@ -181,8 +179,34 @@
                         <button class="p-2 text-gray-400 hover:text-gray-700 transition duration-150" title="Next Page">
                             <i data-lucide="chevron-right" class="w-5 h-5"></i>
                         </button>
+                    </div> {% endcomment %}
+                    <div class="flex justify-center items-center mt-6 space-x-2">
+                        <span class="step-links flex items-center">
+                            {% if page_obj.has_previous %}
+                                <a href="?page=1" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="First Page">
+                                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                                </a>
+                                <a href="?page={{ page_obj.previous_page_number }}" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="Previous Page">
+                                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                                </a>
+                            {% endif %}
+
+                            <span class="font-semibold text-sm mx-4">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                            </span>
+
+                            {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="Next Page">
+                                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                                </a>
+                                <a href="?page={{ page_obj.paginator.num_pages }}" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="Last Page">
+                                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                                </a>
+                            {% endif %}
+                        </span>
                     </div>
-                </div>
 
             </main>
         </div>
