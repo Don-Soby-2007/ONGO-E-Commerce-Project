@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views import View
+from django.db.models import Q
 from django.views.generic import ListView
 from django.contrib.auth import authenticate, login, logout
 from accounts.models import User
@@ -69,12 +71,12 @@ class AdminLoginView(View):
             return render(request, self.template_name)
 
 
-@method_decorator(never_cache, name='dispatch')
-class AdminCustomersView(ListView):
-    model = User
-    template_name = 'adminpanel/customers_panel.html'
-    context_object_name = 'users'
-    paginate_by = 6
+# @method_decorator(never_cache, name='dispatch')
+# class AdminCustomersView(ListView):
+#     model = User
+#     template_name = 'adminpanel/customers_panel.html'
+#     context_object_name = 'users'
+#     paginate_by = 6
 
     # def get(self, request):
     #     if request.user.is_authenticated and request.user.is_staff:
@@ -87,6 +89,29 @@ class AdminCustomersView(ListView):
     #         return render(request, self.template_name, users)
 
     #     return redirect('admin_login')
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name='dispatch')
+class AdminCustomersView(ListView):
+    model = User
+    template_name = 'adminpanel/customers_panel.html'
+    context_object_name = 'users'
+    paginate_by = 6
+
+    def get_queryset(self):
+        queryset = User.objects.all().order_by('-is_active')
+        
+        search_query = self.request.GET.get('search_query')
+        if search_query:
+            queryset = queryset.filter(Q(username__icontains=search_query) | Q(email__icontains=search_query))
+        
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search_query', '')
+        return context
 
 
 @never_cache
