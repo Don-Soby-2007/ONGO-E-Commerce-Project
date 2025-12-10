@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.views.generic import ListView
 from django.contrib.auth import authenticate, login, logout
 from accounts.models import User
+from django.http import JsonResponse
 
 from django.db import DatabaseError
 
@@ -101,17 +102,64 @@ class AdminCustomersView(ListView):
 
     def get_queryset(self):
         queryset = User.objects.all().order_by('-is_active')
-        
+
         search_query = self.request.GET.get('search_query')
         if search_query:
             queryset = queryset.filter(Q(username__icontains=search_query) | Q(email__icontains=search_query))
-        
+
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('search_query', '')
         return context
+
+
+@login_required(login_url='admin_login')
+@never_cache
+def delete_user_view(request, user_id):
+    if not request.user.is_staff:
+        messages.error(request, "You are not authorized to perform this action")
+        return redirect('admin_login')
+
+    try:
+        # Get user and toggle activation status
+        user = User.objects.get(id=user_id)
+        user.is_active = not user.is_active
+        user.save()
+
+        if user.is_active:
+            message = f"User '{user.username}' activated successfully."
+            logger.info(f"Admin {request.user.username} activated user ID {user_id} ({user.username}).")
+        else:
+            message = f"User '{user.username}' deactivated successfully."
+            logger.info(f"Admin {request.user.username} deactivated user ID {user_id} ({user.username}).")
+        return JsonResponse({
+            'success': True,
+            'message': message,
+            'new_status': 'Active' if user.is_active else 'Inactive'
+        })
+
+    except User.DoesNotExist:
+        logger.warning(f"Admin {request.user.username} tried to toggle non-existent user ID {user_id}")
+        return JsonResponse({
+                'success': False,
+                'message': "User not found."
+        }, status=404)
+
+    except DatabaseError as db_err:
+        logger.error(f"Database error toggling user ID {user_id}: {db_err}")
+        return JsonResponse({
+                'success': False,
+                'message': "Database error occurred while updating user. Please try again later."
+        }, status=500)
+
+    except Exception as e:
+        logger.error(f"Unexpected error toggling user {user_id}: {e}")
+        return JsonResponse({
+                'success': False,
+                'message': "An unexpected error occurred while updating the user"
+        }, status=500)
 
 
 @never_cache
