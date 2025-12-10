@@ -98,10 +98,10 @@ class AdminCustomersView(ListView):
     model = User
     template_name = 'adminpanel/customers_panel.html'
     context_object_name = 'users'
-    paginate_by = 6
+    paginate_by = 8
 
     def get_queryset(self):
-        queryset = User.objects.all().order_by('-is_active')
+        queryset = User.objects.filter(is_staff=False).order_by('-is_active')
 
         search_query = self.request.GET.get('search_query')
         if search_query:
