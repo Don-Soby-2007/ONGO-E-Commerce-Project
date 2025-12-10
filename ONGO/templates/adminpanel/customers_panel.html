@@ -138,7 +138,9 @@
                                     <tr class="data-row">
                                     <td class="py-3 px-4 flex items-center space-x-3">
                                         <div class="w-9 h-9 bg-pink-100 rounded-full overflow-hidden flex-shrink-0">
-                                            <img src="https://placehold.co/90x90/FCEEF0/E91E63?text=SC" onerror="this.src='https://placehold.co/90x90/FCEEF0/E91E63?text=SC'" alt="Sophia Carter" class="w-full h-full object-cover">
+                                            <img src="{{user.get_profile_picture_url}}" 
+                                            alt="{{user.username}}" 
+                                            class="w-full h-full object-cover">
                                         </div>
                                         <span class="font-medium">{{user.username}}</span>
                                     </td>
