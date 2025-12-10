@@ -1,5 +1,6 @@
 {% extends 'common/base_auth.html' %}
 {% load static %}
+{% load socialaccount %}
 {% block title %}Sign Up{% endblock title %}
 {% block forms %}
 
@@ -137,7 +138,7 @@
                 </div>
 
                 <!-- Google Button -->
-                <a href="/accounts/google/login/?next=/">
+                <a href="{% url provider_login_url 'google' process='login' %}?next=/">
                     <button type="button" class="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-md py-3 hover:bg-gray-50 transition">
                         <img class="w-5 h-5" src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google">
                         <span>Sign up with Google</span>

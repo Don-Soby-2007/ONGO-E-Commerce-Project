@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',  # Google provider
-    'accounts',
+    'accounts.apps.AccountsConfig',
     'adminpanel',
 ]
 
@@ -176,42 +176,49 @@ if not all([CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET]):
     )
 
 # Allauth Configuration
+# Site ID (required)
 SITE_ID = 1
 
+# Authentication backends — important!
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# Allauth settings - keeping your original deprecated settings
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False  # Changed to False to match your email-based auth
+# Custom user model
+AUTH_USER_MODEL = 'accounts.User'  # e.g., 'accounts.User'
+
+# Email as username
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_VERIFICATION = 'none'  # Changed from 'optional' to 'none'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
 
-# Social account settings
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        }
-    }
-}
-
-# Key settings for Google authentication
-SOCIALACCOUNT_LOGIN_ON_GET = True      # Skip intermediate page
+# Disable sign-up via third-party (since you prefer auto sign-up *without forms*)
+# We’ll handle auto-creation & skip extra forms
+ACCOUNT_EMAIL_VERIFICATION = 'none'  # or 'mandatory' if you want email verification (but you use OTP)
+SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
-SOCIALACCOUNT_AUTO_SIGNUP = True       # Allow auto signup
-SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'http://127.0.0.1:8000/accounts/google/login/callback/'  # Google provides verified emails
+SOCIALACCOUNT_LOGIN_ON_GET = True
 
-# Use your custom adapter
-SOCIALACCOUNT_ADAPTER = 'accounts.adapter.CustomSocialAccountAdapter'
+# Skip the social signup form (auto-create user based on Google profile)
+SOCIALACCOUNT_ADAPTER = 'accounts.adapter.SocialAccountAdapter'
 
-# Login/Logout redirects
+# Optional: redirect after login
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# Google OAuth2 config (will set in admin later, but good to know keys)
+# SOCIALACCOUNT_PROVIDERS = {
+#     'google': {
+#         'SCOPE': [
+#             'profile',
+#             'email',
+#         ],
+#         'AUTH_PARAMS': {
+#             'access_type': 'online',
+#         },
+#         'OAUTH_PKCE_ENABLED': True,
+#     }
+# }
