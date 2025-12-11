@@ -7,10 +7,12 @@
 
     <h1 class="text-3xl font-bold mb-6 text-gray-800">Category Management</h1>
     <div class="flex justify-end">
+        <a href="{% url 'add_category' %}">
         <button class="flex items-center ml-auto px-4 py-3 mb-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition duration-150 text-sm font-medium">
                     Add New Category
                     <i data-lucide="plus" class="w-4 h-4 ml-2"></i>
         </button>
+        </a>
     </div>
 
     <!-- Search, Filter & Sort Section -->

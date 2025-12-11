@@ -203,3 +203,15 @@ class AdminCategoryView(ListView):
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('search_query', '')
         return context
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name='dispatch')
+class AddCategoryView(View):
+
+    template_name = 'adminpanel/add_category.html'
+
+    def get(self, request):
+        if request.user.is_authenticated and request.user.is_staff:
+            return render(request, self.template_name)
+        return redirect('admin_login')
