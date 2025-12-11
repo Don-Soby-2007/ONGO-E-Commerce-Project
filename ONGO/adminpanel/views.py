@@ -100,6 +100,11 @@ class AdminCustomersView(ListView):
     context_object_name = 'users'
     paginate_by = 8
 
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return redirect('login')
+        return super().dispatch(request, *args, **kwargs)
+
     def get_queryset(self):
         queryset = User.objects.filter(is_staff=False).order_by('-is_active')
 
@@ -167,5 +172,3 @@ def admin_logout(request):
     if request.user.is_authenticated and request.user.is_staff:
         logout(request)
         return redirect('admin_login')
-    else:
-        return redirect('home')

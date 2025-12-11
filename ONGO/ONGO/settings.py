@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',  # Google provider
     'accounts.apps.AccountsConfig',
     'adminpanel',
+    'products'
 ]
 
 MIDDLEWARE = [
