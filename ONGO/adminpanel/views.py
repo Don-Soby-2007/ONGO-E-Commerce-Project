@@ -7,7 +7,10 @@ from django.views import View
 from django.db.models import Q
 from django.views.generic import ListView
 from django.contrib.auth import authenticate, login, logout
+
 from accounts.models import User
+from products.models import Category
+
 from django.http import JsonResponse
 
 from django.db import DatabaseError
@@ -172,3 +175,31 @@ def admin_logout(request):
     if request.user.is_authenticated and request.user.is_staff:
         logout(request)
         return redirect('admin_login')
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name='dispatch')
+class AdminCategoryView(ListView):
+    model = Category
+    template_name = 'adminpanel/category_panel.html'
+    context_object_name = 'category_list'
+    paginate_by = 8
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return redirect('login')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        queryset = Category.objects.all().order_by('-is_active')
+
+        search_query = self.request.GET.get('search_query')
+        if search_query:
+            queryset = queryset.filter(name__icontains=search_query)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search_query', '')
+        return context

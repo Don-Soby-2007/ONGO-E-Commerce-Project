@@ -49,7 +49,7 @@
                         <i data-lucide="package" class="icon w-5 h-5 mr-3"></i>
                         <h2>Orders</h2>
                    </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="categories">
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="{% url 'category' %}" data-page="categories">
                         <i data-lucide="grip" class="icon w-5 h-5 mr-3"></i>
                         <h2>Categories</h2>
                     </a>
@@ -58,7 +58,7 @@
                         <h2>Products</h2>
                     </a>
                     <!-- Active Link -->
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3 active" href="#" data-page="customers">
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 active" href="{% url 'customers' %}" data-page="customers">
                         <i data-lucide="users" class="icon w-5 h-5 mr-3"></i>
                         <h2>Customers</h2>
                     </a>
@@ -104,49 +104,21 @@
 
     <!-- JavaScript for Icon Replacement and Interactivity -->
     <script>
-        // Use Lucide library to replace data-lucide tags with SVG icons
+        // Initialize Lucide icons
         lucide.createIcons();
 
-        // -----------------------------------------------------------------
-        // Sidebar Interactivity and Active State Management (Animation/Transition)
-        // -----------------------------------------------------------------
-
+        // Handle sidebar link clicks
         const sidebarLinks = document.querySelectorAll('.nav-link');
 
-        // Function to handle link clicks
-        const handleLinkClick = (event) => {
-            // Prevent default navigation for demonstration
-            event.preventDefault();
-
-            // Remove 'active' class from all links
-            sidebarLinks.forEach(link => {
-                link.classList.remove('active');
-            });
-
-            // Add 'active' class to the clicked link
-            event.currentTarget.classList.add('active');
-
-            // Optional: Log which page was theoretically navigated to
-            const pageName = event.currentTarget.getAttribute('data-page');
-            console.log(`Mapsd to: ${pageName}`);
-        };
-
-        // Attach event listeners
         sidebarLinks.forEach(link => {
-            link.addEventListener('click', handleLinkClick);
-        });
+            link.addEventListener('click', (event) => {
+                // Remove 'active' class from all links
+                sidebarLinks.forEach(l => l.classList.remove('active'));
 
-        // Ensure the initial active link is set up correctly (already done in HTML, but good practice to handle dynamically)
-        window.onload = () => {
-             // Find the link with the 'customers' data-page attribute and ensure it is active
-             const customersLink = document.querySelector('.nav-link[data-page="customers"]');
-             if (customersLink && !customersLink.classList.contains('active')) {
-                 // Fallback/Safety Check: Ensure only 'Customers' is active on load
-                 sidebarLinks.forEach(link => link.classList.remove('active'));
-                 customersLink.classList.add('active');
-             }
-             console.log("Page loaded and icons initialized.");
-        };
+                // Add 'active' class to clicked link
+                event.currentTarget.classList.add('active');
+            });
+        });
     </script>
 
     {% block scripts %}{% endblock %}

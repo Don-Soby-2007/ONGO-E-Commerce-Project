@@ -6,10 +6,12 @@
 {% block content %}
 
     <h1 class="text-3xl font-bold mb-6 text-gray-800">Category Management</h1>
-    <button class="flex items-center px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition duration-150 text-sm font-medium">
-                Add New Category
-                <i data-lucide="plus" class="w-4 h-4 ml-2"></i>
-    </button>
+    <div class="flex justify-end">
+        <button class="flex items-center ml-auto px-4 py-3 mb-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition duration-150 text-sm font-medium">
+                    Add New Category
+                    <i data-lucide="plus" class="w-4 h-4 ml-2"></i>
+        </button>
+    </div>
 
     <!-- Search, Filter & Sort Section -->
     <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
@@ -40,35 +42,30 @@
         <table class="min-w-full divide-y divide-gray-100">
             <thead>
                 <tr class="text-left text-xs font-semibold uppercase text-gray-500 tracking-wider">
-                    <th class="py-3 px-4 w-1/4">Customer</th>
-                    <th class="py-3 px-4 w-1/4">Contact</th>
-                    <th class="py-3 px-4 w-1/8">Orders</th>
+                    <th class="py-3 px-4 w-1/4">Category Name</th>
+                    <th class="py-3 px-4 w-1/4">Description</th>
+                    <th class="py-3 px-4 w-1/8">No.of Products</th>
                     <th class="py-3 px-4 w-1/8 text-center">Status</th>
                     <th class="py-3 px-4 w-1/8 text-center">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 text-gray-700">
-                {% for user in users %}
+                {% for category in category_list %}
                     <tr class="data-row">
                     <td class="py-3 px-4 flex items-center space-x-3">
-                        <div class="w-9 h-9 bg-pink-100 rounded-full overflow-hidden flex-shrink-0">
-                            <img src="{{user.get_profile_picture_url}}" 
-                            alt="{{user.username}}" 
-                            class="w-full h-full object-cover">
-                        </div>
-                        <span class="font-medium">{{user.username}}</span>
+                        <span class="font-medium">{{category.name}}</span>
                     </td>
-                    <td class="py-3 px-4 text-rose-500 font-medium text-sm">{{user.email}}</td>
+                    <td class="py-3 px-4 text-rose-500 font-medium text-sm">{{category.description}}</td>
                     <td class="py-3 px-4">5</td>
                     <td class="py-3 px-4 text-center">
                         <span class="status-badge 
-                            {% if user.is_active and user.is_verified %}
+                            {% if category.is_active%}
                                 status-active
                             {% else %} 
                                 status-inactive
                             {% endif %}">
                             
-                            {% if user.is_active and user.is_verified %}
+                            {% if category.is_active %}
                                 Active
                             {% else %} 
                                 Blocked 
@@ -76,11 +73,17 @@
                         </span>
                     </td>
                     <td class="py-3 px-4 text-center">
-                        <button id='deleteCustomerBtn' 
-                                data-user-id="{{user.id}}"
-                                data-status="{% if user.is_active %}Active{% else %}Inactive{% endif %}"
+                        <button id='edit-category-btn' 
+                                data-category-id="{{category.id}}"
+                                data-status="{% if category.is_active %}Active{% else %}Inactive{% endif %}"
+                                class="text-gray-400 hover:text-rose-500 p-1 rounded-md transition duration-150" >
+                            <i data-lucide="pencil_line" class="w-5 h-5"></i>
+                        </button>
+                        <button id='delete-category-btn' 
+                                data-category-id="{{category.id}}"
+                                data-status="{% if category.is_active %}Active{% else %}Inactive{% endif %}"
                                 class="text-gray-400 hover:text-rose-500 p-1 rounded-md transition duration-150" 
-                                title="{% if user.is_active %}Deactivate Customer{% else %}Activate Customer{% endif %}">
+                                title="{% if category.is_active %}Deactivate Category{% else %}Activate Category{% endif %}">
                             <i data-lucide="trash-2" class="w-5 h-5"></i>
                         </button>
                     </td>
@@ -120,6 +123,6 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="{% static 'js/adminpanel/customerDeleteAlert.js' %}"></script>
+    {% comment %} <script src="{% static 'js/adminpanel/customerDeleteAlert.js' %}"></script> {% endcomment %}
 {% endblock %}
 
