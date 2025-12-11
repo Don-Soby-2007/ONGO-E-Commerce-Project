@@ -1,258 +1,122 @@
+
+{% extends "common/base_admin_list.html" %}
 {% load static %}
+{% block title %}Admin Panel | Customers{% endblock %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ONGO Admin | Customers</title>
-    <!-- Load Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Lucide Icons for high-quality SVG icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.4/dist/sweetalert2.all.min.js" integrity="sha256-CXJQDRV/kfNAc4Ubtua9IIlDadsXV85fRIBQi4TThqs=" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.4/dist/sweetalert2.min.css" integrity="sha256-VqBagSPahwzjkw8/E0KAY23AmFZuYBxX6f6uVDgY1rg=" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="{% static 'css/adminpanel/customerse.css' %}" rel="stylesheet">
-</head>
-<body>
-    <!-- Main Application Layout -->
-    <div class="flex flex-col h-screen overflow-hidden">
+{% block content %}
 
-        <!-- 1. Top Header -->
-        <header class="h-16 flex items-center justify-between px-6 border-b border-gray-200 bg-white shadow-sm z-10">
-            <!-- Logo -->
-            <div class="text-xl font-bold tracking-widest text-gray-800">ONGO</div>
-            <!-- User Profile (Placeholder) -->
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                    <i data-lucide="user" class="w-5 h-5 text-gray-500"></i>
-                </div>
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">Customers</h1>
+
+    <!-- Search, Filter & Sort Section -->
+    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+    <div class="flex flex-col md:flex-row gap-4 items-center mb-6">
+        <!-- Search Bar -->
+        <form method="GET" class="relative flex-1 w-full md:w-auto">
+            <div class="relative">
+                <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                <input name = 'search_query' type="text" placeholder="Search customers..." value= '{{search_query}}' class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-rose-500 focus:border-rose-500 outline-none transition duration-150" />
             </div>
-        </header>
+        </form>
 
-        <!-- 2. Main Content Area (Sidebar + Body) -->
-        <div class="flex flex-1 overflow-hidden">
-
-            <!-- 2.1. Sidebar Navigation -->
-            <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 p-4 flex flex-col justify-between overflow-y-auto">
-                <nav class="space-y-1 inline-grid grid-cols-1 gap-y-5">
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="dashboard">
-                        <i data-lucide="layout-dashboard" class="icon w-5 h-5 mr-3"></i>
-                        <h2>Dashboard</h2>
-                    </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="analytics">
-                        <i data-lucide="bar-chart-2" class="icon w-5 h-5 mr-3"></i>
-                        <h2>Analytics</h2>
-                    </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="orders">
-                        <i data-lucide="package" class="icon w-5 h-5 mr-3"></i>
-                        <h2>Orders</h2>
-                   </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="categories">
-                        <i data-lucide="grip" class="icon w-5 h-5 mr-3"></i>
-                        <h2>Categories</h2>
-                    </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="products">
-                        <i data-lucide="list-checks" class="icon w-5 h-5 mr-3"></i>
-                        <h2>Products</h2>
-                    </a>
-                    <!-- Active Link -->
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3 active" href="#" data-page="customers">
-                        <i data-lucide="users" class="icon w-5 h-5 mr-3"></i>
-                        <h2>Customers</h2>
-                    </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="coupons">
-                        <i data-lucide="tag" class="icon w-5 h-5 mr-3"></i>
-                        <h2>Coupons</h2>
-                    </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="offer">
-                        <i data-lucide="gift" class="icon w-5 h-5 mr-3"></i>
-                       <h2> Offer</h2>
-                   </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="returns">
-                        <i data-lucide="corner-down-left" class="icon w-5 h-5 mr-3"></i>
-                        <h2>Returns</h2>
-                    </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="banners">
-                        <i data-lucide="image" class="icon w-5 h-5 mr-3"></i>
-                        <h2>Banners</h2>                    
-                    </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="settings">
-                        <i data-lucide="settings" class="icon w-5 h-5 mr-3"></i>
-                        <h2>Settings</h2>
-                    </a>
-                </nav>
-
-              <!-- Logout -->
-                <div class="mt-8 pt-4 border-t border-gray-200">
-                    <a class="text-gray-500 hover:text-gray-800 flex items-center space-x-3 py-2 px-3" href='{% url "admin_logout" %}'>
-                        <i data-lucide="log-out" class="icon w-5 h-5 mr-3"></i>
-                        Logout
-                    </a>
-                </div>
-            </aside>
-
-            <!-- 2.2. Main Content Body -->
-            <main class="flex-1 p-8 overflow-y-auto">
-                <h1 class="text-3xl font-bold mb-6 text-gray-800">Customers</h1>
-
-                <!-- Search, Filter & Sort Section -->
-                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                    <div class="flex flex-col md:flex-row gap-4 items-center mb-6">
-                        <!-- Search Bar -->
-                        <form method="GET" class="relative flex-1 w-full md:w-auto">
-                            <div class="relative">
-                                <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"></i>
-                                <input name = 'search_query' type="text" placeholder="Search customers..." value= '{{search_query}}' class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-rose-500 focus:border-rose-500 outline-none transition duration-150" />
-                            </div>
-                        </form>
-
-                        <!-- Filter and Sort Buttons -->
-                        <div class="flex space-x-3 w-full md:w-auto justify-end">
-                            <button class="flex items-center px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition duration-150 text-sm font-medium">
-                                Filter by Status
-                                <i data-lucide="chevron-down" class="w-4 h-4 ml-2"></i>
-                            </button>
-                            <button class="flex items-center px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition duration-150 text-sm font-medium">
-                                Sort by
-                                <i data-lucide="chevron-down" class="w-4 h-4 ml-2"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Customer Table -->
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-100">
-                            <thead>
-                                <tr class="text-left text-xs font-semibold uppercase text-gray-500 tracking-wider">
-                                    <th class="py-3 px-4 w-1/4">Customer</th>
-                                    <th class="py-3 px-4 w-1/4">Contact</th>
-                                    <th class="py-3 px-4 w-1/8">Orders</th>
-                                    <th class="py-3 px-4 w-1/8 text-center">Status</th>
-                                    <th class="py-3 px-4 w-1/8 text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 text-gray-700">
-                                {% for user in users %}
-                                    <tr class="data-row">
-                                    <td class="py-3 px-4 flex items-center space-x-3">
-                                        <div class="w-9 h-9 bg-pink-100 rounded-full overflow-hidden flex-shrink-0">
-                                            <img src="{{user.get_profile_picture_url}}" 
-                                            alt="{{user.username}}" 
-                                            class="w-full h-full object-cover">
-                                        </div>
-                                        <span class="font-medium">{{user.username}}</span>
-                                    </td>
-                                    <td class="py-3 px-4 text-rose-500 font-medium text-sm">{{user.email}}</td>
-                                    <td class="py-3 px-4">5</td>
-                                    <td class="py-3 px-4 text-center">
-                                        <span class="status-badge 
-                                            {% if user.is_active and user.is_verified %}
-                                                status-active
-                                            {% else %} 
-                                                status-inactive
-                                            {% endif %}">
-                                            
-                                            {% if user.is_active and user.is_verified %}
-                                                Active
-                                            {% else %} 
-                                                Blocked 
-                                            {% endif %}
-                                        </span>
-                                    </td>
-                                    <td class="py-3 px-4 text-center">
-                                        <button id='deleteCustomerBtn' 
-                                                data-user-id="{{user.id}}"
-                                                data-status="{% if user.is_active %}Active{% else %}Inactive{% endif %}"
-                                                class="text-gray-400 hover:text-rose-500 p-1 rounded-md transition duration-150" 
-                                                title="{% if user.is_active %}Deactivate Customer{% else %}Activate Customer{% endif %}">
-                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="flex justify-center items-center mt-6 space-x-2">
-                        <span class="step-links flex items-center">
-                            {% if page_obj.has_previous %}
-                                <a href="?page=1" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="First Page">
-                                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
-                                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
-                                </a>
-                                <a href="?page={{ page_obj.previous_page_number }}" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="Previous Page">
-                                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
-                                </a>
-                            {% endif %}
-
-                            <span class="font-semibold text-sm mx-4">
-                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-                            </span>
-
-                            {% if page_obj.has_next %}
-                                <a href="?page={{ page_obj.next_page_number }}" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="Next Page">
-                                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
-                                </a>
-                                <a href="?page={{ page_obj.paginator.num_pages }}" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="Last Page">
-                                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
-                                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
-                                </a>
-                            {% endif %}
-                        </span>
-                    </div>
-
-            </main>
+        <!-- Filter and Sort Buttons -->
+        <div class="flex space-x-3 w-full md:w-auto justify-end">
+            <button class="flex items-center px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition duration-150 text-sm font-medium">
+                Filter by Status
+                <i data-lucide="chevron-down" class="w-4 h-4 ml-2"></i>
+            </button>
+            <button class="flex items-center px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition duration-150 text-sm font-medium">
+                Sort by
+                <i data-lucide="chevron-down" class="w-4 h-4 ml-2"></i>
+            </button>
         </div>
     </div>
 
-    <!-- JavaScript for Icon Replacement and Interactivity -->
-    <script>
-        // Use Lucide library to replace data-lucide tags with SVG icons
-        lucide.createIcons();
+    <!-- Customer Table -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-100">
+            <thead>
+                <tr class="text-left text-xs font-semibold uppercase text-gray-500 tracking-wider">
+                    <th class="py-3 px-4 w-1/4">Customer</th>
+                    <th class="py-3 px-4 w-1/4">Contact</th>
+                    <th class="py-3 px-4 w-1/8">Orders</th>
+                    <th class="py-3 px-4 w-1/8 text-center">Status</th>
+                    <th class="py-3 px-4 w-1/8 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 text-gray-700">
+                {% for user in users %}
+                    <tr class="data-row">
+                    <td class="py-3 px-4 flex items-center space-x-3">
+                        <div class="w-9 h-9 bg-pink-100 rounded-full overflow-hidden flex-shrink-0">
+                            <img src="{{user.get_profile_picture_url}}" 
+                            alt="{{user.username}}" 
+                            class="w-full h-full object-cover">
+                        </div>
+                        <span class="font-medium">{{user.username}}</span>
+                    </td>
+                    <td class="py-3 px-4 text-rose-500 font-medium text-sm">{{user.email}}</td>
+                    <td class="py-3 px-4">5</td>
+                    <td class="py-3 px-4 text-center">
+                        <span class="status-badge 
+                            {% if user.is_active and user.is_verified %}
+                                status-active
+                            {% else %} 
+                                status-inactive
+                            {% endif %}">
+                            
+                            {% if user.is_active and user.is_verified %}
+                                Active
+                            {% else %} 
+                                Blocked 
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <button id='deleteCustomerBtn' 
+                                data-user-id="{{user.id}}"
+                                data-status="{% if user.is_active %}Active{% else %}Inactive{% endif %}"
+                                class="text-gray-400 hover:text-rose-500 p-1 rounded-md transition duration-150" 
+                                title="{% if user.is_active %}Deactivate Customer{% else %}Activate Customer{% endif %}">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="flex justify-center items-center mt-6 space-x-2">
+        <span class="step-links flex items-center">
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="First Page">
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="Previous Page">
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                </a>
+            {% endif %}
 
-        // -----------------------------------------------------------------
-        // Sidebar Interactivity and Active State Management (Animation/Transition)
-        // -----------------------------------------------------------------
+            <span class="font-semibold text-sm mx-4">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
 
-        const sidebarLinks = document.querySelectorAll('.nav-link');
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="Next Page">
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="Last Page">
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </a>
+            {% endif %}
+        </span>
+    </div>
 
-        // Function to handle link clicks
-        const handleLinkClick = (event) => {
-            // Prevent default navigation for demonstration
-            event.preventDefault();
+{% endblock %}
 
-            // Remove 'active' class from all links
-            sidebarLinks.forEach(link => {
-                link.classList.remove('active');
-            });
-
-            // Add 'active' class to the clicked link
-            event.currentTarget.classList.add('active');
-
-            // Optional: Log which page was theoretically navigated to
-            const pageName = event.currentTarget.getAttribute('data-page');
-            console.log(`Mapsd to: ${pageName}`);
-        };
-
-        // Attach event listeners
-        sidebarLinks.forEach(link => {
-            link.addEventListener('click', handleLinkClick);
-        });
-
-        // Ensure the initial active link is set up correctly (already done in HTML, but good practice to handle dynamically)
-        window.onload = () => {
-             // Find the link with the 'customers' data-page attribute and ensure it is active
-             const customersLink = document.querySelector('.nav-link[data-page="customers"]');
-             if (customersLink && !customersLink.classList.contains('active')) {
-                 // Fallback/Safety Check: Ensure only 'Customers' is active on load
-                 sidebarLinks.forEach(link => link.classList.remove('active'));
-                 customersLink.classList.add('active');
-             }
-             console.log("Page loaded and icons initialized.");
-        };
-    </script>
+{% block scripts %}
     <script src="{% static 'js/adminpanel/customerDeleteAlert.js' %}"></script>
-</body>
-</html>
+
+{% endblock %}
+

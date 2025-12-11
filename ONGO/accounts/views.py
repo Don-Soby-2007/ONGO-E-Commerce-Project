@@ -236,11 +236,14 @@ class LoginView(View):
                 return render(request, self.template_name)
 
             user = authenticate(request, email=email, password=password)
+            user_obj = User.objects.get(email=email)
+
+            if not user_obj.is_active and user_obj.is_verified:
+                messages.error(request, "You are blocked, Plese contact admin for further updation")
+                return render(request, self.template_name)
 
             if user is None:
                 raise User.DoesNotExist
-
-            user_obj = User.objects.get(email=email)
 
             if user_obj.is_active and user_obj.is_verified and user_obj.is_blocked is False:
                 login(request, user)

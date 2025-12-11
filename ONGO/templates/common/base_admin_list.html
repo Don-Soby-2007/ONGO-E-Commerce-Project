@@ -1,0 +1,155 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %} {% endblock %}</title>
+    <!-- Load Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide Icons for high-quality SVG icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.4/dist/sweetalert2.all.min.js" integrity="sha256-CXJQDRV/kfNAc4Ubtua9IIlDadsXV85fRIBQi4TThqs=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.4/dist/sweetalert2.min.css" integrity="sha256-VqBagSPahwzjkw8/E0KAY23AmFZuYBxX6f6uVDgY1rg=" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{% static 'css/adminpanel/customerse.css' %}" rel="stylesheet">
+</head>
+<body>
+    <!-- Main Application Layout -->
+    <div class="flex flex-col h-screen overflow-hidden">
+
+        <!-- 1. Top Header -->
+        <header class="h-16 flex items-center justify-between px-6 border-b border-gray-200 bg-white shadow-sm z-10">
+            <!-- Logo -->
+            <div class="text-xl font-bold tracking-widest text-gray-800">ONGO</div>
+            <!-- User Profile (Placeholder) -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                    <i data-lucide="user" class="w-5 h-5 text-gray-500"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- 2. Main Content Area (Sidebar + Body) -->
+        <div class="flex flex-1 overflow-hidden">
+
+            <!-- 2.1. Sidebar Navigation -->
+            <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 p-4 flex flex-col justify-between overflow-y-auto">
+                <nav class="space-y-1 inline-grid grid-cols-1 gap-y-5">
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="dashboard">
+                        <i data-lucide="layout-dashboard" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Dashboard</h2>
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="analytics">
+                        <i data-lucide="bar-chart-2" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Analytics</h2>
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="orders">
+                        <i data-lucide="package" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Orders</h2>
+                   </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="categories">
+                        <i data-lucide="grip" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Categories</h2>
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="products">
+                        <i data-lucide="list-checks" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Products</h2>
+                    </a>
+                    <!-- Active Link -->
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 active" href="#" data-page="customers">
+                        <i data-lucide="users" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Customers</h2>
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="coupons">
+                        <i data-lucide="tag" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Coupons</h2>
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="offer">
+                        <i data-lucide="gift" class="icon w-5 h-5 mr-3"></i>
+                       <h2> Offer</h2>
+                   </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="returns">
+                        <i data-lucide="corner-down-left" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Returns</h2>
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="banners">
+                        <i data-lucide="image" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Banners</h2>                    
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="settings">
+                        <i data-lucide="settings" class="icon w-5 h-5 mr-3"></i>
+                        <h2>Settings</h2>
+                    </a>
+                </nav>
+
+              <!-- Logout -->
+                <div class="mt-8 pt-4 border-t border-gray-200">
+                    <a class="text-gray-500 hover:text-gray-800 flex items-center space-x-3 py-2 px-3" href='{% url "admin_logout" %}'>
+                        <i data-lucide="log-out" class="icon w-5 h-5 mr-3"></i>
+                        Logout
+                    </a>
+                </div>
+            </aside>
+
+            <!-- 2.2. Main Content Body -->
+            <main class="flex-1 p-8 overflow-y-auto">
+                {% block content %}
+                <!-- Content will be injected here -->
+                {% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- JavaScript for Icon Replacement and Interactivity -->
+    <script>
+        // Use Lucide library to replace data-lucide tags with SVG icons
+        lucide.createIcons();
+
+        // -----------------------------------------------------------------
+        // Sidebar Interactivity and Active State Management (Animation/Transition)
+        // -----------------------------------------------------------------
+
+        const sidebarLinks = document.querySelectorAll('.nav-link');
+
+        // Function to handle link clicks
+        const handleLinkClick = (event) => {
+            // Prevent default navigation for demonstration
+            event.preventDefault();
+
+            // Remove 'active' class from all links
+            sidebarLinks.forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Add 'active' class to the clicked link
+            event.currentTarget.classList.add('active');
+
+            // Optional: Log which page was theoretically navigated to
+            const pageName = event.currentTarget.getAttribute('data-page');
+            console.log(`Mapsd to: ${pageName}`);
+        };
+
+        // Attach event listeners
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', handleLinkClick);
+        });
+
+        // Ensure the initial active link is set up correctly (already done in HTML, but good practice to handle dynamically)
+        window.onload = () => {
+             // Find the link with the 'customers' data-page attribute and ensure it is active
+             const customersLink = document.querySelector('.nav-link[data-page="customers"]');
+             if (customersLink && !customersLink.classList.contains('active')) {
+                 // Fallback/Safety Check: Ensure only 'Customers' is active on load
+                 sidebarLinks.forEach(link => link.classList.remove('active'));
+                 customersLink.classList.add('active');
+             }
+             console.log("Page loaded and icons initialized.");
+        };
+    </script>
+
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>
