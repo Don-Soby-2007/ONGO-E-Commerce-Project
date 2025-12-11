@@ -54,24 +54,24 @@ class SignupView(View):
             return render(request, self.template_name)
 
         # Check for existing user
-        excisting_user = User.objects.filter(email=email).first()
+        existing_user = User.objects.filter(email=email).first()
 
-        if excisting_user:
-            if excisting_user.is_verified:
+        if existing_user:
+            if existing_user.is_verified:
                 messages.error(request, "Email is already registered.")
                 return render(request, self.template_name)
             else:
-                otp = excisting_user.generate_otp()
-                logger.info(f"OTP for user {excisting_user.email}: {otp}")
+                otp = existing_user.generate_otp()
+                logger.info(f"OTP for user {existing_user.email}: {otp}")
 
                 send_mail(
                     'Your OTP Verification Code',
                     f'Your OTP code is: {otp}. It is valid for 5 minutes.',
                     None,
-                    [excisting_user.email],
+                    [existing_user.email],
                     fail_silently=False,
                 )
-                request.session['pending_user_id'] = excisting_user.id
+                request.session['pending_user_id'] = existing_user.id
                 return redirect("otp_verify")
 
         if User.objects.filter(username=username).exists():

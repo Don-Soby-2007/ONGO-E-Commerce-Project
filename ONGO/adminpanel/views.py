@@ -167,3 +167,5 @@ def admin_logout(request):
     if request.user.is_authenticated and request.user.is_staff:
         logout(request)
         return redirect('admin_login')
+    else:
+        return redirect('home')

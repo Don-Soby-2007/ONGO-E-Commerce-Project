@@ -190,16 +190,20 @@ AUTH_USER_MODEL = 'accounts.User'  # e.g., 'accounts.User'
 
 # Email as username
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = [
+    "email*",      # * means required
+    "password1*",
+    "password2*",
+    # Omit "username" so Google users don't get signup form
+]
 
 # Disable sign-up via third-party (since you prefer auto sign-up *without forms*)
 # We’ll handle auto-creation & skip extra forms
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # or 'mandatory' if you want email verification (but you use OTP)
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
-SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'http://127.0.0.1:8000/accounts/google/login/callback/'  # Google provides verified emails
+SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'http://127.0.0.1:8000/accounts/google/login/callback/'
 SOCIALACCOUNT_LOGIN_ON_GET = True
 
 # Skip the social signup form (auto-create user based on Google profile)
@@ -209,16 +213,15 @@ SOCIALACCOUNT_ADAPTER = 'accounts.adapter.SocialAccountAdapter'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-# Google OAuth2 config (will set in admin later, but good to know keys)
-# SOCIALACCOUNT_PROVIDERS = {
-#     'google': {
-#         'SCOPE': [
-#             'profile',
-#             'email',
-#         ],
-#         'AUTH_PARAMS': {
-#             'access_type': 'online',
-#         },
-#         'OAUTH_PKCE_ENABLED': True,
-#     }
-# }
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+    }
+}
