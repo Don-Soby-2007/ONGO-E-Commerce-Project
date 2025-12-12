@@ -12,7 +12,7 @@
     <div class="max-w-2xl mx-auto">
         <!-- Back link -->
         <div class="mb-6">
-            <a href="#" class="text-red-500 hover:text-red-700 font-medium flex items-center gap-2">
+            <a href="{% url 'categories' %}" class="text-red-500 hover:text-red-700 font-medium flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
@@ -27,22 +27,26 @@
         </div>
         
         <!-- Form -->
-        <form class="space-y-6 animate-fade-in">
+        <form method='POST' action='{% url "add_category" %}' class="space-y-6 animate-fade-in">
             <!-- Category Name -->
+            {% csrf_token %}
             <div>
                 <label for="categoryName" class="block text-sm font-medium text-gray-700 mb-2">Category name</label>
-                <input type="text" id="categoryName" 
+                <input type="text" id="categoryName" name="category_name" 
                        placeholder="e.g., Men / Women / Kids" 
                        class="w-full px-4 py-3 border border-red-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-300 input-field transition-all duration-300">
+                <span id="nameError" class="text-red-500 text-sm mt-1 hidden">This field is required.</span>
             </div>
             
             <!-- Description -->
             <div>
                 <label for="categoryDescription" class="block text-sm font-medium text-gray-700 mb-2">Description of category</label>
-                <textarea id="categoryDescription" 
-                          placeholder="Description of category" 
-                          rows="5" 
-                          class="w-full px-4 py-3 border border-red-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-300 input-field transition-all duration-300"></textarea>
+                <textarea id="categoryDescription"
+                        name="category_description" 
+                        placeholder="Description of category" 
+                        rows="5" 
+                        class="w-full px-4 py-3 border border-red-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-300 input-field transition-all duration-300"></textarea>
+                <span id="descriptionError" class="text-red-500 text-sm mt-1 hidden">This field is required. Do not add description more than 400 letters</span>
             </div>
             
             <!-- Status Toggle -->
@@ -53,7 +57,7 @@
                     
                     <!-- Toggle Switch -->
                     <label class="toggle-switch">
-                        <input type="checkbox" checked>
+                        <input type="checkbox" name="category_status" checked>
                         <span class="slider"></span>
                     </label>
                     
@@ -63,14 +67,58 @@
             
             <!-- Action Buttons -->
             <div class="flex justify-end space-x-4 pt-6">
-                <button type="button" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium btn-hover btn-cancel transition-all duration-300">
-                    Cancel
-                </button>
-                <button type="submit" class="px-6 py-3 bg-red-600 text-white rounded-lg font-medium btn-hover btn-create transition-all duration-300">
+                <a href="{% url 'categories' %}">
+                    <button type="button" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium btn-hover btn-cancel transition-all duration-300">
+                        Cancel
+                    </button>
+                </a>
+                <button type="submit" id="CreateBtn" class="px-6 py-3 bg-red-600 text-white rounded-lg font-medium btn-hover btn-create transition-all duration-300">
                     Create Category
                 </button>
             </div>
         </form>
     </div>
+    <script>
+
+        let name = document.getElementById('categoryName');
+        let description = document.getElementById('categoryDescription');
+        let createBtn = document.getElementById('CreateBtn');
+        let nameError = document.getElementById('nameError');
+        let descriptionError = document.getElementById('descriptionError');
+        let valid = true;
+
+        name.addEventListener('input', function() {
+            console.log(name.value.length);
+            if (name.value.trim() !== '' && name.value.length < 25) {
+                name.classList.remove('border-red-500', 'ring-red-200');
+                nameError.classList.add('hidden');
+                valid = true;
+            }else{
+                nameError.classList.remove('hidden');
+                valid = false;
+            }
+        });
+        description.addEventListener('input', function() {
+            if (description.value.trim() !== '' && description.value.length < 400) {
+                description.classList.remove('border-red-500', 'ring-red-200');
+                descriptionError.classList.add('hidden');
+                valid = true;
+            }else{
+                descriptionError.classList.remove('hidden');
+                valid = false;
+            }
+        });
+
+        createBtn.addEventListener('click', function(event) {
+
+
+            // If not valid, prevent form submission
+            if (!valid) {
+                event.preventDefault();
+            }
+        });
+
+
+    </script>
 </body>
 </html>

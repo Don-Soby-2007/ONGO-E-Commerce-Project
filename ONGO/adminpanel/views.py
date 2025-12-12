@@ -215,3 +215,33 @@ class AddCategoryView(View):
         if request.user.is_authenticated and request.user.is_staff:
             return render(request, self.template_name)
         return redirect('admin_login')
+
+    def post(self, request):
+        name = request.POST.get('category_name')
+        description = request.POST.get('category_description')
+        status = request.POST.get('category_status')
+        is_active = True
+
+        try:
+
+            if len(description) > 400:
+                messages.error(request, 'description is too long')
+                return render(request, self.template_name)
+
+            if status is None:
+                is_active = False
+
+            category = Category.objects.filter(name=name).first()
+
+            if category:
+                messages.error(request, 'category name alredy existed, please give other name')
+                return render(request, self.template_name)
+
+            Category.objects.create(name=name, description=description, is_active=is_active)
+
+            return redirect('categories')
+
+        except Exception as e:
+            messages.error(request, 'Something went wrong during category creation')
+            logger.error(f'something went wrong during category creation : {e}')
+            return redirect('categories')
