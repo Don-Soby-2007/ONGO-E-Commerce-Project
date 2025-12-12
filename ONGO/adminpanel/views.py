@@ -7,6 +7,7 @@ from django.views import View
 from django.db.models import Q
 from django.views.generic import ListView
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from accounts.models import User
 from products.models import Category
@@ -245,3 +246,53 @@ class AddCategoryView(View):
             messages.error(request, 'Something went wrong during category creation')
             logger.error(f'something went wrong during category creation : {e}')
             return redirect('categories')
+
+
+@method_decorator(never_cache, name='dispatch')
+class ToggleUserStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
+    login_url = 'admin_login'
+
+    def test_func(self):
+        # Only admin can toggle categories
+        return self.request.user.is_staff
+
+    def post(self, request, category_id):
+
+        try:
+            category = Category.objects.get(id=category_id)
+
+            # Toggle status
+            category.is_active = not category.is_active
+            category.save()
+
+            new_status = "Active" if category.is_active else "Inactive"
+
+            logger.info(
+                f"Admin {request.user.username} changed "
+                f"category {category.name} to {new_status}"
+            )
+
+            return JsonResponse({
+                "success": True,
+                "message": f"Category '{category.name}' {new_status.lower()} successfully.",
+                "new_status": new_status
+            })
+
+        except User.DoesNotExist:
+            return JsonResponse({
+                "success": False,
+                "message": "User not found."
+            }, status=404)
+
+        except DatabaseError:
+            return JsonResponse({
+                "success": False,
+                "message": "Database error occurred."
+            }, status=500)
+
+        except Exception as e:
+            logger.error(f"Unexpected error toggling category {category_id}: {e}")
+            return JsonResponse({
+                "success": False,
+                "message": "Unexpected server error occurred."
+            }, status=500)
