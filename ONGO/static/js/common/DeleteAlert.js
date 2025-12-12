@@ -45,7 +45,7 @@ document.querySelectorAll('[data-toggle-btn]').forEach(button => {
                 })
                 .catch(err => {
                     console.error(err);
-                    Swal.fire("Error", "Server error occurred", "error");
+                    Swal.fire("Error", "Server error occurred", "error").then(() =>window.location.reload())
                 });
 
         });

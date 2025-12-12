@@ -124,51 +124,51 @@ class AdminCustomersView(ListView):
         return context
 
 
-@login_required(login_url='admin_login')
-@never_cache
-def delete_user_view(request, user_id):
-    if not request.user.is_staff:
-        messages.error(request, "You are not authorized to perform this action")
-        return redirect('admin_login')
+# @login_required(login_url='admin_login')
+# @never_cache
+# def delete_user_view(request, user_id):
+#     if not request.user.is_staff:
+#         messages.error(request, "You are not authorized to perform this action")
+#         return redirect('admin_login')
 
-    try:
-        # Get user and toggle activation status
-        user = User.objects.get(id=user_id)
-        user.is_active = not user.is_active
-        user.save()
+#     try:
+#         # Get user and toggle activation status
+#         user = User.objects.get(id=user_id)
+#         user.is_active = not user.is_active
+#         user.save()
 
-        if user.is_active:
-            message = f"User '{user.username}' activated successfully."
-            logger.info(f"Admin {request.user.username} activated user ID {user_id} ({user.username}).")
-        else:
-            message = f"User '{user.username}' deactivated successfully."
-            logger.info(f"Admin {request.user.username} deactivated user ID {user_id} ({user.username}).")
-        return JsonResponse({
-            'success': True,
-            'message': message,
-            'new_status': 'Active' if user.is_active else 'Inactive'
-        })
+#         if user.is_active:
+#             message = f"User '{user.username}' activated successfully."
+#             logger.info(f"Admin {request.user.username} activated user ID {user_id} ({user.username}).")
+#         else:
+#             message = f"User '{user.username}' deactivated successfully."
+#             logger.info(f"Admin {request.user.username} deactivated user ID {user_id} ({user.username}).")
+#         return JsonResponse({
+#             'success': True,
+#             'message': message,
+#             'new_status': 'Active' if user.is_active else 'Inactive'
+#         })
 
-    except User.DoesNotExist:
-        logger.warning(f"Admin {request.user.username} tried to toggle non-existent user ID {user_id}")
-        return JsonResponse({
-                'success': False,
-                'message': "User not found."
-        }, status=404)
+#     except User.DoesNotExist:
+#         logger.warning(f"Admin {request.user.username} tried to toggle non-existent user ID {user_id}")
+#         return JsonResponse({
+#                 'success': False,
+#                 'message': "User not found."
+#         }, status=404)
 
-    except DatabaseError as db_err:
-        logger.error(f"Database error toggling user ID {user_id}: {db_err}")
-        return JsonResponse({
-                'success': False,
-                'message': "Database error occurred while updating user. Please try again later."
-        }, status=500)
+#     except DatabaseError as db_err:
+#         logger.error(f"Database error toggling user ID {user_id}: {db_err}")
+#         return JsonResponse({
+#                 'success': False,
+#                 'message': "Database error occurred while updating user. Please try again later."
+#         }, status=500)
 
-    except Exception as e:
-        logger.error(f"Unexpected error toggling user {user_id}: {e}")
-        return JsonResponse({
-                'success': False,
-                'message': "An unexpected error occurred while updating the user"
-        }, status=500)
+#     except Exception as e:
+#         logger.error(f"Unexpected error toggling user {user_id}: {e}")
+#         return JsonResponse({
+#                 'success': False,
+#                 'message': "An unexpected error occurred while updating the user"
+#         }, status=500)
 
 
 @never_cache
@@ -249,12 +249,16 @@ class AddCategoryView(View):
 
 
 @method_decorator(never_cache, name='dispatch')
-class ToggleUserStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
+class ToggleCategoryStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
     login_url = 'admin_login'
 
     def test_func(self):
         # Only admin can toggle categories
         return self.request.user.is_staff
+
+    def handle_no_permission(self):
+        messages.error(self.request, "You are not authorized")
+        return redirect('login')
 
     def post(self, request, category_id):
 
@@ -292,6 +296,60 @@ class ToggleUserStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         except Exception as e:
             logger.error(f"Unexpected error toggling category {category_id}: {e}")
+            return JsonResponse({
+                "success": False,
+                "message": "Unexpected server error occurred."
+            }, status=500)
+
+
+@method_decorator(never_cache, name='dispatch')
+class ToggleUserStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
+    login_url = 'admin_login'
+
+    def test_func(self):
+        # Only admin can toggle categories
+        return self.request.user.is_staff
+
+    def handle_no_permission(self):
+        messages.error(self.request, "You are not authorized")
+        return redirect('login')
+
+    def post(self, request, user_id):
+
+        try:
+            user = User.objects.get(id=user_id)
+
+            # Toggle status
+            user.is_active = not user.is_active
+            user.save()
+
+            new_status = "Active" if user.is_active else "Inactive"
+
+            logger.info(
+                f"Admin {request.user.username} changed "
+                f"user {user.username} to {new_status}"
+            )
+
+            return JsonResponse({
+                "success": True,
+                "message": f"User '{user.username}' {new_status.lower()} successfully.",
+                "new_status": new_status
+            })
+
+        except User.DoesNotExist:
+            return JsonResponse({
+                "success": False,
+                "message": "User not found."
+            }, status=404)
+
+        except DatabaseError:
+            return JsonResponse({
+                "success": False,
+                "message": "Database error occurred."
+            }, status=500)
+
+        except Exception as e:
+            logger.error(f"Unexpected error toggling user {user_id}: {e}")
             return JsonResponse({
                 "success": False,
                 "message": "Unexpected server error occurred."

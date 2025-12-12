@@ -72,11 +72,13 @@
                         </span>
                     </td>
                     <td class="py-3 px-4 text-center">
-                        <button id='deleteCustomerBtn' 
-                                data-user-id="{{user.id}}"
-                                data-status="{% if user.is_active %}Active{% else %}Inactive{% endif %}"
+                        <button id='delete-user-btn' 
+                                data-toggle-btn
+                                data-id="{{user.id}}"
+                                data-type="customer"
+                                data-status="{{ user.is_active|yesno:'Active,Inactive' }}"
                                 class="text-gray-400 hover:text-rose-500 p-1 rounded-md transition duration-150" 
-                                title="{% if user.is_active %}Deactivate Customer{% else %}Activate Customer{% endif %}">
+                                title="{% if user.is_active %}Deactivate Category{% else %}Activate Category{% endif %}">
                             <i data-lucide="trash-2" class="w-5 h-5"></i>
                         </button>
                     </td>
@@ -116,7 +118,8 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="{% static 'js/adminpanel/customerDeleteAlert.js' %}"></script>
+    <script> const csrfToken = "{{ csrf_token }}"; </script>
+    <script src="{% static 'js/common/DeleteAlert.js' %}"></script>
 
 {% endblock %}
 
