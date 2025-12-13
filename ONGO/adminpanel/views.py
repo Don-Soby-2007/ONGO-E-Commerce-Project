@@ -56,6 +56,7 @@ class AdminLoginView(View):
 
             if user_obj.is_active and user_obj.is_staff:
                 login(request, user)
+                messages.success(request, 'Admin logined successfully')
                 return redirect('customers')
             else:
                 return render(request, self.template_name)
@@ -129,6 +130,7 @@ class AdminCustomersView(ListView):
 def admin_logout(request):
     if request.user.is_authenticated and request.user.is_staff:
         logout(request)
+        messages.info(request, 'Admin logout successfully')
         return redirect('admin_login')
 
 
@@ -215,6 +217,13 @@ class AddCategoryView(View, LoginRequiredMixin):
 
             Category.objects.create(name=name, description=description, is_active=is_active)
 
+            messages.success(request, f'New category {name} created successfully')
+
+            return redirect('categories')
+
+        except DatabaseError as d:
+            messages.error(request, 'Database error occured. :(')
+            logger.error(f'Some thing happend iin database side : {d}')
             return redirect('categories')
 
         except Exception as e:
@@ -343,6 +352,11 @@ class EditCategoryView(View, LoginRequiredMixin):
 
             category = Category.objects.get(id=category_id)
 
+            if category is None:
+                messages.error(request, 'Category not found. Please try to add new category')
+                logger.warning('Admin tries to edit no-excisting category')
+                return redirect('categories')
+
             context = {
                 'category': category
             }
@@ -369,15 +383,30 @@ class EditCategoryView(View, LoginRequiredMixin):
 
             category = Category.objects.get(id=category_id)
 
+            if category is None:
+                raise Category.DoesNotExist
+
             category.name = name
             category.description = description
             category.is_active = is_active
 
             category.save()
 
+            messages.success(request, f'Category {name} is edited succesfully')
+
+            return redirect('categories')
+
+        except Category.DoesNotExist:
+            messages.error(request, 'Category not found. :(')
+            logger.error(f'Admin tries to edit un-excisting category : {category_id}')
+            return redirect('categories')
+
+        except DatabaseError as d:
+            messages.error(request, 'Database error occured. :(')
+            logger.error(f'Some thing happend iin database side : {d}')
             return redirect('categories')
 
         except Exception as e:
-            messages.error(request, 'Something went wrong during category creation')
-            logger.error(f'something went wrong during category creation : {e}')
+            messages.error(request, 'Something went wrong during editing category')
+            logger.error(f'something went wrong during editing category : {e}')
             return redirect('categories')

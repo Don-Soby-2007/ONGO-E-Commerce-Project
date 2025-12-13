@@ -102,19 +102,33 @@
         </div>
     </div>
 
-    <!-- JavaScript for Icon Replacement and Interactivity
-        // Handle sidebar link clicks
-        const sidebarLinks = document.querySelectorAll('.nav-link');
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2 max-w-xs"></div>
 
-        sidebarLinks.forEach(link => {
-            link.addEventListener('click', (event) => {
-                // Remove 'active' class from all links
-                sidebarLinks.forEach(l => l.classList.remove('active'));
+    <!-- Hidden Django messages for JS to consume -->
+    <div id="django-messages" class="hidden">
+        {% for message in messages %}
+            <div data-message="{{ message|escape }}" data-level="{{ message.tags }}"></div>
+        {% endfor %}
+    </div>
 
-                // Add 'active' class to clicked link
-                event.currentTarget.classList.add('active');
-            });
-        }); -->
+    <!-- Toast Template (cloned by JS) -->
+    <template id="toast-template">
+        <div class="relative bg-white rounded-lg shadow-lg border-l-4 border-l-gray-400 overflow-hidden flex items-start w-full">
+            <div class="flex-1 p-4 pr-10">
+                <div class="text-sm font-medium text-gray-800" id="toast-message"></div>
+            </div>
+            <button class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-sm p-1 focus:outline-none" 
+                    onclick="this.closest('.toast').remove()">
+                ✕
+            </button>
+            <div class="absolute bottom-0 left-0 h-1 bg-gray-200 w-full">
+                <div class="h-full bg-red-500 w-full" id="toast-progress"></div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Your toast JS -->
+    <script src="{% static 'js/common/toast.js' %}"></script>
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
