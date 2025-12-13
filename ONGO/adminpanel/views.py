@@ -164,11 +164,13 @@ class AdminCategoryView(ListView):
         sort = self.request.GET.get('sort', 'latest')
 
         if sort == 'oldest':
-            queryset = queryset.order_by('date_joined')
-        elif sort == 'active_first':
+            queryset = queryset.order_by('created_at')
+        elif sort == 'active-first':
             queryset = queryset.order_by('-is_active')
-        else:  # latest
-            queryset = queryset.order_by('-date_joined')
+        elif sort == 'latest':  # latest
+            queryset = queryset.order_by('-created_at')
+        else:
+            queryset = queryset.order_by('-updated_at')
 
         return queryset
 
@@ -365,7 +367,13 @@ class EditCategoryView(View, LoginRequiredMixin):
                 messages.error(request, 'description is too long')
                 return render(request, self.template_name)
 
-            Category.objects.filter(id=category_id).update(name=name, description=description, is_active=is_active)
+            category = Category.objects.get(id=category_id)
+
+            category.name = name
+            category.description = description
+            category.is_active = is_active
+
+            category.save()
 
             return redirect('categories')
 
