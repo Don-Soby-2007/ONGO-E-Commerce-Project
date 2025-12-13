@@ -49,7 +49,7 @@
                         <i data-lucide="package" class="icon w-5 h-5 mr-3"></i>
                         <h2>Orders</h2>
                    </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="{% url 'categories' %}" data-page="categories">
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'categories' %}active{% endif %}" href="{% url 'categories' %}" data-page="categories">
                         <i data-lucide="grip" class="icon w-5 h-5 mr-3"></i>
                         <h2>Categories</h2>
                     </a>
@@ -58,7 +58,7 @@
                         <h2>Products</h2>
                     </a>
                     <!-- Active Link -->
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3 active" href="{% url 'customers' %}" data-page="customers">
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'customers' %}active{% endif %}" href="{% url 'customers' %}" data-page="customers">
                         <i data-lucide="users" class="icon w-5 h-5 mr-3"></i>
                         <h2>Customers</h2>
                     </a>
@@ -102,11 +102,7 @@
         </div>
     </div>
 
-    <!-- JavaScript for Icon Replacement and Interactivity -->
-    <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
-
+    <!-- JavaScript for Icon Replacement and Interactivity
         // Handle sidebar link clicks
         const sidebarLinks = document.querySelectorAll('.nav-link');
 
@@ -118,7 +114,11 @@
                 // Add 'active' class to clicked link
                 event.currentTarget.classList.add('active');
             });
-        });
+        }); -->
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
     </script>
 
     {% block scripts %}{% endblock %}

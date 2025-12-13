@@ -90,11 +90,32 @@ class AdminCustomersView(ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        queryset = User.objects.filter(is_staff=False).order_by('-is_active')
+        queryset = User.objects.filter(is_staff=False)
 
+        # SEARCH
         search_query = self.request.GET.get('search_query')
         if search_query:
-            queryset = queryset.filter(Q(username__icontains=search_query) | Q(email__icontains=search_query))
+            queryset = queryset.filter(
+                Q(username__icontains=search_query) |
+                Q(email__icontains=search_query)
+            )
+
+        # STATUS FILTER
+        status = self.request.GET.get('status')
+        if status == 'active':
+            queryset = queryset.filter(is_active=True)
+        elif status == 'blocked':
+            queryset = queryset.filter(is_active=False)
+
+        # SORTING
+        sort = self.request.GET.get('sort', 'latest')
+
+        if sort == 'oldest':
+            queryset = queryset.order_by('date_joined')
+        elif sort == 'active_first':
+            queryset = queryset.order_by('-is_active')
+        else:  # latest
+            queryset = queryset.order_by('-date_joined')
 
         return queryset
 
