@@ -75,12 +75,14 @@
                         </span>
                     </td>
                     <td class="py-3 px-4 text-center">
-                        <button id='edit-category-btn' 
-                                data-category-id="{{category.id}}"
-                                data-status="{% if category.is_active %}Active{% else %}Inactive{% endif %}"
-                                class="text-gray-400 hover:text-rose-500 p-1 rounded-md transition duration-150" >
-                            <i data-lucide="pencil-line" class="w-5 h-5"></i>
-                        </button>
+                        <a href="{% url 'edit_category' category.id %}">
+                            <button id='edit-category-btn' 
+                                    title="Edit Category"
+                                    data-status="{% if category.is_active %}Active{% else %}Inactive{% endif %}"
+                                    class="text-gray-400 hover:text-rose-500 p-1 rounded-md transition duration-150" >
+                                <i data-lucide="pencil-line" class="w-5 h-5"></i>
+                            </button>
+                        </a>
                         <button id='delete-category-btn' 
                                 data-toggle-btn
                                 data-id="{{category.id}}"

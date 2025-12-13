@@ -76,26 +76,6 @@ class AdminLoginView(View):
             return render(request, self.template_name)
 
 
-# @method_decorator(never_cache, name='dispatch')
-# class AdminCustomersView(ListView):
-#     model = User
-#     template_name = 'adminpanel/customers_panel.html'
-#     context_object_name = 'users'
-#     paginate_by = 6
-
-    # def get(self, request):
-    #     if request.user.is_authenticated and request.user.is_staff:
-
-    #         user = User.objects.all().filter(is_staff=False)[::-1]
-
-    #         users = {
-    #             'users': user
-    #         }
-    #         return render(request, self.template_name, users)
-
-    #     return redirect('admin_login')
-
-
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name='dispatch')
 class AdminCustomersView(ListView):
@@ -122,53 +102,6 @@ class AdminCustomersView(ListView):
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('search_query', '')
         return context
-
-
-# @login_required(login_url='admin_login')
-# @never_cache
-# def delete_user_view(request, user_id):
-#     if not request.user.is_staff:
-#         messages.error(request, "You are not authorized to perform this action")
-#         return redirect('admin_login')
-
-#     try:
-#         # Get user and toggle activation status
-#         user = User.objects.get(id=user_id)
-#         user.is_active = not user.is_active
-#         user.save()
-
-#         if user.is_active:
-#             message = f"User '{user.username}' activated successfully."
-#             logger.info(f"Admin {request.user.username} activated user ID {user_id} ({user.username}).")
-#         else:
-#             message = f"User '{user.username}' deactivated successfully."
-#             logger.info(f"Admin {request.user.username} deactivated user ID {user_id} ({user.username}).")
-#         return JsonResponse({
-#             'success': True,
-#             'message': message,
-#             'new_status': 'Active' if user.is_active else 'Inactive'
-#         })
-
-#     except User.DoesNotExist:
-#         logger.warning(f"Admin {request.user.username} tried to toggle non-existent user ID {user_id}")
-#         return JsonResponse({
-#                 'success': False,
-#                 'message': "User not found."
-#         }, status=404)
-
-#     except DatabaseError as db_err:
-#         logger.error(f"Database error toggling user ID {user_id}: {db_err}")
-#         return JsonResponse({
-#                 'success': False,
-#                 'message': "Database error occurred while updating user. Please try again later."
-#         }, status=500)
-
-#     except Exception as e:
-#         logger.error(f"Unexpected error toggling user {user_id}: {e}")
-#         return JsonResponse({
-#                 'success': False,
-#                 'message': "An unexpected error occurred while updating the user"
-#         }, status=500)
 
 
 @never_cache
@@ -206,9 +139,10 @@ class AdminCategoryView(ListView):
         return context
 
 
-@method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name='dispatch')
-class AddCategoryView(View):
+class AddCategoryView(View, LoginRequiredMixin):
+
+    login_url = 'admin_login'
 
     template_name = 'adminpanel/add_category.html'
 
@@ -220,17 +154,17 @@ class AddCategoryView(View):
     def post(self, request):
         name = request.POST.get('category_name')
         description = request.POST.get('category_description')
-        status = request.POST.get('category_status')
-        is_active = True
+        is_active = 'category_status' in request.POST
 
         try:
+
+            if len(name) >= 15:
+                messages.error(request, 'name is too long')
+                return render(request, self.template_name)
 
             if len(description) > 400:
                 messages.error(request, 'description is too long')
                 return render(request, self.template_name)
-
-            if status is None:
-                is_active = False
 
             category = Category.objects.filter(name=name).first()
 
@@ -354,3 +288,49 @@ class ToggleUserStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
                 "success": False,
                 "message": "Unexpected server error occurred."
             }, status=500)
+
+
+class EditCategoryView(View, LoginRequiredMixin):
+
+    login_url = 'admin_login'
+
+    template_name = 'adminpanel/edit_category.html'
+
+    def get(self, request, category_id):
+
+        if request.user.is_authenticated and request.user.is_staff:
+
+            category = Category.objects.get(id=category_id)
+
+            context = {
+                'category': category
+            }
+
+            return render(request, self.template_name, context)
+
+        return redirect('login')
+
+    def post(self, request, category_id):
+
+        name = request.POST.get('category_name')
+        description = request.POST.get('category_description')
+        is_active = 'category_status' in request.POST
+
+        try:
+
+            if len(name) >= 15:
+                messages.error(request, 'name is too long')
+                return render(request, self.template_name)
+
+            if len(description) > 400:
+                messages.error(request, 'description is too long')
+                return render(request, self.template_name)
+
+            Category.objects.filter(id=category_id).update(name=name, description=description, is_active=is_active)
+
+            return redirect('categories')
+
+        except Exception as e:
+            messages.error(request, 'Something went wrong during category creation')
+            logger.error(f'something went wrong during category creation : {e}')
+            return redirect('categories')

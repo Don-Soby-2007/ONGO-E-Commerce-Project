@@ -22,19 +22,20 @@
         
         <!-- Header -->
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Add New Category</h1>
-            <p class="text-red-500 mt-2">Create a new category for your products.</p>
+            <h1 class="text-3xl font-bold text-gray-900">Edit Category</h1>
+            <p class="text-red-500 mt-2">Edit the category of your products.</p>
         </div>
         
         <!-- Form -->
-        <form method='POST' action='{% url "add_category" %}' class="space-y-6 animate-fade-in">
+        <form method='POST' action='{% url "edit_category" category.id %}' class="space-y-6 animate-fade-in">
             <!-- Category Name -->
             {% csrf_token %}
             <div>
                 <label for="categoryName" class="block text-sm font-medium text-gray-700 mb-2">Category name</label>
                 <input type="text" id="categoryName" name="category_name" 
                        placeholder="e.g., Men / Women / Kids" 
-                       class="w-full px-4 py-3 border border-red-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-300 input-field transition-all duration-300">
+                       value="{{ category.name }}"
+                       class="w-full px-4 py-3 border border-red-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-300 input-field transition-all duration-300" required>
                 <span id="nameError" class="text-red-500 text-sm mt-1 hidden">This field is required.</span>
             </div>
             
@@ -45,7 +46,8 @@
                         name="category_description" 
                         placeholder="Description of category" 
                         rows="5" 
-                        class="w-full px-4 py-3 border border-red-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-300 input-field transition-all duration-300"></textarea>
+                        required
+                        class="w-full px-4 py-3 border border-red-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-300 input-field transition-all duration-300">{{ category.description }}</textarea>
                 <span id="descriptionError" class="text-red-500 text-sm mt-1 hidden">This field is required. Do not add description more than 400 letters</span>
             </div>
             
@@ -57,7 +59,7 @@
                     
                     <!-- Toggle Switch -->
                     <label class="toggle-switch">
-                        <input type="checkbox" name="category_status" checked>
+                        <input type="checkbox" name="category_status" {% if category.is_active %}checked{% endif %}>
                         <span class="slider"></span>
                     </label>
                     
@@ -73,7 +75,7 @@
                     </button>
                 </a>
                 <button type="submit" id="CreateBtn" class="px-6 py-3 bg-red-600 text-white rounded-lg font-medium btn-hover btn-create transition-all duration-300">
-                    Create Category
+                    Edit Category
                 </button>
             </div>
         </form>
