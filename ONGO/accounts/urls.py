@@ -46,11 +46,3 @@ urlpatterns = [
     ),
 
 ]
-
-
-urlpatterns = [
-    
-]
-
-
-if i use toast then what is the use of  done and complete view                                                                                                                                                                                                                                                                                                                                                                            
