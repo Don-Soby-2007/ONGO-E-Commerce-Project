@@ -11,7 +11,8 @@ urlpatterns = [
     path('categories/', views.AdminCategoryView.as_view(), name='categories'),
     path('categories/add', views.AddCategoryView.as_view(), name='add_category'),
     path('categories/edit/<int:category_id>/', views.EditCategoryView.as_view(), name='edit_category'),
+    path('category/toggle/<int:category_id>/', views.ToggleCategoryStatusView.as_view(), name='delete_category'),
 
-    path('category/toggle/<int:category_id>/', views.ToggleCategoryStatusView.as_view(), name='delete_category')
+    path('products/', views.AdminProductsView.as_view(), name='products')
 
 ]

@@ -10,8 +10,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from accounts.models import User
-from products.models import Category
-
+from products.models import Category, Product
 from django.http import JsonResponse
 
 from django.db import DatabaseError
@@ -410,3 +409,51 @@ class EditCategoryView(View, LoginRequiredMixin):
             messages.error(request, 'Something went wrong during editing category')
             logger.error(f'something went wrong during editing category : {e}')
             return redirect('categories')
+
+
+@method_decorator(never_cache, name='dispatch')
+class AdminProductsView(ListView, LoginRequiredMixin):
+
+    model = Category
+    template_name = 'adminpanel/products_panel.html'
+    context_object_name = 'products'
+    paginate_by = 8
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return redirect('login')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        queryset = Product.objects.all()
+
+        # SEARCH
+        search_query = self.request.GET.get('search_query')
+        if search_query:
+            queryset = queryset.filter(Q(name__icontains=search_query))
+
+        # STATUS FILTER
+        status = self.request.GET.get('status')
+        if status == 'active':
+            queryset = queryset.filter(is_active=True)
+        elif status == 'blocked':
+            queryset = queryset.filter(is_active=False)
+
+        # SORTING
+        sort = self.request.GET.get('sort', 'latest')
+
+        if sort == 'oldest':
+            queryset = queryset.order_by('created_at')
+        elif sort == 'active-first':
+            queryset = queryset.order_by('-is_active')
+        elif sort == 'latest':  # latest
+            queryset = queryset.order_by('-created_at')
+        else:
+            queryset = queryset.order_by('-updated_at')
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search_query', '')
+        return context

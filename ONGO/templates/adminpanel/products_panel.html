@@ -1,4 +1,3 @@
-{% comment %} 
 {% extends "common/base_admin_list.html" %}
 {% load static %}
 {% block title %}Admin Panel | Products{% endblock %}
@@ -49,7 +48,7 @@
             </form>
 
             <!--  Clear Button -->
-            <a href='/admin/customers/' class="flex size-12 mr-5">
+            <a href='{% url "products" %}' class="flex size-12 mr-5">
                 <button class="flex items-center px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-red-200 transition duration-150 text-sm font-medium">
                     Clear
                 </button>
@@ -61,64 +60,59 @@
         <table class="min-w-full divide-y divide-gray-100">
             <thead>
                 <tr class="text-left text-xs font-semibold uppercase text-gray-500 tracking-wider">
-                    <th class="py-3 px-4 w-1/4">Product</th>
-                    <th class="py-3 px-4 w-1/4">SKU</th>
-                    <th class="py-3 px-4 w-1/8">Stock</th>
-                    <th class="py-3 px-4 w-1/8 text-center">Price</th>
-                    <th class="py-3 px-4 w-1/8 text-center">Category</th>
+                    <th class="py-3 px-4 w-1/6">Product</th>
+                    <th class="py-3 px-4 w-1/2">Description</th>
+                    <th class="py-3 px-4 w-1/8 text-center">Status</th>
                     <th class="py-3 px-4 w-1/8 text-center">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 text-gray-700">
                 {% for product in Products %}
                     <tr class="data-row">
-                    <td class="py-3 px-4 flex items-center space-x-3">
-                        <div class="w-9 h-9 bg-pink-100 rounded-full overflow-hidden flex-shrink-0">
-                            <img src="{{product.get_profile_picture_url}}" 
-                            alt="{{product.name}}" 
-                            class="w-full h-full object-cover">
-                        </div>
-                        <span class="font-medium">{{product.name}}</span>
-                    </td>
-                    <td class="py-3 px-4 text-rose-500 font-medium text-sm">{{product.sku}}</td>
-                    <td class="py-3 px-4">{{product.stock}}</td>
-                    <td class="py-3 px-4">{{product.price}}</td>
-                    <td class="py-3 px-4">{{product.category}}</td>
-                    <td class="py-3 px-4 text-center">
-                        <span class="status-badge 
-                            {% if user.is_active and user.is_verified %}
-                                status-active
-                            {% else %} 
-                                status-inactive
-                            {% endif %}">
-                            
-                            {% if user.is_active and user.is_verified %}
-                                Active
-                            {% else %} 
-                                Blocked 
-                            {% endif %}
-                        </span>
-                    </td>
-                    <td class="py-3 px-4 text-center">
-                        <a href="{% url 'edit_product' product.id %}">
-                            <button id='edit-product-btn' 
-                                    title="Edit Product"
-                                    data-status="{% if product.is_active %}Active{% else %}Inactive{% endif %}"
-                                    class="text-gray-400 hover:text-rose-500 p-1 rounded-md transition duration-150" >
-                                <i data-lucide="pencil-line" class="w-5 h-5"></i>
+                        <td class="py-3 px-4 flex items-center space-x-3">
+                            <div class="w-9 h-9 bg-pink-100 rounded-full overflow-hidden flex-shrink-0">
+                                <img src="{{product.get_profile_picture_url}}" 
+                                alt="{{product.name}}" 
+                                class="w-full h-full object-cover">
+                            </div>
+                            <span class="font-medium">{{product.name}}</span>
+                        </td>
+                        <td class="py-3 px-4 text-rose-500 font-medium text-sm">{{product.description}}</td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="status-badge 
+                                {% if user.is_active and user.is_verified %}
+                                    status-active
+                                {% else %} 
+                                    status-inactive
+                                {% endif %}">
+                                
+                                {% if product.is_active and product.is_verified %}
+                                    Active
+                                {% else %} 
+                                    Blocked 
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <a href="{% url 'edit_product' product.id %}">
+                                <button id='edit-product-btn' 
+                                        title="Edit Product"
+                                        data-status="{% if product.is_active %}Active{% else %}Inactive{% endif %}"
+                                        class="text-gray-400 hover:text-rose-500 p-1 rounded-md transition duration-150" >
+                                    <i data-lucide="pencil-line" class="w-5 h-5"></i>
+                                </button>
+                            </a>
+                            <button id='delete-product-btn' 
+                                    data-toggle-btn
+                                    data-id="{{product.id}}"
+                                    data-type="product"
+                                    data-status="{{ product.is_active|yesno:'Active,Inactive' }}"
+                                    class="text-gray-400 hover:text-rose-500 p-1 rounded-md transition duration-150" 
+                                    title="{% if product.is_active %}Deactivate Product{% else %}Activate Product{% endif %}">
+                                <i data-lucide="trash-2" class="w-5 h-5"></i>
                             </button>
-                        </a>
-                        <button id='delete-product-btn' 
-                                data-toggle-btn
-                                data-id="{{product.id}}"
-                                data-type="product"
-                                data-status="{{ product.is_active|yesno:'Active,Inactive' }}"
-                                class="text-gray-400 hover:text-rose-500 p-1 rounded-md transition duration-150" 
-                                title="{% if product.is_active %}Deactivate Product{% else %}Activate Product{% endif %}">
-                            <i data-lucide="trash-2" class="w-5 h-5"></i>
-                        </button>
-                    </td>
-                </tr>
+                        </td>
+                    </tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -158,4 +152,4 @@
     <script src="{% static 'js/common/DeleteAlert.js' %}"></script>
 
 {% endblock %}
- {% endcomment %}
+
