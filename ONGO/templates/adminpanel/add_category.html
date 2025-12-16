@@ -106,7 +106,7 @@
     function validateDescription() {
         const value = description.value.trim();
 
-        if (value === '' || value.length > 400 || !nameRegex.test(value)) {
+        if (value === '' || value.length > 400) {
             descriptionError.classList.remove('hidden');
             description.classList.add('border-red-500', 'ring-red-200');
             return false;
