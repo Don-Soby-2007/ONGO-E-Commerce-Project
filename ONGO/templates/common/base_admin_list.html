@@ -13,7 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.4/dist/sweetalert2.all.min.js" integrity="sha256-CXJQDRV/kfNAc4Ubtua9IIlDadsXV85fRIBQi4TThqs=" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.4/dist/sweetalert2.min.css" integrity="sha256-VqBagSPahwzjkw8/E0KAY23AmFZuYBxX6f6uVDgY1rg=" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="{% static 'css/adminpanel/customerse.css' %}" rel="stylesheet">
+    {% block style %}<link href="{% static 'css/adminpanel/customerse.css' %}" rel="stylesheet">{% endblock style %}
 </head>
 <body>
     <!-- Main Application Layout -->
@@ -58,7 +58,7 @@
                         <h2>Products</h2>
                     </a>
                     <!-- Active Link -->
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'customers' %}active{% endif %}" href="{% url 'customers' %}" data-page="customers">
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'customers/' %}active{% endif %}" href="{% url 'customers' %}" data-page="customers">
                         <i data-lucide="users" class="icon w-5 h-5 mr-3"></i>
                         <h2>Customers</h2>
                     </a>
