@@ -34,6 +34,35 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+    def get_thumbnail_url(self):
+        """
+        Returns primary image of the product (variant → image)
+        """
+
+        image = (
+            ProductImage.objects
+            .filter(
+                product_variant__product=self,
+                is_primary=True
+            )
+            .select_related('product_variant')
+            .first()
+        )
+
+        if not image:
+            image = (
+                ProductImage.objects
+                .filter(product_variant__product=self)
+                .select_related('product_variant')
+                .first()
+            )
+
+        if image:
+            return image.image_url
+
+        # fallback image
+        return "https://via.placeholder.com/150?text=No+Image"
+
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(

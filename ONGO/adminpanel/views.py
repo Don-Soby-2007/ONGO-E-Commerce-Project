@@ -424,6 +424,7 @@ class AdminProductsView(ListView, LoginRequiredMixin):
 
     model = Product
     template_name = 'adminpanel/products_panel.html'
+    login_url = 'admin_login'
     context_object_name = 'products'
     paginate_by = 8
 
@@ -433,7 +434,7 @@ class AdminProductsView(ListView, LoginRequiredMixin):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        queryset = Product.objects.all()
+        queryset = Product.objects.all().prefetch_related('variants__images')
 
         # SEARCH
         search_query = self.request.GET.get('search_query')
@@ -485,6 +486,9 @@ def validate_product_fields(data):
 
     if not name or not NAME_REGEX.match(name):
         raise ValidationError("Product name must contain only alphabets")
+
+    if Product.objects.filter(name__iexact=name).exists():
+        raise ValidationError("Product with this name already exists")
 
     if not category:
         raise ValidationError("Category is required")
@@ -560,9 +564,13 @@ class ProductCreateView(View):
     template_name = "adminpanel/add_product.html"
 
     def get(self, request):
-        return render(request, self.template_name, {
-            "categories": Category.objects.filter(is_active=True)
-        })
+
+        if request.user.is_authenticated and request.user.is_staff:
+            return render(request, self.template_name, {
+                "categories": Category.objects.filter(is_active=True)
+            })
+
+        return redirect('admin_login')
 
     @transaction.atomic
     def post(self, request):
