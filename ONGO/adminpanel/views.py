@@ -273,10 +273,10 @@ class ToggleCategoryStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
                 "new_status": new_status
             })
 
-        except User.DoesNotExist:
+        except Category.DoesNotExist:
             return JsonResponse({
                 "success": False,
-                "message": "User not found."
+                "message": "Category not found."
             }, status=404)
 
         except DatabaseError:
@@ -617,3 +617,57 @@ class ProductCreateView(View):
             messages.error(request, "Something went wrong while creating product")
             print(e)
             return redirect("add_product")
+
+
+@method_decorator(never_cache, name='dispatch')
+class ToggleProductStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
+    login_url = 'admin_login'
+
+    def test_func(self):
+        # Only admin can toggle categories
+        return self.request.user.is_staff
+
+    def handle_no_permission(self):
+        messages.error(self.request, "You are not authorized")
+        return redirect('login')
+
+    def post(self, request, product_id):
+
+        try:
+            product = Product.objects.get(id=product_id)
+
+            # Toggle status
+            product.is_active = not product.is_active
+            product.save()
+
+            new_status = "Active" if product.is_active else "Inactive"
+
+            logger.info(
+                f"Admin {request.user.username} changed "
+                f"product {product.name} to {new_status}"
+            )
+
+            return JsonResponse({
+                "success": True,
+                "message": f"product '{product.name}' {new_status.lower()} successfully.",
+                "new_status": new_status
+            })
+
+        except Product.DoesNotExist:
+            return JsonResponse({
+                "success": False,
+                "message": "product not found."
+            }, status=404)
+
+        except DatabaseError:
+            return JsonResponse({
+                "success": False,
+                "message": "Database error occurred."
+            }, status=500)
+
+        except Exception as e:
+            logger.error(f"Unexpected error toggling product {product_id}: {e}")
+            return JsonResponse({
+                "success": False,
+                "message": "Unexpected server error occurred."
+            }, status=500)
