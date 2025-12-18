@@ -69,7 +69,8 @@
             <thead>
                 <tr class="text-left text-xs font-semibold uppercase text-gray-500 tracking-wider">
                     <th class="py-3 px-4 w-1/6">Product</th>
-                    <th class="py-3 px-4 w-1/2">Description</th>
+                    <th class="py-3 px-4 w-1/8">Variants</th>
+                    <th class="py-3 px-4 w-1/8">Catregory</th>
                     <th class="py-3 px-4 w-1/8 text-center">Status</th>
                     <th class="py-3 px-4 w-1/8 text-center">Actions</th>
                 </tr>
@@ -85,7 +86,8 @@
                             </div>
                             <span class="font-medium">{{product.name}}</span>
                         </td>
-                        <td class="py-3 px-4 text-rose-500 font-medium text-sm">{{product.description}}</td>
+                        <td class="py-3 px-4 text-rose-500 font-medium text-sm">{{product.variant_count}} Variants</td>
+                        <td class="py-3 px-4 text-rose-500 font-medium text-sm">{{product.category}}</td>
                         <td class="py-3 px-4 text-center">
                             <span class="status-badge 
                                 {% if product.is_active%}

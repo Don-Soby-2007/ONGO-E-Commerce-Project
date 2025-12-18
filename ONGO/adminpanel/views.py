@@ -4,7 +4,7 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views import View
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.views.generic import ListView
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -434,7 +434,7 @@ class AdminProductsView(ListView, LoginRequiredMixin):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        queryset = Product.objects.all().prefetch_related('variants__images')
+        queryset = Product.objects.annotate(variant_count=Count("variants")).prefetch_related("variants__images")
 
         # SEARCH
         search_query = self.request.GET.get('search_query')
