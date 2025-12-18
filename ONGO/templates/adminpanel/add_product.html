@@ -1,11 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New Product</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
+{% extends "common/base_admin_list.html" %}
+{% block style %}
+
+<style>
         @keyframes fadeInDown {
             from {
                 opacity: 0;
@@ -100,9 +96,9 @@
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
         }
     </style>
-</head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen py-8 px-4">
-    <div class="max-w-4xl mx-auto">
+
+{% endblock style %}
+{% block content %}
         <!-- Header -->
         <div class="mb-8 fade-in-down">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Add New Product</h1>
@@ -110,7 +106,8 @@
         </div>
 
         <!-- Main Form -->
-        <form id="productForm">
+        <form method='POST' action='{% url "add_product" %}' id="productForm" enctype="multipart/form-data">
+            {% csrf_token %}
             <!-- First Card: Product Name, Category, Description -->
             <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 scale-in card-hover">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -242,7 +239,7 @@
                 <div class="grid grid-cols-3 gap-4">
                     <!-- Upload Box 1 -->
                     <div class="image-upload-box aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-50">
-                        <input type="file" name='variant_images[]' id="upload1" class="hidden" accept="image/*" onchange="previewImage(event, 'preview1')">
+                        <input type="file" name='variant_images[]' id="upload1" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="previewImage(event, 'preview1')">
                         <label for="upload1" class="cursor-pointer flex flex-col items-center">
                             <div id="preview1" class="w-full h-full flex items-center justify-center">
                                 <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -254,7 +251,7 @@
 
                     <!-- Upload Box 2 -->
                     <div class="image-upload-box aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-50">
-                        <input type="file" name='variant_images[]' id="upload2" class="hidden" accept="image/*" onchange="previewImage(event, 'preview2')">
+                        <input type="file" name='variant_images[]' id="upload2" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="previewImage(event, 'preview2')">
                         <label for="upload2" class="cursor-pointer flex flex-col items-center">
                             <div id="preview2" class="w-full h-full flex items-center justify-center">
                                 <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -266,7 +263,7 @@
 
                     <!-- Upload Box 3 -->
                     <div class="image-upload-box aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-50">
-                        <input type="file" name='variant_images[]' id="upload3" class="hidden" accept="image/*" onchange="previewImage(event, 'preview3')">
+                        <input type="file" name='variant_images[]' id="upload3" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="previewImage(event, 'preview3')">
                         <label for="upload3" class="cursor-pointer flex flex-col items-center">
                             <div id="preview3" class="w-full h-full flex items-center justify-center">
                                 <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,13 +277,15 @@
 
             <!-- Action Buttons -->
             <div class="flex justify-end gap-4 fade-in-up delay-200">
-                <button 
-                    type="button"
-                    class="px-8 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 btn-transition"
-                    onclick="cancelForm()"
-                >
-                    Cancel
-                </button>
+                <a href='{% url "products" %}'>
+                    <button 
+                        type="button"
+                        class="px-8 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 btn-transition"
+                    >
+                        Cancel
+                    </button>
+                </a>
+                
                 <button 
                     type="submit"
                     class="px-8 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 btn-transition"
@@ -295,7 +294,10 @@
                 </button>
             </div>
         </form>
-    </div>
+
+
+{% endblock content %}
+{% block scripts %}
 
 <script>
 
@@ -476,7 +478,6 @@ document.querySelectorAll("input[type='file']").forEach(input => {
 
 /* ---------------- SUBMIT CHECK ---------------- */
 document.getElementById("productForm").addEventListener("submit", function (e) {
-    e.preventDefault();
 
     const valid =
         validateName() &
@@ -490,13 +491,13 @@ document.getElementById("productForm").addEventListener("submit", function (e) {
         validateImages();
 
     if (!valid) {
+        e.preventDefault();
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
     }
 
-    alert("All validations passed. Ready for backend submit.");
+    // alert("All validations passed. Ready for backend submit.");
 });
 </script>
 
-</body>
-</html>
+{% endblock scripts %}

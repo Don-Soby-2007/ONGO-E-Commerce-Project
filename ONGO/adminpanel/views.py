@@ -22,6 +22,8 @@ from django.core.exceptions import ValidationError
 import cloudinary.uploader
 import uuid
 
+import re
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -43,7 +45,6 @@ class AdminLoginView(View):
         password = request.POST.get('password').strip()
 
         try:
-            import re
 
             if re.match(r'', email) is False:
                 messages.error(request, "Enter a valid email")
@@ -421,7 +422,7 @@ class EditCategoryView(View, LoginRequiredMixin):
 @method_decorator(never_cache, name='dispatch')
 class AdminProductsView(ListView, LoginRequiredMixin):
 
-    model = Category
+    model = Product
     template_name = 'adminpanel/products_panel.html'
     context_object_name = 'products'
     paginate_by = 8
@@ -475,7 +476,87 @@ ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"]
 MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
 
 
+def validate_product_fields(data):
+    NAME_REGEX = re.compile(r'^[A-Za-z\s]+$')
+    DESCRIPTION_REGEX = re.compile(r'^[A-Za-z\s.,-]+$')
+    name = data.get("name", "").strip()
+    description = data.get("description", "").strip()
+    category = data.get("category")
+
+    if not name or not NAME_REGEX.match(name):
+        raise ValidationError("Product name must contain only alphabets")
+
+    if not category:
+        raise ValidationError("Category is required")
+
+    if not description or not DESCRIPTION_REGEX.match(description):
+        raise ValidationError(
+            "Description must contain only alphabets, comma, dot, or hyphen"
+        )
+
+    return {
+        "name": name,
+        "description": description,
+        "category_id": category,
+    }
+
+
+def validate_variant_fields(data):
+    COLOR_REGEX = re.compile(r'^[A-Za-z\s]+$')
+    SKU_REGEX = re.compile(r'^[A-Za-z]+-[0-9]+$')
+
+    price = data.get("price")
+    stock = data.get("stock")
+    sku = data.get("SKU", "").strip()
+    color = data.get("color", "").strip()
+    size = data.get("size")
+
+    try:
+        price = float(price)
+        if price <= 0:
+            raise ValueError
+    except Exception:
+        raise ValidationError("Price must be a positive number")
+
+    try:
+        stock = int(stock)
+        if stock <= 0:
+            raise ValueError
+    except Exception:
+        raise ValidationError("Stock must be a positive number")
+
+    if not SKU_REGEX.match(sku):
+        raise ValidationError("SKU format must be like ABC-123")
+
+    if not COLOR_REGEX.match(color):
+        raise ValidationError("Color must contain only alphabets")
+
+    if not size or "Select" in size:
+        raise ValidationError("Size is required")
+
+    return {
+        "price": price,
+        "stock": stock,
+        "sku": sku,
+        "color": color,
+        "size": size,
+    }
+
+
+def validate_images(images):
+    if not images:
+        raise ValidationError("At least one product image is required")
+
+    for img in images:
+        if img.content_type not in ALLOWED_IMAGE_TYPES:
+            raise ValidationError("Only PNG, JPG, WEBP images are allowed")
+
+        if img.size > MAX_IMAGE_SIZE:
+            raise ValidationError("Each image must be under 5MB")
+
+
 class ProductCreateView(View):
+
     template_name = "adminpanel/add_product.html"
 
     def get(self, request):
@@ -486,48 +567,22 @@ class ProductCreateView(View):
     @transaction.atomic
     def post(self, request):
         try:
-            # -------------------------
-            # 1. CREATE PRODUCT
-            # -------------------------
-            category_id = request.POST.get("category")
-            if not category_id:
-                raise ValidationError("Category is required")
 
-            product = Product.objects.create(
-                name=request.POST.get("name").strip(),
-                description=request.POST.get("description", "").strip(),
-                category_id=category_id,
-            )
+            product_data = validate_product_fields(request.POST)
 
-            # -------------------------
-            # 2. CREATE VARIANT (single variant for now)
-            # -------------------------
+            product = Product.objects.create(**product_data)
+
+            variant_data = validate_variant_fields(request.POST)
+
             variant = ProductVariant.objects.create(
                 product=product,
-                size=request.POST.get("size"),
-                color=request.POST.get("color"),
-                price=request.POST.get("price"),
-                stock=10,  # you can later add stock input
-                sku=request.POST.get("SKU").strip(),
+                **variant_data
             )
 
-            # -------------------------
-            # 3. UPLOAD IMAGES TO CLOUDINARY
-            # -------------------------
             images = request.FILES.getlist("variant_images[]")
-
-            if not images:
-                raise ValidationError("At least one product image is required")
+            validate_images(images)
 
             for img in images:
-                # Validate content type
-                if img.content_type not in ALLOWED_IMAGE_TYPES:
-                    raise ValidationError("Only PNG, JPG, WEBP images are allowed")
-
-                # Validate size
-                if img.size > MAX_IMAGE_SIZE:
-                    raise ValidationError("Image size must be under 5MB")
-
                 upload = cloudinary.uploader.upload(
                     img,
                     folder="products/variants",
