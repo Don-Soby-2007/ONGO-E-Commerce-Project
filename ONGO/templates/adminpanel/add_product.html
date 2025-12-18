@@ -189,7 +189,7 @@
                         <input 
                             type="text"
                             name='SKU' 
-                            placeholder="Enter MRP"
+                            placeholder="Enter SKU"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
                         >
                     </div>
@@ -204,7 +204,7 @@
                         <input 
                             type="text"
                             name='color'
-                            placeholder="Enter SKU"
+                            placeholder="Enter colour"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
                         >
                     </div>
@@ -217,7 +217,6 @@
                         <select 
                             type="text"
                             name='size'
-                            placeholder="Enter Stock Quantity"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition appearance-none bg-white cursor-pointer"
                         >
                         <option>Select Size</option>
@@ -230,6 +229,13 @@
                         <option>XXl</option>
                         </select>
                     </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Stock</label>
+                        <input type="text" name="stock" placeholder="Enter Stock Quantity" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition">
+                    </div>
+                    
                 </div>
 
                 <!-- Image Upload Section -->
@@ -291,8 +297,9 @@
         </form>
     </div>
 
-    <script>
-        // Image preview function
+<script>
+
+ // Image preview function
         function previewImage(event, previewId) {
             const file = event.target.files[0];
             const preview = document.getElementById(previewId);
@@ -308,26 +315,188 @@
             }
         }
 
-        // Form submission
-        document.getElementById('productForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Product added successfully!');
-        });
 
-        // Cancel function
-        function cancelForm() {
-            if (confirm('Are you sure you want to cancel? All data will be lost.')) {
-                document.getElementById('productForm').reset();
-                // Reset image previews
-                ['preview1', 'preview2', 'preview3'].forEach(id => {
-                    document.getElementById(id).innerHTML = `
-                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                    `;
-                });
-            }
+/* ---------------- CONFIG ---------------- */
+const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
+const maxSize = 5 * 1024 * 1024;
+
+/* ---------------- REGEX ---------------- */
+const NAME_REGEX = /^[A-Za-z\s]+$/;
+const DESCRIPTION_REGEX = /^[A-Za-z\s.,-]+$/;
+const COLOR_REGEX = /^[A-Za-z\s]+$/;
+const SKU_REGEX = /^[A-Za-z]+-[0-9]+$/;
+
+/* ---------------- HELPERS ---------------- */
+function showError(input, message) {
+    let error = input.parentElement.querySelector(".error-text");
+    if (!error) {
+        error = document.createElement("p");
+        error.className = "error-text text-red-600 text-sm mt-1";
+        input.parentElement.appendChild(error);
+    }
+    error.textContent = message;
+    input.classList.add("border-red-500");
+}
+
+function clearError(input) {
+    const error = input.parentElement.querySelector(".error-text");
+    if (error) error.remove();
+    input.classList.remove("border-red-500");
+}
+
+/* ---------------- PRODUCT VALIDATIONS ---------------- */
+function validateName() {
+    const input = document.querySelector("input[name='name']");
+    if (!input.value || !NAME_REGEX.test(input.value)) {
+        showError(input, "Only alphabets allowed");
+        return false;
+    }
+    clearError(input);
+    return true;
+}
+
+function validateCategory() {
+    const select = document.querySelector("select[name='category']");
+    if (!select.value) {
+        showError(select, "Please select a category");
+        return false;
+    }
+    clearError(select);
+    return true;
+}
+
+function validateDescription() {
+    const textarea = document.querySelector("textarea[name='description']");
+    if (!textarea.value || !DESCRIPTION_REGEX.test(textarea.value)) {
+        showError(textarea, "Only alphabets, comma, dot and hyphen allowed");
+        return false;
+    }
+    clearError(textarea);
+    return true;
+}
+
+/* ---------------- VARIANT VALIDATIONS ---------------- */
+function validatePrice() {
+    const input = document.querySelector("input[name='price']");
+    const value = Number(input.value);
+    if (isNaN(value) || value <= 0 ) {
+        showError(input, "Enter a valid positive price");
+        return false;
+    }
+    clearError(input);
+    return true;
+}
+
+function validateStock() {
+    const input = document.querySelector("input[name='stock']");
+    const value = Number(input.value);
+    if (isNaN(value) || value <= 0) {
+        showError(input, "Enter a valid stock quantity");
+        return false;
+    }
+    clearError(input);
+    return true;
+}
+
+function validateSKU() {
+    const input = document.querySelector("input[name='SKU']");
+    if (!SKU_REGEX.test(input.value)) {
+        showError(input, "SKU format: ABC-123");
+        return false;
+    }
+    clearError(input);
+    return true;
+}
+
+function validateColor() {
+    const input = document.querySelector("input[name='color']");
+    if (!COLOR_REGEX.test(input.value)) {
+        showError(input, "Only alphabets allowed");
+        return false;
+    }
+    clearError(input);
+    return true;
+}
+
+function validateSize() {
+    const select = document.querySelector("select[name='size']");
+    if (!select.value || select.value.includes("Select")) {
+        showError(select, "Please select a size");
+        return false;
+    }
+    clearError(select);
+    return true;
+}
+
+/* ---------------- IMAGE VALIDATION ---------------- */
+function validateImages() {
+    const inputs = document.querySelectorAll("input[type='file']");
+    let valid = false;
+
+    for (const input of inputs) {
+        if (!input.files.length) continue;
+
+        const file = input.files[0];
+        valid = true;
+
+        if (!allowedTypes.includes(file.type)) {
+            showError(input, "Only PNG, JPG, WEBP images allowed");
+            return false;
         }
-    </script>
+
+        if (file.size > maxSize) {
+            showError(input, "Image must be under 5MB");
+            return false;
+        }
+
+        clearError(input);
+    }
+
+    if (!valid) {
+        showError(inputs[0], "At least one image is required");
+        return false;
+    }
+    return true;
+}
+
+/* ---------------- LIVE EVENTS ---------------- */
+document.querySelector("input[name='name']").addEventListener("input", validateName);
+document.querySelector("select[name='category']").addEventListener("change", validateCategory);
+document.querySelector("textarea[name='description']").addEventListener("input", validateDescription);
+
+document.querySelector("input[name='price']").addEventListener("input", validatePrice);
+document.querySelector("input[name='stock']").addEventListener("input", validateStock);
+document.querySelector("input[name='SKU']").addEventListener("input", validateSKU);
+document.querySelector("input[name='color']").addEventListener("input", validateColor);
+document.querySelector("select[name='size']").addEventListener("change", validateSize);
+
+document.querySelectorAll("input[type='file']").forEach(input => {
+    input.addEventListener("change", validateImages);
+});
+
+/* ---------------- SUBMIT CHECK ---------------- */
+document.getElementById("productForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const valid =
+        validateName() &
+        validateCategory() &
+        validateDescription() &
+        validatePrice() &
+        validateStock() &
+        validateSKU() &
+        validateColor() &
+        validateSize() &
+        validateImages();
+
+    if (!valid) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+    }
+
+    alert("All validations passed. Ready for backend submit.");
+});
+</script>
+
 </body>
 </html>

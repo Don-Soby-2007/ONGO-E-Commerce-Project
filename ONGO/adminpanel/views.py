@@ -10,10 +10,17 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from accounts.models import User
-from products.models import Category, Product
+from products.models import Category, Product, ProductVariant, ProductImage
+
 from django.http import JsonResponse
 
 from django.db import DatabaseError
+
+from django.db import transaction
+from django.core.exceptions import ValidationError
+
+import cloudinary.uploader
+import uuid
 
 import logging
 
@@ -459,6 +466,91 @@ class AdminProductsView(ListView, LoginRequiredMixin):
         return context
 
 
-def AddProductView(request):
-    if request.user.is_authenticated and request.user.is_staff:
-        return render(request, 'adminpanel/add_product.html')
+# def ProductCreateView(request):
+#     if request.user.is_authenticated:
+#         return render(request, "adminpanel/add_product.html")
+
+
+ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"]
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
+
+
+class ProductCreateView(View):
+    template_name = "adminpanel/add_product.html"
+
+    def get(self, request):
+        return render(request, self.template_name, {
+            "categories": Category.objects.filter(is_active=True)
+        })
+
+    @transaction.atomic
+    def post(self, request):
+        try:
+            # -------------------------
+            # 1. CREATE PRODUCT
+            # -------------------------
+            category_id = request.POST.get("category")
+            if not category_id:
+                raise ValidationError("Category is required")
+
+            product = Product.objects.create(
+                name=request.POST.get("name").strip(),
+                description=request.POST.get("description", "").strip(),
+                category_id=category_id,
+            )
+
+            # -------------------------
+            # 2. CREATE VARIANT (single variant for now)
+            # -------------------------
+            variant = ProductVariant.objects.create(
+                product=product,
+                size=request.POST.get("size"),
+                color=request.POST.get("color"),
+                price=request.POST.get("price"),
+                stock=10,  # you can later add stock input
+                sku=request.POST.get("SKU").strip(),
+            )
+
+            # -------------------------
+            # 3. UPLOAD IMAGES TO CLOUDINARY
+            # -------------------------
+            images = request.FILES.getlist("variant_images[]")
+
+            if not images:
+                raise ValidationError("At least one product image is required")
+
+            for img in images:
+                # Validate content type
+                if img.content_type not in ALLOWED_IMAGE_TYPES:
+                    raise ValidationError("Only PNG, JPG, WEBP images are allowed")
+
+                # Validate size
+                if img.size > MAX_IMAGE_SIZE:
+                    raise ValidationError("Image size must be under 5MB")
+
+                upload = cloudinary.uploader.upload(
+                    img,
+                    folder="products/variants",
+                    public_id=f"variant_{variant.id}_{uuid.uuid4().hex[:8]}",
+                    resource_type="image"
+                )
+
+                ProductImage.objects.create(
+                    product_variant=variant,
+                    image_url=upload["secure_url"],
+                    public_id=upload["public_id"],
+                )
+
+            messages.success(request, "Product created successfully")
+            return redirect("products")
+
+        except ValidationError as e:
+            transaction.set_rollback(True)
+            messages.error(request, str(e))
+            return redirect("add_product")
+
+        except Exception as e:
+            transaction.set_rollback(True)
+            messages.error(request, "Something went wrong while creating product")
+            print(e)
+            return redirect("add_product")
