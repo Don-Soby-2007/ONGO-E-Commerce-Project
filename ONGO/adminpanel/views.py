@@ -457,3 +457,8 @@ class AdminProductsView(ListView, LoginRequiredMixin):
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('search_query', '')
         return context
+
+
+def AddProductView(request):
+    if request.user.is_authenticated and request.user.is_staff:
+        return render(request, 'adminpanel/add_product.html')

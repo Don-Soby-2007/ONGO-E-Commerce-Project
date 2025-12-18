@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Product</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .fade-in-down {
+            animation: fadeInDown 0.5s ease-out;
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .scale-in {
+            animation: scaleIn 0.4s ease-out;
+        }
+
+        .delay-100 {
+            animation-delay: 0.1s;
+            animation-fill-mode: backwards;
+        }
+
+        .delay-200 {
+            animation-delay: 0.2s;
+            animation-fill-mode: backwards;
+        }
+
+        .input-transition {
+            transition: all 0.3s ease;
+        }
+
+        .input-transition:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn-transition {
+            transition: all 0.3s ease;
+        }
+
+        .btn-transition:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-transition:active {
+            transform: translateY(0);
+        }
+
+        .image-upload-box {
+            transition: all 0.3s ease;
+        }
+
+        .image-upload-box:hover {
+            transform: scale(1.05);
+            border-color: #ef4444;
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen py-8 px-4">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8 fade-in-down">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Add New Product</h1>
+            <p class="text-gray-600">Enter the details for the new product.</p>
+        </div>
+
+        <!-- Main Form -->
+        <form id="productForm">
+            <!-- First Card: Product Name, Category, Description -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 scale-in card-hover">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Product Name -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Product Name
+                        </label>
+                        <input 
+                            type="text"
+                            name='name'
+                            placeholder="Enter the product name..."
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
+                        >
+                    </div>
+
+                    <!-- Category -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Category
+                        </label>
+                        <select name='category' class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition appearance-none bg-white cursor-pointer">
+                            <option>Select Category</option>
+                            {% for category in categories %}
+                            <option value='{{category.id}}'>{{category.name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Description
+                    </label>
+                    <textarea 
+                        rows="5"
+                        name='description'
+                        placeholder="Add product Description"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition resize-none"
+                    ></textarea>
+                </div>
+            </div>
+
+            <!-- Add Variant Button -->
+
+            <div class="flex justify-center my-6">
+                <button type="button" class="px-6 py-2.5 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 btn-transition" onclick="alert('Add variant functionality')">
+                    Add Variant
+                </button>
+            </div>
+
+            <!-- Second Card: Price, SKU, Color, Size, Images -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 fade-in-up delay-100 card-hover">
+                <h1 class="text-1xl md:text-2xl font-bold text-gray-900 mb-2">Variant 1</h1>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Price -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Price
+                        </label>
+                        <input 
+                            type="text"
+                            name='price'
+                            placeholder="Enter price"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
+                        >
+                    </div>
+
+                    <!-- SKU -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            SKU
+                        </label>
+                        <input 
+                            type="text"
+                            name='SKU' 
+                            placeholder="Enter MRP"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
+                        >
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Color -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Colour
+                        </label>
+                        <input 
+                            type="text"
+                            name='color'
+                            placeholder="Enter SKU"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
+                        >
+                    </div>
+
+                    <!-- Size -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Size
+                        </label>
+                        <select 
+                            type="text"
+                            name='size'
+                            placeholder="Enter Stock Quantity"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition appearance-none bg-white cursor-pointer"
+                        >
+                        <option>Select Size</option>
+                        <option>Kids</option>
+                        <option>S</option>
+                        <option>M</option>
+                        <option>L</option>
+                        <option>XL</option>
+                        <option>XXl</option>
+                        <option>XXl</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Image Upload Section -->
+                <div class="grid grid-cols-3 gap-4">
+                    <!-- Upload Box 1 -->
+                    <div class="image-upload-box aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-50">
+                        <input type="file" name='variant_images[]' id="upload1" class="hidden" accept="image/*" onchange="previewImage(event, 'preview1')">
+                        <label for="upload1" class="cursor-pointer flex flex-col items-center">
+                            <div id="preview1" class="w-full h-full flex items-center justify-center">
+                                <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Upload Box 2 -->
+                    <div class="image-upload-box aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-50">
+                        <input type="file" name='variant_images[]' id="upload2" class="hidden" accept="image/*" onchange="previewImage(event, 'preview2')">
+                        <label for="upload2" class="cursor-pointer flex flex-col items-center">
+                            <div id="preview2" class="w-full h-full flex items-center justify-center">
+                                <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Upload Box 3 -->
+                    <div class="image-upload-box aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-50">
+                        <input type="file" name='variant_images[]' id="upload3" class="hidden" accept="image/*" onchange="previewImage(event, 'preview3')">
+                        <label for="upload3" class="cursor-pointer flex flex-col items-center">
+                            <div id="preview3" class="w-full h-full flex items-center justify-center">
+                                <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div> 
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end gap-4 fade-in-up delay-200">
+                <button 
+                    type="button"
+                    class="px-8 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 btn-transition"
+                    onclick="cancelForm()"
+                >
+                    Cancel
+                </button>
+                <button 
+                    type="submit"
+                    class="px-8 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 btn-transition"
+                >
+                    Add Product
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Image preview function
+        function previewImage(event, previewId) {
+            const file = event.target.files[0];
+            const preview = document.getElementById(previewId);
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover rounded-lg">
+                    `;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Form submission
+        document.getElementById('productForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Product added successfully!');
+        });
+
+        // Cancel function
+        function cancelForm() {
+            if (confirm('Are you sure you want to cancel? All data will be lost.')) {
+                document.getElementById('productForm').reset();
+                // Reset image previews
+                ['preview1', 'preview2', 'preview3'].forEach(id => {
+                    document.getElementById(id).innerHTML = `
+                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                    `;
+                });
+            }
+        }
+    </script>
+</body>
+</html>

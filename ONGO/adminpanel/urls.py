@@ -13,6 +13,7 @@ urlpatterns = [
     path('categories/edit/<int:category_id>/', views.EditCategoryView.as_view(), name='edit_category'),
     path('category/toggle/<int:category_id>/', views.ToggleCategoryStatusView.as_view(), name='delete_category'),
 
-    path('products/', views.AdminProductsView.as_view(), name='products')
+    path('products/', views.AdminProductsView.as_view(), name='products'),
+    path('products/add', views.AddProductView, name='add_product')
 
 ]
