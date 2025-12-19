@@ -490,8 +490,8 @@ def validate_product_fields(data):
     if Product.objects.filter(name__iexact=name).exists():
         raise ValidationError("Product with this name already exists")
 
-    if not category:
-        raise ValidationError("Category is required")
+    if not Category.objects.filter(id=category, is_active=True).exists():
+        raise ValidationError("Invalid category selected")
 
     if not description or not DESCRIPTION_REGEX.match(description):
         raise ValidationError(
@@ -532,6 +532,9 @@ def validate_variant_fields(data):
     if not SKU_REGEX.match(sku):
         raise ValidationError("SKU format must be like ABC-123")
 
+    if ProductVariant.objects.filter(sku__iexact=sku).exists():
+        raise ValidationError("SKU already exists")
+
     if not COLOR_REGEX.match(color):
         raise ValidationError("Color must contain only alphabets")
 
@@ -550,6 +553,9 @@ def validate_variant_fields(data):
 def validate_images(images):
     if not images:
         raise ValidationError("At least one product image is required")
+
+    if len(images) != 3:
+        raise ValidationError("Exactly 3 images are required per variant")
 
     for img in images:
         if img.content_type not in ALLOWED_IMAGE_TYPES:
@@ -580,29 +586,49 @@ class ProductCreateView(View):
 
             product = Product.objects.create(**product_data)
 
-            variant_data = validate_variant_fields(request.POST)
+            variant_indexes = set()
 
-            variant = ProductVariant.objects.create(
-                product=product,
-                **variant_data
-            )
+            for key in request.POST.keys():
+                if key.startswith("variants["):
+                    idx = key.split("[")[1].split("]")[0]
+                    variant_indexes.add(idx)
 
-            images = request.FILES.getlist("variant_images[]")
-            validate_images(images)
+            if not variant_indexes:
+                raise ValidationError("At least one variant is required")
 
-            for img in images:
-                upload = cloudinary.uploader.upload(
-                    img,
-                    folder="products/variants",
-                    public_id=f"variant_{variant.id}_{uuid.uuid4().hex[:8]}",
-                    resource_type="image"
+            for idx in sorted(variant_indexes, key=int):
+                raw_variant_data = {
+                    "price": request.POST.get(f"variants[{idx}][price]"),
+                    "SKU": request.POST.get(f'variants[{idx}][SKU]'),
+                    "color": request.POST.get(f'variants[{idx}][color]'),
+                    "size": request.POST.get(f'variants[{idx}][size]'),
+                    "stock": request.POST.get(f'variants[{idx}][stock]')
+                }
+
+                variant_data = validate_variant_fields(raw_variant_data)
+
+                variant = ProductVariant.objects.create(
+                    product=product,
+                    **variant_data
                 )
 
-                ProductImage.objects.create(
-                    product_variant=variant,
-                    image_url=upload["secure_url"],
-                    public_id=upload["public_id"],
-                )
+                images = request.FILES.getlist(f"variants[{idx}][images][]")
+                validate_images(images)
+
+                for i, img in enumerate(images):
+                    upload = cloudinary.uploader.upload(
+                        img,
+                        folder="products/variants",
+                        public_id=f"variant_{variant.id}_{uuid.uuid4().hex[:8]}",
+                        resource_type="image"
+                    )
+
+                    ProductImage.objects.create(
+                        product_variant=variant,
+                        image_url=upload["secure_url"],
+                        public_id=upload["public_id"],
+                        is_primary=(i == 0)
+                    )
 
             messages.success(request, "Product created successfully")
             return redirect("products")
@@ -610,12 +636,13 @@ class ProductCreateView(View):
         except ValidationError as e:
             transaction.set_rollback(True)
             messages.error(request, str(e))
+            logger.error(f"Validation error during Product creation {e}")
             return redirect("add_product")
 
         except Exception as e:
             transaction.set_rollback(True)
             messages.error(request, "Something went wrong while creating product")
-            print(e)
+            logger.error(f"Unexpecated error during Product creation {e}")
             return redirect("add_product")
 
 

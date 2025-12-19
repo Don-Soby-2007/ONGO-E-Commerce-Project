@@ -170,7 +170,8 @@
                             </label>
                             <input 
                                 type="text"
-                                name='price'
+                                name="variants[0][price]"
+                                data-field="price"
                                 placeholder="Enter price"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
                             >
@@ -183,7 +184,8 @@
                             </label>
                             <input 
                                 type="text"
-                                name='SKU' 
+                                name="variants[0][SKU]"
+                                data-field="SKU"
                                 placeholder="Enter SKU"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
                             >
@@ -198,7 +200,8 @@
                             </label>
                             <input 
                                 type="text"
-                                name='color'
+                                name="variants[0][color]"
+                                data-field="color"
                                 placeholder="Enter colour"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
                             >
@@ -211,7 +214,8 @@
                             </label>
                             <select 
                                 type="text"
-                                name='size'
+                                name="variants[0][size]"
+                                data-field="size"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition appearance-none bg-white cursor-pointer"
                             >
                             <option>Select Size</option>
@@ -228,7 +232,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Stock</label>
-                            <input type="text" name="stock" placeholder="Enter Stock Quantity" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition">
+                            <input type="text" name="variants[0][stock]" data-field="stock" placeholder="Enter Stock Quantity" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition">
                         </div>
                         
                     </div>
@@ -237,7 +241,7 @@
                     <div class="grid grid-cols-3 gap-4">
                         <!-- Upload Box 1 -->
                         <div class="image-upload-box aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-50">
-                            <input type="file" name='variant_images[]' id="upload1" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="previewImage(event, 'preview1')">
+                            <input type="file" name="variants[0][images][]" data-field="images" id="upload1" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="previewImage(event, 'preview1')">
                             <label for="upload1" class="cursor-pointer flex flex-col items-center">
                                 <div id="preview1" class="w-full h-full flex items-center justify-center">
                                     <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,7 +253,7 @@
 
                         <!-- Upload Box 2 -->
                         <div class="image-upload-box aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-50">
-                            <input type="file" name='variant_images[]' id="upload2" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="previewImage(event, 'preview2')">
+                            <input type="file" name="variants[0][images][]" data-field="images" id="upload2" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="previewImage(event, 'preview2')">
                             <label for="upload2" class="cursor-pointer flex flex-col items-center">
                                 <div id="preview2" class="w-full h-full flex items-center justify-center">
                                     <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -261,7 +265,7 @@
 
                         <!-- Upload Box 3 -->
                         <div class="image-upload-box aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-50">
-                            <input type="file" name='variant_images[]' id="upload3" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="previewImage(event, 'preview3')">
+                            <input type="file" name="variants[0][images][]" data-field="images" id="upload3" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="previewImage(event, 'preview3')">
                             <label for="upload3" class="cursor-pointer flex flex-col items-center">
                                 <div id="preview3" class="w-full h-full flex items-center justify-center">
                                     <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -309,6 +313,8 @@
 
 <script>
 
+syncVariantNames()
+
  // Image preview function
         function previewImage(event, previewId) {
             const file = event.target.files[0];
@@ -330,181 +336,124 @@
 const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
 const maxSize = 5 * 1024 * 1024;
 
-/* ---------------- REGEX ---------------- */
 const NAME_REGEX = /^[A-Za-z\s]+$/;
 const DESCRIPTION_REGEX = /^[A-Za-z\s.,-]+$/;
 const COLOR_REGEX = /^[A-Za-z\s]+$/;
 const SKU_REGEX = /^[A-Za-z]+-[0-9]+$/;
 
 /* ---------------- HELPERS ---------------- */
-function showError(input, message) {
-    let error = input.parentElement.querySelector(".error-text");
-    if (!error) {
-        error = document.createElement("p");
-        error.className = "error-text text-red-600 text-sm mt-1";
-        input.parentElement.appendChild(error);
+function showError(el, msg) {
+    clearError(el);
+    const p = document.createElement("p");
+    p.className = "error-text text-red-600 text-sm mt-1";
+    p.textContent = msg;
+    el.classList.add("border-red-500");
+    el.parentElement.appendChild(p);
+}
+
+function clearError(el) {
+    el.classList.remove("border-red-500");
+    el.parentElement.querySelectorAll(".error-text").forEach(e => e.remove());
+}
+
+/* ---------------- PRODUCT VALIDATION ---------------- */
+function validateProduct() {
+    let valid = true;
+
+    const name = document.querySelector("[name='name']");
+    if (!NAME_REGEX.test(name.value)) {
+        showError(name, "Only alphabets allowed");
+        valid = false;
     }
-    error.textContent = message;
-    input.classList.add("border-red-500");
-}
 
-function clearError(input) {
-    const error = input.parentElement.querySelector(".error-text");
-    if (error) error.remove();
-    input.classList.remove("border-red-500");
-}
-
-/* ---------------- PRODUCT VALIDATIONS ---------------- */
-function validateName() {
-    const input = document.querySelector("input[name='name']");
-    if (!input.value || !NAME_REGEX.test(input.value)) {
-        showError(input, "Only alphabets allowed");
-        return false;
+    const category = document.querySelector("[name='category']");
+    if (!category.value) {
+        showError(category, "Category is required");
+        valid = false;
     }
-    clearError(input);
-    return true;
-}
 
-function validateCategory() {
-    const select = document.querySelector("select[name='category']");
-    if (!select.value) {
-        showError(select, "Please select a category");
-        return false;
+    const desc = document.querySelector("[name='description']");
+    if (!DESCRIPTION_REGEX.test(desc.value)) {
+        showError(desc, "Invalid description");
+        valid = false;
     }
-    clearError(select);
-    return true;
+
+    return valid;
 }
 
-function validateDescription() {
-    const textarea = document.querySelector("textarea[name='description']");
-    if (!textarea.value || !DESCRIPTION_REGEX.test(textarea.value)) {
-        showError(textarea, "Only alphabets, comma, dot and hyphen allowed");
-        return false;
+/* ---------------- VARIANT VALIDATION ---------------- */
+function validateVariant(variant) {
+    let valid = true;
+
+    const price = variant.querySelector("[data-field='price']");
+    if (!price.value || Number(price.value) <= 0) {
+        showError(price, "Invalid price");
+        valid = false;
     }
-    clearError(textarea);
-    return true;
-}
 
-/* ---------------- VARIANT VALIDATIONS ---------------- */
-function validatePrice() {
-    const input = document.querySelector("input[name='price']");
-    const value = Number(input.value);
-    if (isNaN(value) || value <= 0 ) {
-        showError(input, "Enter a valid positive price");
-        return false;
+    const stock = variant.querySelector("[data-field='stock']");
+    if (!stock.value || Number(stock.value) <= 0) {
+        showError(stock, "Invalid stock");
+        valid = false;
     }
-    clearError(input);
-    return true;
-}
 
-function validateStock() {
-    const input = document.querySelector("input[name='stock']");
-    const value = Number(input.value);
-    if (isNaN(value) || value <= 0) {
-        showError(input, "Enter a valid stock quantity");
-        return false;
+    const sku = variant.querySelector("[data-field='SKU']");
+    if (!SKU_REGEX.test(sku.value)) {
+        showError(sku, "Format: ABC-123");
+        valid = false;
     }
-    clearError(input);
-    return true;
-}
 
-function validateSKU() {
-    const input = document.querySelector("input[name='SKU']");
-    if (!SKU_REGEX.test(input.value)) {
-        showError(input, "SKU format: ABC-123");
-        return false;
+    const color = variant.querySelector("[data-field='color']");
+    if (!COLOR_REGEX.test(color.value)) {
+        showError(color, "Only alphabets allowed");
+        valid = false;
     }
-    clearError(input);
-    return true;
-}
 
-function validateColor() {
-    const input = document.querySelector("input[name='color']");
-    if (!COLOR_REGEX.test(input.value)) {
-        showError(input, "Only alphabets allowed");
-        return false;
+    const size = variant.querySelector("[data-field='size']");
+    if (!size.value || size.value.includes("Select")) {
+        showError(size, "Select a size");
+        valid = false;
     }
-    clearError(input);
-    return true;
-}
 
-function validateSize() {
-    const select = document.querySelector("select[name='size']");
-    if (!select.value || select.value.includes("Select")) {
-        showError(select, "Please select a size");
-        return false;
-    }
-    clearError(select);
-    return true;
-}
+    const images = variant.querySelectorAll("[data-field='images']");
 
-/* ---------------- IMAGE VALIDATION ---------------- */
-function validateImages() {
-    const inputs = document.querySelectorAll("input[type='file']");
-    let valid = false;
-
-    for (const input of inputs) {
-        if (!input.files.length) continue;
+    images.forEach((input, idx) => {
+        if (!input.files.length) {
+            showError(input, `Image ${idx + 1} is required`);
+            valid = false;
+            return;
+        }
 
         const file = input.files[0];
-        valid = true;
 
         if (!allowedTypes.includes(file.type)) {
-            showError(input, "Only PNG, JPG, WEBP images allowed");
-            return false;
+            showError(input, "Invalid image type");
+            valid = false;
         }
 
         if (file.size > maxSize) {
-            showError(input, "Image must be under 5MB");
-            return false;
+            showError(input, "Max 5MB allowed");
+            valid = false;
         }
+    });
 
-        clearError(input);
-    }
-
-    if (!valid) {
-        showError(inputs[0], "At least one image is required");
-        return false;
-    }
-    return true;
+    return valid;
 }
-
-/* ---------------- LIVE EVENTS ---------------- */
-document.querySelector("input[name='name']").addEventListener("input", validateName);
-document.querySelector("select[name='category']").addEventListener("change", validateCategory);
-document.querySelector("textarea[name='description']").addEventListener("input", validateDescription);
-
-document.querySelector("input[name='price']").addEventListener("input", validatePrice);
-document.querySelector("input[name='stock']").addEventListener("input", validateStock);
-document.querySelector("input[name='SKU']").addEventListener("input", validateSKU);
-document.querySelector("input[name='color']").addEventListener("input", validateColor);
-document.querySelector("select[name='size']").addEventListener("change", validateSize);
-
-document.querySelectorAll("input[type='file']").forEach(input => {
-    input.addEventListener("change", validateImages);
-});
 
 /* ---------------- SUBMIT CHECK ---------------- */
 document.getElementById("productForm").addEventListener("submit", function (e) {
+    let valid = true;
 
-    const valid =
-        validateName() &
-        validateCategory() &
-        validateDescription() &
-        validatePrice() &
-        validateStock() &
-        validateSKU() &
-        validateColor() &
-        validateSize() &
-        validateImages();
+    if (!validateProduct()) valid = false;
+
+    document.querySelectorAll(".variant-block").forEach(variant => {
+        if (!validateVariant(variant)) valid = false;
+    });
 
     if (!valid) {
         e.preventDefault();
         window.scrollTo({ top: 0, behavior: "smooth" });
-        return;
     }
-
-    // alert("All validations passed. Ready for backend submit.");
 });
 
 /* ---------------- VARIANT DYNAMIC LOGIC ---------------- */
@@ -566,6 +515,7 @@ function addVariant() {
 
     attachRemoveHandler(clone);
     variantsContainer.appendChild(clone);
+    syncVariantNames();
 
     clone.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -607,6 +557,7 @@ function attachRemoveHandler(variant) {
                 }
             })
         updateVariantTitles();
+        syncVariantNames();
     };
 }
 
@@ -617,6 +568,31 @@ function updateVariantTitles() {
         block.querySelector("h1").textContent = `Variant ${variantCount}`;
     });
 }
+
+function syncVariantNames() {
+    document.querySelectorAll(".variant-block").forEach((v, i) => {
+        v.querySelector("[data-field='price']").name = `variants[${i}][price]`;
+        v.querySelector("[data-field='SKU']").name = `variants[${i}][SKU]`;
+        v.querySelector("[data-field='color']").name = `variants[${i}][color]`;
+        v.querySelector("[data-field='size']").name = `variants[${i}][size]`;
+        v.querySelector("[data-field='stock']").name = `variants[${i}][stock]`;
+
+        v.querySelectorAll("[data-field='images']").forEach((img, j) => {
+            const newId = `upload-${i}-${j}`;
+            const previewId = `preview-${i}-${j}`;
+
+            img.id = newId;
+            img.name = `variants[${i}][images][]`;
+            img.setAttribute("onchange", `previewImage(event, '${previewId}')`);
+
+            const label = img.nextElementSibling;
+            label.setAttribute("for", newId);
+            label.querySelector("div").id = previewId;
+        });
+    });
+}
+
+
 
 </script>
 
