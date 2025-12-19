@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
@@ -698,3 +698,89 @@ class ToggleProductStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
                 "success": False,
                 "message": "Unexpected server error occurred."
             }, status=500)
+
+
+class ProductEditView(View):
+
+    template_name = "adminpanel/edit_product.html"
+
+    def get(self, request, pk):
+
+        if not request.user.is_authenticated or not request.user.is_staff:
+            return redirect('admin_login')
+
+        product = get_object_or_404(Product, pk=pk)
+        variants = product.variants.prefetch_related("images")
+
+        return render(request, self.template_name, {
+            "product": product,
+            "variants": variants,
+            "categories": Category.objects.filter(is_active=True)
+        })
+
+    @transaction.atomic
+    def post(self, request):
+        try:
+
+            product_data = validate_product_fields(request.POST)
+
+            product = Product.objects.create(**product_data)
+
+            variant_indexes = set()
+
+            for key in request.POST.keys():
+                if key.startswith("variants["):
+                    idx = key.split("[")[1].split("]")[0]
+                    variant_indexes.add(idx)
+
+            if not variant_indexes:
+                raise ValidationError("At least one variant is required")
+
+            for idx in sorted(variant_indexes, key=int):
+                raw_variant_data = {
+                    "price": request.POST.get(f"variants[{idx}][price]"),
+                    "SKU": request.POST.get(f'variants[{idx}][SKU]'),
+                    "color": request.POST.get(f'variants[{idx}][color]'),
+                    "size": request.POST.get(f'variants[{idx}][size]'),
+                    "stock": request.POST.get(f'variants[{idx}][stock]')
+                }
+
+                variant_data = validate_variant_fields(raw_variant_data)
+
+                variant = ProductVariant.objects.create(
+                    product=product,
+                    **variant_data
+                )
+
+                images = request.FILES.getlist(f"variants[{idx}][images][]")
+                validate_images(images)
+
+                for i, img in enumerate(images):
+                    upload = cloudinary.uploader.upload(
+                        img,
+                        folder="products/variants",
+                        public_id=f"variant_{variant.id}_{uuid.uuid4().hex[:8]}",
+                        resource_type="image"
+                    )
+
+                    ProductImage.objects.create(
+                        product_variant=variant,
+                        image_url=upload["secure_url"],
+                        public_id=upload["public_id"],
+                        is_primary=(i == 0)
+                    )
+
+            messages.success(request, "Product created successfully")
+            return redirect("products")
+
+        except ValidationError as e:
+            transaction.set_rollback(True)
+            messages.error(request, str(e))
+            logger.error(f"Validation error during Product creation {e}")
+            return redirect("add_product")
+
+        except Exception as e:
+            transaction.set_rollback(True)
+            messages.error(request, "Something went wrong while creating product")
+            logger.error(f"Unexpecated error during Product creation {e}")
+            return redirect("add_product")

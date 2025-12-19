@@ -1,0 +1,608 @@
+{% extends "common/base_admin_list.html" %}
+{% block style %}
+
+<style>
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .fade-in-down {
+            animation: fadeInDown 0.5s ease-out;
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .scale-in {
+            animation: scaleIn 0.4s ease-out;
+        }
+
+        .delay-100 {
+            animation-delay: 0.1s;
+            animation-fill-mode: backwards;
+        }
+
+        .delay-200 {
+            animation-delay: 0.2s;
+            animation-fill-mode: backwards;
+        }
+
+        .input-transition {
+            transition: all 0.3s ease;
+        }
+
+        .input-transition:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn-transition {
+            transition: all 0.3s ease;
+        }
+
+        .btn-transition:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-transition:active {
+            transform: translateY(0);
+        }
+
+        .image-upload-box {
+            transition: all 0.3s ease;
+        }
+
+        .image-upload-box:hover {
+            transform: scale(1.05);
+            border-color: #ef4444;
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+
+{% endblock style %}
+{% block content %}
+        <!-- Header -->
+        <div class="mb-8 fade-in-down">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Add New Product</h1>
+            <p class="text-gray-600">Enter the details for the new product.</p>
+        </div>
+
+        <!-- Main Form -->
+        <form method='POST' action='{% url "add_product" %}' id="productForm" enctype="multipart/form-data">
+            {% csrf_token %}
+            <!-- First Card: Product Name, Category, Description -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 scale-in card-hover">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Product Name -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Product Name
+                        </label>
+                        <input 
+                            type="text"
+                            name='name'
+                            value="{{product.name}}"
+                            placeholder="Enter the product name..."
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
+                        >
+                    </div>
+
+                    <!-- Category -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Category
+                        </label>
+                        <select name='category' class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition appearance-none bg-white cursor-pointer">
+                            <option>Select Category</option>
+                            {% for category in categories %}
+                            <option value='{{category.id}}' {% if product.category == category %}selected{% endif %}>{{category.name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Description
+                    </label>
+                    <textarea 
+                        rows="5"
+                        name='description'
+                        placeholder="Add product Description"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition resize-none"
+                    >{{product.description}}</textarea>
+                </div>
+            </div>
+
+            <!-- Second Card: Price, SKU, Color, Size, Images -->
+            <div id="variantsContainer">
+                {% for variant in variants %}
+                    <input type="hidden"
+                    name="variants[{{ forloop.counter0 }}][id]"
+                    value="{{ variant.id }}">
+
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 fade-in-up delay-100 card-hover variant-block">
+                    <div class="flex justify-between items-center">
+                        <h1 class="text-1xl md:text-2xl font-bold text-gray-900 mb-2">Variant {{forloop.counter0}}</h1>
+                        <button type="button" class="text-rose-500">
+                            <i data-lucide="trash" class="w-5 h-5 ml-2"></i>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <!-- Price -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Price
+                            </label>
+                            <input 
+                                type="text"
+                                name="variants[{{forloop.counter0}}][price]"
+                                value="{{variant.price}}"
+                                data-field="price"
+                                placeholder="Enter price"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
+                            >
+                        </div>
+
+                        <!-- SKU -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                SKU
+                            </label>
+                            <input 
+                                type="text"
+                                name="variants[{{forloop.counter0}}][SKU]"
+                                data-field="SKU"
+                                value="{{variant.sku}}"
+                                placeholder="Enter SKU"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <!-- Color -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Colour
+                            </label>
+                            <input 
+                                type="text"
+                                name="variants[{{forloop.counter0}}][color]"
+                                data-field="color"
+                                value="{{variant.color}}"
+                                placeholder="Enter colour"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
+                            >
+                        </div>
+
+                        <!-- Size -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Size
+                            </label>
+                            <select 
+                                type="text"
+                                name="variants[{{forloop.counter0}}][size]"
+                                data-field="size"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition appearance-none bg-white cursor-pointer"
+                            >
+                            <option>Select Size</option>
+                            {% for s in "Kids,S,M,L,XL,XXL".split(",") %}
+                                <option value="{{ s }}"
+                                    {% if variant.size == s %}selected{% endif %}>
+                                    {{ s }}
+                                </option>
+                            {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Stock</label>
+                            <input type="text" name="variants[{{forloop.counter0}}][stock]" data-field="stock" value={{variant.stock}} placeholder="Enter Stock Quantity" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition">
+                        </div>
+                        
+                    </div>
+
+                    <!-- Image Upload Section -->
+                    <div class="grid grid-cols-3 gap-4">
+                        <!-- Upload Box 1 -->
+                        <div class="image-upload-box aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-50">
+                            <input type="file" name="variants[{{ forloop.counter0 }}][images][]" data-field="images" id="upload1" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="previewImage(event, 'preview1')">
+                            <label for="upload1" class="cursor-pointer flex flex-col items-center">
+                                <div id="preview1" class="w-full h-full flex items-center justify-center">
+                                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Upload Box 2 -->
+                        <div class="image-upload-box aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-50">
+                            <input type="file" name="variants[{{ forloop.counter0 }}][images][]" data-field="images" id="upload2" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="previewImage(event, 'preview2')">
+                            <label for="upload2" class="cursor-pointer flex flex-col items-center">
+                                <div id="preview2" class="w-full h-full flex items-center justify-center">
+                                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Upload Box 3 -->
+                        <div class="image-upload-box aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-50">
+                            <input type="file" name="variants[{{ forloop.counter0 }}][images][]" data-field="images" id="upload3" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="previewImage(event, 'preview3')">
+                            <label for="upload3" class="cursor-pointer flex flex-col items-center">
+                                <div id="preview3" class="w-full h-full flex items-center justify-center">
+                                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Add Variant Button -->
+
+            <div class="flex justify-center my-6">
+                <button type="button" id="addVariantBtn" class=" flex item-center px-6 py-2.5 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 btn-transition">
+                    Add Variant
+                    <i data-lucide="plus" class="w-5 h-6 ml-2"></i>
+                </button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end gap-4 fade-in-up delay-200">
+                <a href='{% url "products" %}'>
+                    <button 
+                        type="button"
+                        class="px-8 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 btn-transition"
+                    >
+                        Cancel
+                    </button>
+                </a>
+                
+                <button 
+                    type="submit"
+                    class="px-8 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 btn-transition"
+                >
+                    Add Product
+                </button>
+            </div>
+        </form>
+
+
+{% endblock content %}
+{% block scripts %}
+
+<script>
+
+syncVariantNames()
+
+ // Image preview function
+        function previewImage(event, previewId) {
+            const file = event.target.files[0];
+            const preview = document.getElementById(previewId);
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover rounded-lg">
+                    `;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+
+/* ---------------- CONFIG ---------------- */
+const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
+const maxSize = 5 * 1024 * 1024;
+
+const NAME_REGEX = /^[A-Za-z\s]+$/;
+const DESCRIPTION_REGEX = /^[A-Za-z\s.,-]+$/;
+const COLOR_REGEX = /^[A-Za-z\s]+$/;
+const SKU_REGEX = /^[A-Za-z]+-[0-9]+$/;
+
+/* ---------------- HELPERS ---------------- */
+function showError(el, msg) {
+    clearError(el);
+    const p = document.createElement("p");
+    p.className = "error-text text-red-600 text-sm mt-1";
+    p.textContent = msg;
+    el.classList.add("border-red-500");
+    el.parentElement.appendChild(p);
+}
+
+function clearError(el) {
+    el.classList.remove("border-red-500");
+    el.parentElement.querySelectorAll(".error-text").forEach(e => e.remove());
+}
+
+/* ---------------- PRODUCT VALIDATION ---------------- */
+function validateProduct() {
+    let valid = true;
+
+    const name = document.querySelector("[name='name']");
+    if (!NAME_REGEX.test(name.value)) {
+        showError(name, "Only alphabets allowed");
+        valid = false;
+    }
+
+    const category = document.querySelector("[name='category']");
+    if (!category.value) {
+        showError(category, "Category is required");
+        valid = false;
+    }
+
+    const desc = document.querySelector("[name='description']");
+    if (!DESCRIPTION_REGEX.test(desc.value)) {
+        showError(desc, "Invalid description");
+        valid = false;
+    }
+
+    return valid;
+}
+
+/* ---------------- VARIANT VALIDATION ---------------- */
+function validateVariant(variant) {
+    let valid = true;
+
+    const price = variant.querySelector("[data-field='price']");
+    if (!price.value || Number(price.value) <= 0) {
+        showError(price, "Invalid price");
+        valid = false;
+    }
+
+    const stock = variant.querySelector("[data-field='stock']");
+    if (!stock.value || Number(stock.value) <= 0) {
+        showError(stock, "Invalid stock");
+        valid = false;
+    }
+
+    const sku = variant.querySelector("[data-field='SKU']");
+    if (!SKU_REGEX.test(sku.value)) {
+        showError(sku, "Format: ABC-123");
+        valid = false;
+    }
+
+    const color = variant.querySelector("[data-field='color']");
+    if (!COLOR_REGEX.test(color.value)) {
+        showError(color, "Only alphabets allowed");
+        valid = false;
+    }
+
+    const size = variant.querySelector("[data-field='size']");
+    if (!size.value || size.value.includes("Select")) {
+        showError(size, "Select a size");
+        valid = false;
+    }
+
+    const images = variant.querySelectorAll("[data-field='images']");
+
+    images.forEach((input, idx) => {
+        if (!input.files.length) {
+            showError(input, `Image ${idx + 1} is required`);
+            valid = false;
+            return;
+        }
+
+        const file = input.files[0];
+
+        if (!allowedTypes.includes(file.type)) {
+            showError(input, "Invalid image type");
+            valid = false;
+        }
+
+        if (file.size > maxSize) {
+            showError(input, "Max 5MB allowed");
+            valid = false;
+        }
+    });
+
+    return valid;
+}
+
+/* ---------------- SUBMIT CHECK ---------------- */
+document.getElementById("productForm").addEventListener("submit", function (e) {
+    let valid = true;
+
+    if (!validateProduct()) valid = false;
+
+    document.querySelectorAll(".variant-block").forEach(variant => {
+        if (!validateVariant(variant)) valid = false;
+    });
+
+    if (!valid) {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+});
+
+/* ---------------- VARIANT DYNAMIC LOGIC ---------------- */
+
+const addVariantBtn = document.getElementById("addVariantBtn");
+const variantsContainer = document.getElementById("variantsContainer");
+
+let variantCount = 1;
+
+// Attach remove handler to first variant
+attachRemoveHandler(variantsContainer.querySelector(".variant-block"));
+
+addVariantBtn.addEventListener("click", () => {
+    addVariant();
+});
+
+function addVariant() {
+    const firstVariant = variantsContainer.querySelector(".variant-block");
+    const clone = firstVariant.cloneNode(true);
+
+    variantCount++;
+
+    // Clear input values
+    clone.querySelectorAll("input, select").forEach(el => {
+        if (el.type === "file") {
+            el.value = "";
+        } else {
+            el.value = "";
+        }
+        clearError(el);
+    });
+
+    // Update heading
+    clone.querySelector("h1").textContent = `Variant ${variantCount}`;
+
+    // Reset previews
+    clone.querySelectorAll("[id^='preview']").forEach(preview => {
+        preview.innerHTML = `
+            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 4v16m8-8H4"></path>
+            </svg>
+        `;
+    });
+
+    // Update file input IDs & preview IDs (important)
+    clone.querySelectorAll("input[type='file']").forEach((input, i) => {
+        const newId = `upload-${variantCount}-${i}`;
+        const previewId = `preview-${variantCount}-${i}`;
+
+        input.id = newId;
+        input.setAttribute("onchange", `previewImage(event, '${previewId}')`);
+
+        const label = input.nextElementSibling;
+        label.setAttribute("for", newId);
+
+        label.querySelector("div").id = previewId;
+    });
+
+    attachRemoveHandler(clone);
+    variantsContainer.appendChild(clone);
+    syncVariantNames();
+
+    clone.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function attachRemoveHandler(variant) {
+    const deleteBtn = variant.querySelector("button.text-rose-500");
+
+    deleteBtn.onclick = () => {
+        if (variantsContainer.children.length === 1) {
+            Swal.fire({
+                toast: true,
+                icon: 'error',
+                title: 'Atleast one Variant is required',
+                animation: true,
+                position: 'top-right',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            })
+            return;
+        }
+        variant.remove();
+        Swal.fire({
+                toast: true,
+                icon: 'success',
+                title: 'Variant Removed',
+                animation: true,
+                position: 'top-right',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            })
+        updateVariantTitles();
+        syncVariantNames();
+    };
+}
+
+function updateVariantTitles() {
+    variantCount = 0;
+    variantsContainer.querySelectorAll(".variant-block").forEach(block => {
+        variantCount++;
+        block.querySelector("h1").textContent = `Variant ${variantCount}`;
+    });
+}
+
+function syncVariantNames() {
+    document.querySelectorAll(".variant-block").forEach((v, i) => {
+        v.querySelector("[data-field='price']").name = `variants[${i}][price]`;
+        v.querySelector("[data-field='SKU']").name = `variants[${i}][SKU]`;
+        v.querySelector("[data-field='color']").name = `variants[${i}][color]`;
+        v.querySelector("[data-field='size']").name = `variants[${i}][size]`;
+        v.querySelector("[data-field='stock']").name = `variants[${i}][stock]`;
+
+        v.querySelectorAll("[data-field='images']").forEach((img, j) => {
+            const newId = `upload-${i}-${j}`;
+            const previewId = `preview-${i}-${j}`;
+
+            img.id = newId;
+            img.name = `variants[${i}][images][]`;
+            img.setAttribute("onchange", `previewImage(event, '${previewId}')`);
+
+            const label = img.nextElementSibling;
+            label.setAttribute("for", newId);
+            label.querySelector("div").id = previewId;
+        });
+    });
+}
+
+
+
+</script>
+
+{% endblock scripts %}

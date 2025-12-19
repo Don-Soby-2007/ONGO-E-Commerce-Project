@@ -104,14 +104,13 @@
                             </span>
                         </td>
                         <td class="py-3 px-4 text-center">
-                            {% comment %} <a href="{% url 'edit_product' product.id %}">
+                            <a href="{% url 'edit_product' product.id %}">
                                 <button id='edit-product-btn' 
                                         title="Edit Product"
-                                        data-status="{% if product.is_active %}Active{% else %}Inactive{% endif %}"
                                         class="text-gray-400 hover:text-rose-500 p-1 rounded-md transition duration-150" >
                                     <i data-lucide="pencil-line" class="w-5 h-5"></i>
                                 </button>
-                            </a> {% endcomment %}
+                            </a>
                             <button id='delete-product-btn' 
                                     data-toggle-btn
                                     data-id="{{product.id}}"
