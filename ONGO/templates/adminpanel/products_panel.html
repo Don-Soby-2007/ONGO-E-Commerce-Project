@@ -117,7 +117,7 @@
                                     data-id="{{product.id}}"
                                     data-type="product"
                                     data-status="{{ product.is_active|yesno:'Active,Inactive' }}"
-                                    class="text-gray-400 hover:text-rose-500 p-1 rounded-md transition duration-150" 
+                                    class="text-gray-400 hover:justify-between items-center p-1 rounded-md transition duration-150" 
                                     title="{% if product.is_active %}Deactivate Product{% else %}Activate Product{% endif %}">
                                 <i data-lucide="trash-2" class="w-5 h-5"></i>
                             </button>
