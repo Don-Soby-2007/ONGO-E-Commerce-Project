@@ -715,6 +715,7 @@ class ProductEditView(View):
         return render(request, self.template_name, {
             "product": product,
             "variants": variants,
+            "size": ["Kids", "S", "M", "L", "XL", "XXL"],
             "categories": Category.objects.filter(is_active=True)
         })
 
