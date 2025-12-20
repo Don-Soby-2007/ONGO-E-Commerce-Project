@@ -767,10 +767,8 @@ class ProductEditView(View):
 
             for idx in sorted(variant_indexes, key=int):
 
-                variant = ProductVariant.objects.get(
-                    id=request.POST.get(f"variants[{idx}][id]"),
-                    product=product
-                )
+                variant_id = request.POST.get(f"variants[{idx}][id]")
+
                 raw_variant_data = {
                     "price": request.POST.get(f"variants[{idx}][price]"),
                     "SKU": request.POST.get(f'variants[{idx}][SKU]'),
@@ -781,12 +779,30 @@ class ProductEditView(View):
 
                 variant_data = validate_variant_fields(raw_variant_data)
 
-                variant.price = variant_data.get('price')
-                variant.size = variant_data.get('size')
-                variant.color = variant_data.get('color')
-                variant.stock = variant_data.get('stock')
-                variant.sku = variant_data.get('sku')
-                variant.save()
+                if variant_id:
+
+                    variant = ProductVariant.objects.get(
+                            id=variant_id,
+                            product=product
+                        )
+
+                    variant.price = variant_data.get('price')
+                    variant.size = variant_data.get('size')
+                    variant.color = variant_data.get('color')
+                    variant.stock = variant_data.get('stock')
+                    variant.sku = variant_data.get('sku')
+                    variant.save()
+
+                else:
+
+                    variant = ProductVariant.objects.create(
+                        product=product,
+                        price=variant_data.get("price"),
+                        sku=variant_data.get("sku"),
+                        color=variant_data.get("color"),
+                        size=variant_data.get("size"),
+                        stock=variant_data.get("stock"),
+                    )
 
                 # Imange Identification
 
