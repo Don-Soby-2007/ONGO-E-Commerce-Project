@@ -487,9 +487,6 @@ def validate_product_fields(data):
     if not name or not NAME_REGEX.match(name):
         raise ValidationError("Product name must contain only alphabets")
 
-    if Product.objects.filter(name__iexact=name).exists():
-        raise ValidationError("Product with this name already exists")
-
     if not Category.objects.filter(id=category, is_active=True).exists():
         raise ValidationError("Invalid category selected")
 
@@ -532,9 +529,6 @@ def validate_variant_fields(data):
     if not SKU_REGEX.match(sku):
         raise ValidationError("SKU format must be like ABC-123")
 
-    if ProductVariant.objects.filter(sku__iexact=sku).exists():
-        raise ValidationError("SKU already exists")
-
     if not COLOR_REGEX.match(color):
         raise ValidationError("Color must contain only alphabets")
 
@@ -551,8 +545,6 @@ def validate_variant_fields(data):
 
 
 def validate_images(images):
-    if not images:
-        raise ValidationError("At least one product image is required")
 
     if len(images) != 3:
         raise ValidationError("Exactly 3 images are required per variant")
@@ -584,6 +576,9 @@ class ProductCreateView(View):
 
             product_data = validate_product_fields(request.POST)
 
+            if Product.objects.filter(name__iexact=request.POST.get('name', "").strip()).exists():
+                raise ValidationError("Product with this name already exists")
+
             product = Product.objects.create(**product_data)
 
             variant_indexes = set()
@@ -606,6 +601,9 @@ class ProductCreateView(View):
                 }
 
                 variant_data = validate_variant_fields(raw_variant_data)
+
+                if ProductVariant.objects.filter(sku__iexact=raw_variant_data.get('SKU')).exists():
+                    raise ValidationError("SKU already exists")
 
                 variant = ProductVariant.objects.create(
                     product=product,
@@ -720,12 +718,23 @@ class ProductEditView(View):
         })
 
     @transaction.atomic
-    def post(self, request):
+    def post(self, request, pk):
         try:
+
+            # Product update
 
             product_data = validate_product_fields(request.POST)
 
-            product = Product.objects.create(**product_data)
+            product = Product.objects.get(pk=pk)
+
+            category = Category.objects.get(id=product_data.get('category_id'))
+
+            product.category = category
+            product.name = product_data.get('name')
+            product.description = product_data.get('description')
+            product.save()
+
+            # Variant Update
 
             variant_indexes = set()
 
@@ -737,7 +746,31 @@ class ProductEditView(View):
             if not variant_indexes:
                 raise ValidationError("At least one variant is required")
 
+            submitted_variant_ids = set(
+                request.POST.get(f"variants[{idx}][id]")
+                for idx in variant_indexes
+            )
+
+            db_variants = ProductVariant.objects.filter(product=product)
+
+            for db_variant in db_variants:
+                if str(db_variant.id) not in submitted_variant_ids:
+                    # delete variant images
+                    for img in db_variant.images.all():
+                        cloudinary.uploader.destroy(img.public_id)
+                        img.delete()
+
+                    # delete the variant itself
+                    db_variant.delete()
+
+            # Variant Loop for Multiple Variants
+
             for idx in sorted(variant_indexes, key=int):
+
+                variant = ProductVariant.objects.get(
+                    id=request.POST.get(f"variants[{idx}][id]"),
+                    product=product
+                )
                 raw_variant_data = {
                     "price": request.POST.get(f"variants[{idx}][price]"),
                     "SKU": request.POST.get(f'variants[{idx}][SKU]'),
@@ -748,40 +781,59 @@ class ProductEditView(View):
 
                 variant_data = validate_variant_fields(raw_variant_data)
 
-                variant = ProductVariant.objects.create(
-                    product=product,
-                    **variant_data
-                )
+                variant.price = variant_data.get('price')
+                variant.size = variant_data.get('size')
+                variant.color = variant_data.get('color')
+                variant.stock = variant_data.get('stock')
+                variant.sku = variant_data.get('sku')
+                variant.save()
+
+                # Imange Identification
+
+                db_images = {str(img.id): img for img in variant.images.all()}
+
+                submitted_image_ids = set(request.POST.getlist(f"variants[{idx}][existing_images][]"))
+
+                # delete removed images
+
+                for img_id, img in db_images.items():
+                    if img_id not in submitted_image_ids:
+                        cloudinary.uploader.destroy(img.public_id)
+                        img.delete()
+
+                # image upload
 
                 images = request.FILES.getlist(f"variants[{idx}][images][]")
-                validate_images(images)
 
-                for i, img in enumerate(images):
-                    upload = cloudinary.uploader.upload(
-                        img,
-                        folder="products/variants",
-                        public_id=f"variant_{variant.id}_{uuid.uuid4().hex[:8]}",
-                        resource_type="image"
-                    )
+                if images:
+                    validate_images(images)
 
-                    ProductImage.objects.create(
-                        product_variant=variant,
-                        image_url=upload["secure_url"],
-                        public_id=upload["public_id"],
-                        is_primary=(i == 0)
-                    )
+                    for i, img in enumerate(images):
+                        upload = cloudinary.uploader.upload(
+                            img,
+                            folder="products/variants",
+                            public_id=f"variant_{variant.id}_{uuid.uuid4().hex[:8]}",
+                            resource_type="image"
+                        )
 
-            messages.success(request, "Product created successfully")
+                        ProductImage.objects.create(
+                            product_variant=variant,
+                            image_url=upload["secure_url"],
+                            public_id=upload["public_id"],
+                            is_primary=(i == 0 and not variant.images.exists())
+                        )
+
+            messages.success(request, "Product updated successfully")
             return redirect("products")
 
         except ValidationError as e:
             transaction.set_rollback(True)
             messages.error(request, str(e))
-            logger.error(f"Validation error during Product creation {e}")
-            return redirect("add_product")
+            logger.error(f"Validation error during Product updation {e}")
+            return redirect("edit_product", pk=pk)
 
         except Exception as e:
             transaction.set_rollback(True)
             messages.error(request, "Something went wrong while creating product")
-            logger.error(f"Unexpecated error during Product creation {e}")
-            return redirect("add_product")
+            logger.error(f"Unexpecated error during Product updation {e}")
+            return redirect("edit_product", pk=pk)

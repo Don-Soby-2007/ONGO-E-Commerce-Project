@@ -102,11 +102,11 @@
         <!-- Header -->
         <div class="mb-8 fade-in-down">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Edit Product {{product.name}}</h1>
-            <p class="text-gray-600">Enter the details for the new product.</p>
+            <p class="text-gray-600">Edit the details for the product.</p>
         </div>
 
         <!-- Main Form -->
-        <form method='POST' action='{% url "add_product" %}' id="productForm" enctype="multipart/form-data">
+        <form method='POST' action='{% url "edit_product" product.id %}' id="productForm" enctype="multipart/form-data">
             {% csrf_token %}
             <!-- First Card: Product Name, Category, Description -->
             <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 scale-in card-hover">
@@ -250,6 +250,10 @@
                     <div class="grid grid-cols-3 gap-4">
                         {% for image in variant.images.all %}
                             <input type="hidden"
+                            name="variants[{{ forloop.parentloop.counter0 }}][existing_images][]"
+                            value="{{ image.id }}">
+
+                            <input type="hidden"
                                 class="server-image"
                                 data-variant="{{ forloop.parentloop.counter0 }}"
                                 data-index="{{ forloop.counter0 }}"
@@ -319,7 +323,7 @@
                     type="submit"
                     class="px-8 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 btn-transition"
                 >
-                    Add Product
+                    Edit Product
                 </button>
             </div>
         </form>
@@ -460,30 +464,43 @@ function validateVariant(variant) {
         valid = false;
     }
 
-    const images = variant.querySelectorAll("[data-field='images']");
+    const imageInputs = variant.querySelectorAll("[data-field='images']");
 
-    images.forEach((input, idx) => {
-        if (!input.files.length) {
-            showError(input, `Image ${idx + 1} is required`);
-            valid = false;
-            return;
-        }
+    // count existing images from server
+    const existingCount = variant.querySelectorAll(".server-image").length;
+
+    // validate newly uploaded images (type + size)
+    let newCount = 0;
+
+    imageInputs.forEach((input, idx) => {
+        if (!input.files.length) return;
 
         const file = input.files[0];
+        newCount++;
 
         if (!allowedTypes.includes(file.type)) {
-            showError(input, "Invalid image type");
+            showError(input, "Invalid image type (PNG, JPG, WEBP only)");
             valid = false;
         }
 
         if (file.size > maxSize) {
-            showError(input, "Max 5MB allowed");
+            showError(input, "Image size must be less than 5MB");
             valid = false;
         }
     });
 
-    return valid;
+    // total image count rule
+    const totalCount = existingCount + newCount;
+
+    if (totalCount < 3) {
+        showError(imageInputs[0], "Each variant must have at least 3 images");
+        valid = false;
+    }
+
+    return valid
+
 }
+
 
 /* ---------------- SUBMIT CHECK ---------------- */
 document.getElementById("productForm").addEventListener("submit", function (e) {
