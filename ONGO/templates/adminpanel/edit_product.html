@@ -99,10 +99,21 @@
 
 {% endblock style %}
 {% block content %}
+
+        <!-- Back link -->
+        <div class="mb-6">
+            <a href="{% url 'products' %}" class="text-red-500 hover:text-red-700 font-medium flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Products
+            </a>
+        </div>
+
         <!-- Header -->
         <div class="mb-8 fade-in-down">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Edit Product {{product.name}}</h1>
-            <p class="text-gray-600">Edit the details for the product.</p>
+            <p class="text-red-500">Edit the details for the product.</p>
         </div>
 
         <!-- Main Form -->
