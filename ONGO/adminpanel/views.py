@@ -480,8 +480,9 @@ MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
 def validate_product_fields(data):
     NAME_REGEX = re.compile(r'^[A-Za-z\s]+$')
     DESCRIPTION_REGEX = re.compile(r'^[A-Za-z\s.,-]+$')
-    name = data.get("name", "").strip()
-    description = data.get("description", "").strip()
+
+    name = (data.get("name") or "").strip()
+    description = (data.get("description") or "").strip()
     category = data.get("category")
 
     if not name or not NAME_REGEX.match(name):
@@ -508,8 +509,9 @@ def validate_variant_fields(data):
 
     price = data.get("price")
     stock = data.get("stock")
-    sku = data.get("SKU", "").strip()
-    color = data.get("color", "").strip()
+
+    sku = (data.get("SKU") or "").strip()
+    color = (data.get("color") or "").strip()
     size = data.get("size")
 
     try:
@@ -746,10 +748,11 @@ class ProductEditView(View):
             if not variant_indexes:
                 raise ValidationError("At least one variant is required")
 
-            submitted_variant_ids = set(
+            submitted_variant_ids = {
                 request.POST.get(f"variants[{idx}][id]")
                 for idx in variant_indexes
-            )
+                if request.POST.get(f"variants[{idx}][id]")
+            }
 
             db_variants = ProductVariant.objects.filter(product=product)
 
@@ -850,6 +853,6 @@ class ProductEditView(View):
 
         except Exception as e:
             transaction.set_rollback(True)
-            messages.error(request, "Something went wrong while creating product")
+            messages.error(request, "Something went wrong while updating product")
             logger.error(f"Unexpecated error during Product updation {e}")
             return redirect("edit_product", pk=pk)

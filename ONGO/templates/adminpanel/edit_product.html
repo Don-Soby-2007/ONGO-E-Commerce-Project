@@ -168,11 +168,15 @@
             <!-- Second Card: Price, SKU, Color, Size, Images -->
             <div id="variantsContainer">
                 {% for variant in variants %}
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 fade-in-up delay-100 card-hover variant-block">
+
                     <input type="hidden"
+                    data-field="variant-id"
                     name="variants[{{ forloop.counter0 }}][id]"
                     value="{{ variant.id }}">
 
-                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 fade-in-up delay-100 card-hover variant-block">
+                    <input type="hidden" name="deleted_variants" id="deletedVariants">
+
                     <div class="flex justify-between items-center">
                         <h1 class="text-1xl md:text-2xl font-bold text-gray-900 mb-2">Variant</h1>
                         <button type="button" class="text-rose-500">
@@ -515,6 +519,14 @@ function validateVariant(variant) {
 
 /* ---------------- SUBMIT CHECK ---------------- */
 document.getElementById("productForm").addEventListener("submit", function (e) {
+
+    document.querySelectorAll(".variant-block").forEach(variant => {
+    const price = variant.querySelector("[data-field='price']");
+    if (!price || !price.value.trim()) {
+        variant.remove();
+    }
+    });
+
     let valid = true;
 
     if (!validateProduct()) valid = false;
@@ -597,42 +609,44 @@ function attachRemoveHandler(variant) {
     const deleteBtn = variant.querySelector("button.text-rose-500");
 
     deleteBtn.onclick = () => {
-        if (variantsContainer.children.length === 1) {
+        if (variantsContainer.querySelectorAll(".variant-block").length === 1) {
             Swal.fire({
                 toast: true,
                 icon: 'error',
-                title: 'Atleast one Variant is required',
-                animation: true,
+                title: 'At least one Variant is required',
                 position: 'top-right',
                 showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer)
-                toast.addEventListener('mouseleave', Swal.resumeTimer)
-                }
-            })
+                timer: 3000
+            });
             return;
         }
+
+        // 🔴 CHECK IF THIS VARIANT EXISTS IN DB
+        const idInput = variant.querySelector("[data-field='variant-id']");
+        if (idInput) {
+            const deletedField = document.getElementById("deletedVariants");
+            const current = deletedField.value ? deletedField.value.split(",") : [];
+            current.push(idInput.value);
+            deletedField.value = current.join(",");
+        }
+
+        // Remove from DOM
         variant.remove();
+
         Swal.fire({
-                toast: true,
-                icon: 'success',
-                title: 'Variant Removed',
-                animation: true,
-                position: 'top-right',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer)
-                toast.addEventListener('mouseleave', Swal.resumeTimer)
-                }
-            })
+            toast: true,
+            icon: 'success',
+            title: 'Variant Removed',
+            position: 'top-right',
+            showConfirmButton: false,
+            timer: 3000
+        });
+
         updateVariantTitles();
         syncVariantNames();
     };
 }
+
 
 function updateVariantTitles() {
     variantCount = 0;
@@ -644,6 +658,13 @@ function updateVariantTitles() {
 
 function syncVariantNames() {
     document.querySelectorAll(".variant-block").forEach((v, i) => {
+
+        const idInput = v.querySelector("[data-field='variant-id']");
+        if (idInput) {
+            idInput.name = `variants[${i}][id]`;
+        }
+
+
         v.querySelector("[data-field='price']").name = `variants[${i}][price]`;
         v.querySelector("[data-field='SKU']").name = `variants[${i}][SKU]`;
         v.querySelector("[data-field='color']").name = `variants[${i}][color]`;
