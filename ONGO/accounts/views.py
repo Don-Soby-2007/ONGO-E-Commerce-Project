@@ -269,15 +269,6 @@ class LoginView(View):
 
 @login_required
 @never_cache
-def homeView(request):
-    if request.user.is_authenticated and request.user.is_staff is False:
-        return render(request, 'products/home.html')
-
-    return redirect('login')
-
-
-@login_required
-@never_cache
 def userLogoutView(request):
     logout(request)
     return redirect('login')

@@ -1,9 +1,556 @@
-{% extends "common/base_auth.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header and Slider Example</title>
+    <script src="https://unpkg.com/tailwindcss-jit-cdn"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .slide-enter-active,
+        .slide-leave-active {
+            transition: opacity 1s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Black Section -->
+    <header class="bg-black text-white text-xs font-medium">
+        <div class="container mx-auto px-4 py-2 flex items-center justify-between">
+            <div class="flex space-x-6">
+                <div class="flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15V4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11c0 1.1.9 2 2 2h3"></path>
+                        <path d="M17 8H7m10 8v-3m-6-3h6"></path>
+                        <path d="M7 16.5L21 12l-14-4.5"></path>
+                    </svg>
+                    <span>Free Shipping</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 9v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9"></path>
+                        <path d="M9 22V12h6v10"></path>
+                        <path d="M15 3h6v6"></path>
+                        <path d="M9 3h6v6"></path>
+                        <path d="M3 3h6v6"></path>
+                        <path d="M19 7h2"></path>
+                        <path d="M5 7h2"></path>
+                    </svg>
+                    <span>Return To Store</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                        <path d="M12 12h.01"></path>
+                    </svg>
+                    <span>Online Gift Card</span>
+                </div>
+            </div>
+            <div class="flex space-x-6">
+                <span>Delivering To</span>
+                <span>Download Our Apps</span>
+                <span>Store Locator</span>
+                <span>Help</span>
+            </div>
+        </div>
+    </header>
 
-{% block title %}Home - ONGO{% endblock %}
+    <!-- Grey Section -->
+    <div class="bg-gray-100 py-4">
+        <div class="container mx-auto px-4 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <img src="placeholder.img" alt="Logo" class="h-8">
+            </div>
+            <div class="flex-1 mx-8">
+                <div class="relative">
+                    <input type="text" placeholder="What are you looking for?" class="w-full px-4 py-2 rounded-full focus:outline-none">
+                    <button class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'logout' %}"><button class="bg-red-600 text-white px-6 py-2 rounded-sm font-medium">Logout</button></a>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-1">
+                        <i data-lucide="heart"></i>
+                        <span>Favourites</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <i data-lucide="shopping-cart"></i>
+                        <span>Basket</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-{% block forms %}
-<h1>Home Page</h1>
-<p>Welcome to the ONGO e-commerce platform!</p>
-<a href="{% url 'logout' %}" class="block w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg text-center transition-colors duration-200" >Logout</a> 
-{% endblock forms %}
+    <!-- Slider Section -->
+    <div class="container mx-auto px-4 py-12">
+        <div class="relative overflow-hidden max-w-6xl mx-auto rounded-lg">
+            <!-- Slider Container -->
+            <div id="slider" class="relative h-96">
+                <!-- Slide 1 -->
+                <div class="absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-100">
+                    <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=1232,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-Uber-HP-Desktop-HeroBanner4-16DEC25.png" class="w-full h-full object-cover">
+                </div>
+                <!-- Slide 2 -->
+                <div class="absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0">
+                    <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=1232,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-Uber-HP-Desktop-HeroBanner2-16DEC25.png" class="w-full h-full object-cover">
+                </div>
+                <!-- Slide 3 -->
+                <div class="absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0">
+                    <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=1232,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-Uber-HP-Desktop-HeroBanner3-16DEC25.png" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 flex items-center bg-black bg-opacity-30 px-12">
+                        
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Dots -->
+            <div class="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
+                <button id="dot-0" class="h-3 w-3 rounded-full bg-white"></button>
+                <button id="dot-1" class="h-3 w-3 rounded-full bg-gray-400"></button>
+                <button id="dot-2" class="h-3 w-3 rounded-full bg-gray-400"></button>
+            </div>
+
+            <!-- Navigation Arrows -->
+            <button id="prev" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white p-2 rounded-full shadow-md">
+                <i data-lucide="chevron-left"></i>
+            </button>
+            <button id="next" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white p-2 rounded-full shadow-md">
+                <i data-lucide="chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-12">
+        <!-- Heading -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-8 border-l-4 border-yellow-500 pl-4">
+            Party Edit
+        </h2>
+
+        <!-- Cards Container -->
+        <div class="flex justify-center space-x-8">
+            <!-- Women's Dresses Card -->
+            <div class="w-64 bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                <a href='{% url "product_list" %}'>
+                    <img
+                        src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-SWTSTNONE-Desk-Banner1-09Dec2025.png"
+                        alt="Women's Dresses"
+                        class="w-full h-full object-cover"
+                    >
+                </a>
+            </div>
+
+            <!-- Men's Dresses Card -->
+            <div class="w-64 bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                <a href='{% url "product_list" %}'>
+                    <img
+                        src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-SWTSTNTWO-Desk-Banner2-09Dec2025.png"
+                        alt="Men's Dresses"
+                        class="w-full h-full object-cover"
+                    >
+                </a>
+            </div>
+
+            <!-- Kids Dresses Card -->
+            <div class="w-64 bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                <a href='{% url "product_list" %}'>
+                    <img
+                        src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-SWTSTNTHREE-Desk-Banner3-09Dec2025.png"
+                        alt="Girls Dresses"
+                        class="w-full h-full object-cover"
+                    >
+                </a>
+            </div>
+            <div class="w-64 bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                <a href='{% url "product_list" %}'>
+                    <img
+                        src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-SWTSTNFOUR-Desk-Banner4-11Dec2025.png"
+                        alt="Boys Dresses"
+                        class="w-full h-full object-cover"
+                    >
+               </a>
+                
+            </div>
+        </div>
+    </div>
+    <section class="container mx-auto px-4 py-12">
+        <!-- Section Heading -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-8 border-l-4 border-yellow-600 pl-4">
+            Ethnic Elegance
+        </h2>
+
+        <!-- Banner -->
+        <div class="flex justify-center mb-12">
+            <a href='{% url "product_list"  %}'>
+                <img
+                    src="https://cms.landmarkshops.in/cdn-cgi/image/w=1232,q=85,fit=cover/MAX-Friday/MAX2.O/desktop-MAX-UBERHP-13modblock-oneBythree-A-16DEC25.png"
+                    alt="Ethnic Elegance Banner"
+                    class="w-full h-auto"
+                >
+            </a>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <!-- Card 1: Suits & Sets -->
+            <div class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                <a href='{% url "product_list" %}'>
+                    <img
+                        src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-TrendsOnOffer-Desk-Banner1-16DEC25.png"
+                        alt="Suits & Sets"
+                        class="w-full h-full object-cover"
+                    >
+                </a>
+                
+            </div>
+
+            <!-- Card 2: Printed Kurtas -->
+            <div class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
+<a href='{% url "product_list" %}'>
+                    <img
+                        src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-TrendsOnOffer-Desk-Banner2-16DEC25.png"
+                        alt="Printed Kurtas"
+                        class="w-full h-full object-cover"
+                    >
+                </a>
+            </div>
+
+            <!-- Card 3: Dresses -->
+            <div class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
+<a href='{% url "product_list" %}'>
+                    <img
+                        src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-TrendsOnOffer-Desk-Banner3-16DEC25.png"
+                        alt="Dresses"
+                        class="w-full h-full object-cover"
+                    >
+                </a>
+            </div>
+
+            <!-- Card 4: Winter Kurtas -->
+            <div class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
+<a href='{% url "product_list" %}'>
+                    <img
+                        src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-TrendsOnOffer-Desk-Banner4-16DEC25.png"
+                        alt="Winter Kurtas"
+                        class="w-full h-full object-cover"
+                    >
+               </a>
+               
+            </div>
+
+            <!-- Card 5: Ethnic Tops -->
+            <div class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
+<a href='{% url "product_list" %}'>
+                    <img
+                        src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-TrendsOnOffer-Desk-Banner5-16DEC25.png"
+                        alt="Ethnic Tops"
+                        class="w-full h-full object-cover"
+                    >
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="container mx-auto px-4 py-12">
+        <!-- Section Heading -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-8 border-l-4 border-yellow-600 pl-4">
+            Winter Must-haves
+        </h2>
+
+        <!-- Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Sweatshirts Card -->
+            <div class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                <a href='{% url "product_list" %}'>
+                    <img
+                        src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/desktop-MAX-UBERHP-oneBythree-A-16DEC25.png"
+                        alt="Sweatshirts"
+                        class="w-full h-full object-cover"
+                    >
+                </a>
+            </div>
+
+            <!-- Jackets Card -->
+            <div class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                <a href='{% url "product_list" %}'>
+                    <img
+                        src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/desktop-MAX-UBERHP-twoBythree-B-17DEC25.png"
+                        alt="Jackets"
+                        class="w-full h-full object-cover"
+                    >
+                </a>
+            </div>
+
+            <!-- Sweaters Card -->
+            <div class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                <a href='{% url "product_list" %}'>
+                    <img
+                        src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/desktop-MAX-UBERHP-threeBythree-C-16DEC25.png"
+                        alt="Sweaters"
+                        class="w-full h-full object-cover"
+                    >
+                </a>
+            </div>
+
+            <!-- Add-ons Card -->
+            <div class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                <a href='{% url "product_list" %}'>
+                    <img
+                        src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/desktop-MAX-UBERHP-fourBythree-D-16DEC25.png"
+                        alt="Add-ons"
+                        class="w-full h-full object-cover"
+                    >
+                </a>
+            </div>
+        </div>
+    </section>
+
+<!-- Footer -->
+    <footer class="bg-white pt-12 pb-6">
+        <div class="container mx-auto px-4">
+            <!-- Footer Columns -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 mb-12">
+                <!-- Women Column -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Women</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Tops</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Dresses & Jumsuits</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sportswear</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Bottoms</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Winterwear</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Ethnicwear</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Lingerie</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sleepwear</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Accessories</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shoes</a></li>
+                    </ul>
+                </div>
+
+                <!-- Men Column -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Men</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Tops</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Bottoms</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sportswear</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Winterwear</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Accessories</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Ethnicwear</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shoes</a></li>
+                    </ul>
+                </div>
+
+                <!-- Kids Column -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Kids</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Tops</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shirts</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Jeans</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Leggings</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Skirts</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sweatshirts</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sports Shoes</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Ballerina</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Ethnicwear</a></li>
+                    </ul>
+                </div>
+
+                <!-- URB_N Column -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">URB_N</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">New Arrivals</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Tops</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Dresses</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shirts</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Trousers</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">T-shirts</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shorts & Skirts</a></li>
+                    </ul>
+                </div>
+
+                <!-- Explore Column -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Explore</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Offers</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Stores Nearby</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- About and Help Columns -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 mb-12">
+                <!-- About Column -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">About</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">About us</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Write to us</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Careers</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Take a Tour</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Blog</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Store Locator</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Landmark Cares</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Max Cares</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Max Elite</a></li>
+                    </ul>
+                </div>
+
+                <!-- Help Column -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Help</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Contact us</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shipping</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Returns Process</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Returns And Exchange Policy</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Help Centre</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Contact and Social Media -->
+            <div class="border-t border-gray-200 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
+                    <!-- Contact Info -->
+                    <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="phone" class="hover-icon text-gray-600"></i>
+                            <span class="text-gray-600">1800-123-1444</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="life-buoy" class="hover-icon text-gray-600"></i>
+                            <a href="#" class="hover-text text-gray-600 hover:text-orange-500">help.maxfashion.com</a>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="mail" class="hover-icon text-gray-600"></i>
+                            <span class="text-gray-600">help@maxfashion.in</span>
+                        </div>
+                    </div>
+
+                    <!-- Social Media Icons -->
+                    <div class="flex space-x-4">
+                        <a href="#" class="hover-icon text-gray-600">
+                            <i data-lucide="facebook"></i>
+                        </a>
+                        <a href="#" class="hover-icon text-gray-600">
+                            <i data-lucide="twitter"></i>
+                        </a>
+                        <a href="#" class="hover-icon text-gray-600">
+                            <i data-lucide="instagram"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Copyright -->
+                <div class="flex flex-col md:flex-row justify-between items-center mt-8 pt-8 border-t border-gray-200 text-gray-600 text-sm">
+                    <div class="flex items-center space-x-2">
+                        <img src="placeholder.img" alt="Max Logo" class="h-6">
+                        <span>© 2025 Retail World Limited</span>
+                    </div>
+                    <div class="flex space-x-4">
+                        <a href="#" class="hover-text text-gray-600 hover:text-orange-500">Terms & Conditions</a>
+                        <span>-</span>
+                        <a href="#" class="hover-text text-gray-600 hover:text-orange-500">Privacy Policy</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+</body>
+
+<script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        const slides = document.querySelectorAll('#slider > div');
+        const dots = document.querySelectorAll('[id^="dot-"]');
+        const prevBtn = document.getElementById('prev');
+        const nextBtn = document.getElementById('next');
+        let currentSlide = 0;
+        let slideInterval;
+
+        // Show the current slide
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.add('opacity-0');
+                slide.classList.remove('opacity-100');
+                dots[i].classList.remove('bg-white');
+                dots[i].classList.add('bg-gray-400');
+            });
+
+            slides[index].classList.remove('opacity-0');
+            slides[index].classList.add('opacity-100');
+            dots[index].classList.remove('bg-gray-400');
+            dots[index].classList.add('bg-white');
+            currentSlide = index;
+        }
+
+        // Next slide
+        function nextSlide() {
+            let newSlide = currentSlide + 1;
+            if (newSlide >= slides.length) {
+                newSlide = 0;
+            }
+            showSlide(newSlide);
+        }
+
+        // Previous slide
+        function prevSlide() {
+            let newSlide = currentSlide - 1;
+            if (newSlide < 0) {
+                newSlide = slides.length - 1;
+            }
+            showSlide(newSlide);
+        }
+
+        // Auto slide every 10 seconds
+        function startSlideInterval() {
+            slideInterval = setInterval(nextSlide, 10000);
+        }
+
+        // Pause on hover
+        document.getElementById('slider').addEventListener('mouseenter', () => {
+            clearInterval(slideInterval);
+        });
+
+        document.getElementById('slider').addEventListener('mouseleave', startSlideInterval);
+
+        // Event listeners for navigation
+        nextBtn.addEventListener('click', () => {
+            clearInterval(slideInterval);
+            nextSlide();
+            startSlideInterval();
+        });
+
+        prevBtn.addEventListener('click', () => {
+            clearInterval(slideInterval);
+            prevSlide();
+            startSlideInterval();
+        });
+
+        // Event listeners for dots
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                clearInterval(slideInterval);
+                showSlide(index);
+                startSlideInterval();
+            });
+        });
+
+        // Initialize
+        showSlide(0);
+        startSlideInterval();
+    </script>
+
+</html>

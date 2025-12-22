@@ -43,7 +43,6 @@ urlpatterns = [
     path('resend-otp/', views.resend_otp_view, name='resend_otp'),
     path('user-confirmed/', views.userConfirmedView, name='user_confirmed'),
 
-    path('', views.homeView, name='home'),
     path('logout/', views.userLogoutView, name='logout'),
 
 ]

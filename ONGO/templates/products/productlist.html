@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shirts for Men</title>
+    <script src="https://unpkg.com/tailwindcss-jit-cdn"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .fixed-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .fixed-sidebar {
+            position: fixed;
+            top: 72px;
+            left: 0;
+            width: 280px;
+            height: calc(100vh - 72px);
+            overflow-y: auto;
+            background-color: white;
+            z-index: 40;
+            box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+        }
+        .product-grid {
+            margin-left: 290px;
+            margin-top: 20px;
+        }
+        .product-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Fixed Navbar -->
+    <nav class="fixed-nav">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <img src="placeholder.img" alt="Max Logo" class="h-8">
+                <div class="relative w-96">
+                    <input type="text" placeholder="shirts for men" class="w-full px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                        <i data-lucide="search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center space-x-6">
+                <button class="text-gray-700 hover:text-orange-500 flex items-center space-x-1">
+                    <i data-lucide="user"></i>
+                    <span>Account</span>
+                </button>
+                <button class="text-gray-700 hover:text-orange-500 flex items-center space-x-1">
+                    <i data-lucide="heart"></i>
+                    <span>Favourites</span>
+                </button>
+                <button class="text-gray-700 hover:text-orange-500 flex items-center space-x-1">
+                    <i data-lucide="shopping-bag"></i>
+                    <span>Basket</span>
+                </button>
+                <button class="text-gray-700 hover:text-orange-500 flex items-center space-x-1">
+                    <i data-lucide="menu"></i>
+                    <span>More</span>
+                </button>
+            </div>
+        </div>
+        <!-- Navigation Links -->
+        <div class="bg-gray-100 py-2 border-t border-gray-200">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-center space-x-8 overflow-x-auto">
+                    <a href="#" class="text-gray-700 hover:text-orange-500 whitespace-nowrap">Winter Edit</a>
+                    <a href="#" class="text-gray-700 hover:text-orange-500 whitespace-nowrap">GenZ Store</a>
+                    <a href="#" class="text-gray-700 hover:text-orange-500 whitespace-nowrap">Women</a>
+                    <a href="#" class="text-gray-700 hover:text-orange-500 whitespace-nowrap">Men</a>
+                    <a href="#" class="text-gray-700 hover:text-orange-500 whitespace-nowrap">Kids</a>
+                    <a href="#" class="text-gray-700 hover:text-orange-500 whitespace-nowrap">Max Sport</a>
+                    <a href="#" class="text-gray-700 hover:text-orange-500 whitespace-nowrap">Teens Store</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex">
+            <!-- Fixed Filters Sidebar -->
+            <aside class="fixed-sidebar p-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold">FILTERS</h3>
+                    <button class="text-orange-500 text-sm">Clear all</button>
+                </div>
+
+                <!-- Price Filter -->
+                <div class="mb-6">
+                    <h4 class="font-semibold mb-3">Price</h4>
+                    <div class="flex items-center space-x-2">
+                        <input type="text" placeholder="Minimum" class="w-20 px-2 py-1 border rounded">
+                        <span>to</span>
+                        <input type="text" placeholder="Maximum" class="w-20 px-2 py-1 border rounded">
+                    </div>
+                </div>
+
+                <!-- Category Filters -->
+                <div class="mb-6">
+                    <h4 class="font-semibold mb-3">Shop For</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100">Tops</button>
+                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100">Indian Wear</button>
+                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100">Co-ords</button>
+                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100">Loungewear</button>
+                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100">Bottoms</button>
+                    </div>
+                </div>
+
+                <!-- Additional Filters -->
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-semibold mb-2">Size</h4>
+                        <i data-lucide="chevron-down" class="text-gray-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">Color</h4>
+                        <i data-lucide="chevron-down" class="text-gray-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">Brand</h4>
+                        <i data-lucide="chevron-down" class="text-gray-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">Discount</h4>
+                        <i data-lucide="chevron-down" class="text-gray-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">Gender</h4>
+                        <i data-lucide="chevron-down" class="text-gray-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">Fabric</h4>
+                        <i data-lucide="chevron-down" class="text-gray-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">Sleeve Length</h4>
+                        <i data-lucide="chevron-down" class="text-gray-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">Design</h4>
+                        <i data-lucide="chevron-down" class="text-gray-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">Type</h4>
+                        <i data-lucide="chevron-down" class="text-gray-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">Fit</h4>
+                        <i data-lucide="chevron-down" class="text-gray-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">Promotions</h4>
+                        <i data-lucide="chevron-down" class="text-gray-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">Style</h4>
+                        <i data-lucide="chevron-down" class="text-gray-500"></i>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Product Grid -->
+            <div class="product-grid flex-1 p-4">
+                <div class="flex justify-between items-center mb-6">
+                    <p class="text-gray-700">You searched for shirts for men - 588 products available</p>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-700">Sort By</span>
+                        <select class="px-3 py-1 border rounded">
+                            <option>Relevance</option>
+                            <option>Price: Low to High</option>
+                            <option>Price: High to Low</option>
+                            <option>Newest</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Products -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <!-- Product 1 -->
+                    <div class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
+                        <div class="relative">
+                            <img src="https://i.imgur.com/your-product-image-1.jpg" alt="URB_N Men Geometric Print Regular Fit Shirt" class="w-full h-80 object-cover">
+                            <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow">
+                                <i data-lucide="heart" class="text-gray-500"></i>
+                            </button>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-gray-800">URB_N Men Geometric Print Regular Fit Shirt</h3>
+                            <p class="text-gray-600 mt-2">₹ 899</p>
+                        </div>
+                    </div>
+
+                    <!-- Product 2 -->
+                    <div class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
+                        <div class="relative">
+                            <img src="https://i.imgur.com/your-product-image-2.jpg" alt="Men Solid Slim Fit Casual Shirt" class="w-full h-80 object-cover">
+                            <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow">
+                                <i data-lucide="heart" class="text-gray-500"></i>
+                            </button>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-gray-800">Men Solid Slim Fit Casual Shirt</h3>
+                            <p class="text-gray-600 mt-2">₹ 999</p>
+                        </div>
+                    </div>
+
+                    <!-- Product 3 -->
+                    <div class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
+                        <div class="relative">
+                            <img src="https://i.imgur.com/your-product-image-3.jpg" alt="Men Textured Regular Fit Shirt" class="w-full h-80 object-cover">
+                            <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow">
+                                <i data-lucide="heart" class="text-gray-500"></i>
+                            </button>
+                            <span class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 rounded">NEW</span>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-gray-800">Men Textured Regular Fit Shirt</h3>
+                            <p class="text-gray-600 mt-2">₹ 999</p>
+                        </div>
+                    </div>
+
+                    <!-- Product 4 -->
+                    <div class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
+                        <div class="relative">
+                            <img src="https://i.imgur.com/your-product-image-4.jpg" alt="Men Striped Regular Fit Shirt" class="w-full h-80 object-cover">
+                            <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow">
+                                <i data-lucide="heart" class="text-gray-500"></i>
+                            </button>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-gray-800">Men Striped Regular Fit Shirt</h3>
+                            <p class="text-gray-600 mt-2">₹ 899</p>
+                        </div>
+                    </div>
+
+                    <!-- Add more products as needed -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
