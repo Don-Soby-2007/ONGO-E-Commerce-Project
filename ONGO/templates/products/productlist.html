@@ -76,13 +76,13 @@
         <div class="bg-gray-100 py-2 border-t border-gray-200">
             <div class="container mx-auto px-4">
                 <div class="flex justify-center space-x-8 overflow-x-auto">
-                    <a href="#" class="text-gray-700 hover:text-orange-500 whitespace-nowrap">Winter Edit</a>
-                    <a href="#" class="text-gray-700 hover:text-orange-500 whitespace-nowrap">GenZ Store</a>
-                    <a href="#" class="text-gray-700 hover:text-orange-500 whitespace-nowrap">Women</a>
-                    <a href="#" class="text-gray-700 hover:text-orange-500 whitespace-nowrap">Men</a>
-                    <a href="#" class="text-gray-700 hover:text-orange-500 whitespace-nowrap">Kids</a>
-                    <a href="#" class="text-gray-700 hover:text-orange-500 whitespace-nowrap">Max Sport</a>
-                    <a href="#" class="text-gray-700 hover:text-orange-500 whitespace-nowrap">Teens Store</a>
+                    <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">Winter Edit</a>
+                    <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">GenZ Store</a>
+                    <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">Women</a>
+                    <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">Men</a>
+                    <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">Kids</a>
+                    <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">Max Sport</a>
+                    <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">Teens Store</a>
                 </div>
             </div>
         </div>
@@ -93,6 +93,10 @@
         <div class="flex">
             <!-- Fixed Filters Sidebar -->
             <aside class="fixed-sidebar p-4">
+                <div>
+                    <br>
+                    <br>
+                </div>
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-lg font-bold">FILTERS</h3>
                     <button class="text-orange-500 text-sm">Clear all</button>
@@ -112,62 +116,30 @@
                 <div class="mb-6">
                     <h4 class="font-semibold mb-3">Shop For</h4>
                     <div class="flex flex-wrap gap-2">
-                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100">Tops</button>
-                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100">Indian Wear</button>
-                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100">Co-ords</button>
-                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100">Loungewear</button>
-                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100">Bottoms</button>
+                        
+                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100 focus:bg-red-500 focus:border-red-500">Men</button>
+                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100 focus:bg-red-500 focus:border-red-500">Women</button>
+                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100 focus:bg-red-500 focus:border-red-500">Kids</button>
+                        
                     </div>
                 </div>
 
                 <!-- Additional Filters -->
                 <div class="space-y-4">
-                    <div>
+                    <div class="flex justify-between align-center">
                         <h4 class="font-semibold mb-2">Size</h4>
                         <i data-lucide="chevron-down" class="text-gray-500"></i>
                     </div>
-                    <div>
+                    <div class="flex justify-between align-center">
                         <h4 class="font-semibold mb-2">Color</h4>
                         <i data-lucide="chevron-down" class="text-gray-500"></i>
                     </div>
-                    <div>
-                        <h4 class="font-semibold mb-2">Brand</h4>
-                        <i data-lucide="chevron-down" class="text-gray-500"></i>
-                    </div>
-                    <div>
+                    <div class="flex justify-between align-center">
                         <h4 class="font-semibold mb-2">Discount</h4>
                         <i data-lucide="chevron-down" class="text-gray-500"></i>
                     </div>
-                    <div>
+                    <div class="flex justify-between align-center">
                         <h4 class="font-semibold mb-2">Gender</h4>
-                        <i data-lucide="chevron-down" class="text-gray-500"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold mb-2">Fabric</h4>
-                        <i data-lucide="chevron-down" class="text-gray-500"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold mb-2">Sleeve Length</h4>
-                        <i data-lucide="chevron-down" class="text-gray-500"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold mb-2">Design</h4>
-                        <i data-lucide="chevron-down" class="text-gray-500"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold mb-2">Type</h4>
-                        <i data-lucide="chevron-down" class="text-gray-500"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold mb-2">Fit</h4>
-                        <i data-lucide="chevron-down" class="text-gray-500"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold mb-2">Promotions</h4>
-                        <i data-lucide="chevron-down" class="text-gray-500"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold mb-2">Style</h4>
                         <i data-lucide="chevron-down" class="text-gray-500"></i>
                     </div>
                 </div>
@@ -191,63 +163,22 @@
                 <!-- Products -->
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     <!-- Product 1 -->
+                    {% for product in products %}
+                    
                     <div class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
                         <div class="relative">
-                            <img src="https://i.imgur.com/your-product-image-1.jpg" alt="URB_N Men Geometric Print Regular Fit Shirt" class="w-full h-80 object-cover">
+                            <img src="{{product.get_thumbnail_url}}" alt="URB_N Men Geometric Print Regular Fit Shirt" class="w-full h-80 object-cover">
                             <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow">
                                 <i data-lucide="heart" class="text-gray-500"></i>
                             </button>
                         </div>
                         <div class="p-4">
-                            <h3 class="font-semibold text-gray-800">URB_N Men Geometric Print Regular Fit Shirt</h3>
-                            <p class="text-gray-600 mt-2">₹ 899</p>
+                            <h3 class="font-semibold text-gray-800">{{product.name}}</h3>
+                            <p class="text-gray-600 mt-2"> ₹{{product.variants.first.price}}</p>
                         </div>
                     </div>
 
-                    <!-- Product 2 -->
-                    <div class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
-                        <div class="relative">
-                            <img src="https://i.imgur.com/your-product-image-2.jpg" alt="Men Solid Slim Fit Casual Shirt" class="w-full h-80 object-cover">
-                            <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow">
-                                <i data-lucide="heart" class="text-gray-500"></i>
-                            </button>
-                        </div>
-                        <div class="p-4">
-                            <h3 class="font-semibold text-gray-800">Men Solid Slim Fit Casual Shirt</h3>
-                            <p class="text-gray-600 mt-2">₹ 999</p>
-                        </div>
-                    </div>
-
-                    <!-- Product 3 -->
-                    <div class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
-                        <div class="relative">
-                            <img src="https://i.imgur.com/your-product-image-3.jpg" alt="Men Textured Regular Fit Shirt" class="w-full h-80 object-cover">
-                            <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow">
-                                <i data-lucide="heart" class="text-gray-500"></i>
-                            </button>
-                            <span class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 rounded">NEW</span>
-                        </div>
-                        <div class="p-4">
-                            <h3 class="font-semibold text-gray-800">Men Textured Regular Fit Shirt</h3>
-                            <p class="text-gray-600 mt-2">₹ 999</p>
-                        </div>
-                    </div>
-
-                    <!-- Product 4 -->
-                    <div class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
-                        <div class="relative">
-                            <img src="https://i.imgur.com/your-product-image-4.jpg" alt="Men Striped Regular Fit Shirt" class="w-full h-80 object-cover">
-                            <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow">
-                                <i data-lucide="heart" class="text-gray-500"></i>
-                            </button>
-                        </div>
-                        <div class="p-4">
-                            <h3 class="font-semibold text-gray-800">Men Striped Regular Fit Shirt</h3>
-                            <p class="text-gray-600 mt-2">₹ 899</p>
-                        </div>
-                    </div>
-
-                    <!-- Add more products as needed -->
+                    {% endfor %}
                 </div>
             </div>
         </div>

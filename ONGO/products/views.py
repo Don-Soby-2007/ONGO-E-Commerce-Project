@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 @never_cache
-def homeView(request):
+def HomeView(request):
     if request.user.is_authenticated and request.user.is_staff is False:
         return render(request, 'products/home.html')
 
@@ -22,3 +22,12 @@ class ProductListView(ListView):
     model = Product
     context_object_name = 'products'
     paginate_by = 8
+
+    def get_queryset(self):
+        return (
+            Product.objects.filter(is_active=True, category__is_active=True).prefetch_related("variants__images")
+        )
+
+
+def LandingView(request):
+    return render(request, 'products/landing.html')
