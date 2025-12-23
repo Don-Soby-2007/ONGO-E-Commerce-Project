@@ -63,6 +63,18 @@ class Product(models.Model):
         # fallback image
         return "https://via.placeholder.com/150?text=No+Image"
 
+    def get_display_price(self):
+        variant = (
+            self.variants.filter(stock__gt=0)
+            .order_by("sale_price", "price")
+            .first()
+        )
+
+        if variant:
+            return variant.final_price
+
+        return None
+
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(

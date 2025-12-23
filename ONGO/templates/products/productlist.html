@@ -1,9 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shirts for Men</title>
+    <link href="https://fonts.cdnfonts.com/css/asgrike" rel="stylesheet">
     <script src="https://unpkg.com/tailwindcss-jit-cdn"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -45,7 +47,7 @@
     <nav class="fixed-nav">
         <div class="container mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <img src="placeholder.img" alt="Max Logo" class="h-8">
+                <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="Ongo Logo" class="h-8">
                 <div class="relative w-96">
                     <input type="text" placeholder="shirts for men" class="w-full px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
                     <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
@@ -76,19 +78,16 @@
         <div class="bg-gray-100 py-2 border-t border-gray-200">
             <div class="container mx-auto px-4">
                 <div class="flex justify-center space-x-8 overflow-x-auto">
-                    <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">Winter Edit</a>
-                    <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">GenZ Store</a>
                     <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">Women</a>
                     <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">Men</a>
                     <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">Kids</a>
-                    <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">Max Sport</a>
-                    <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">Teens Store</a>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
+    <!-- Main Content --> 
+    <main class="my-20 mx-20 overflow-hidden">
     <div class="container mx-auto px-4 py-8">
         <div class="flex">
             <!-- Fixed Filters Sidebar -->
@@ -174,7 +173,7 @@
                         </div>
                         <div class="p-4">
                             <h3 class="font-semibold text-gray-800">{{product.name}}</h3>
-                            <p class="text-gray-600 mt-2"> ₹{{product.variants.first.price}}</p>
+                            <p class="text-gray-600 mt-2"> ₹{{product.get_display_price}}</p>
                         </div>
                     </div>
 
@@ -183,6 +182,7 @@
             </div>
         </div>
     </div>
+    <main>
 
     <script>
         // Initialize Lucide icons
