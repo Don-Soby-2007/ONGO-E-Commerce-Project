@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shirts for Men</title>
-    <link href="https://fonts.cdnfonts.com/css/asgrike" rel="stylesheet">
     <script src="https://unpkg.com/tailwindcss-jit-cdn"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -105,9 +104,9 @@
                 <div class="mb-6">
                     <h4 class="font-semibold mb-3">Price</h4>
                     <div class="flex items-center space-x-2">
-                        <input type="text" placeholder="Minimum" class="w-20 px-2 py-1 border rounded">
+                        <input type="number" placeholder="Min" min="0" class="w-20 px-2 py-1 border rounded">
                         <span>to</span>
-                        <input type="text" placeholder="Maximum" class="w-20 px-2 py-1 border rounded">
+                        <input type="number" placeholder="Max" min="1" class="w-20 px-2 py-1 border rounded">
                     </div>
                 </div>
 
@@ -164,7 +163,7 @@
                     <!-- Product 1 -->
                     {% for product in products %}
                     
-                    <div class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
+                    <a href="{% url 'product_detail' %}" class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
                         <div class="relative">
                             <img src="{{product.get_thumbnail_url}}" alt="URB_N Men Geometric Print Regular Fit Shirt" class="w-full h-80 object-cover">
                             <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow">
@@ -175,7 +174,7 @@
                             <h3 class="font-semibold text-gray-800">{{product.name}}</h3>
                             <p class="text-gray-600 mt-2"> ₹{{product.get_display_price}}</p>
                         </div>
-                    </div>
+                    </a>
 
                     {% endfor %}
                 </div>

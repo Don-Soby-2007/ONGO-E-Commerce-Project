@@ -31,3 +31,7 @@ class ProductListView(ListView):
 
 def LandingView(request):
     return render(request, 'products/landing.html')
+
+
+def ProductDetailView(request):
+    return render(request, 'products/product-detail.html')
