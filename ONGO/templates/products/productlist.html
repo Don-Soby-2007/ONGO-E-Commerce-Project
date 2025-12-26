@@ -163,7 +163,7 @@
                     <!-- Product 1 -->
                     {% for product in products %}
                     
-                    <a href="{% url 'product_detail' %}" class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
+                    <a href="{% url 'product_detail' product.id %}" class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
                         <div class="relative">
                             <img src="{{product.get_thumbnail_url}}" alt="URB_N Men Geometric Print Regular Fit Shirt" class="w-full h-80 object-cover">
                             <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow">

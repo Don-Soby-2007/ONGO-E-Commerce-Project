@@ -1,4 +1,5 @@
 {% load static %}
+{% load static product_extras %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,17 +19,21 @@
         /* Size Option */
         .size-option {
             transition: all 0.2s ease;
+            position: relative;
         }
-        .size-option:hover {
-            transform: scale(1.05);
+        .size-option:hover:not(:disabled) {
+            transform: scale(1.06);
+            z-index: 10;
         }
         .size-option.selected,
         .size-option.selected:hover {
-            background-color: #f97316; /* orange-500 */
+            background-color: #f92516ff; /* orange-500 */
             color: white;
-            border-color: #f97316;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transform: scale(1.08);
+            border-color: #f92516ff;
+            box-shadow: 0 4px 6px -2px rgba(249, 115, 22, 0.3);
+            transform: scale(1.1);
+            font-weight: bold;
+            z-index: 20;
         }
 
         /* Color Swatch */
@@ -40,7 +45,7 @@
         .color-swatch.selected {
             border-width: 3px;
             border-color: white;
-            box-shadow: 0 0 0 3px #f97316, 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 0 0 3px #f92516ff, 0 4px 8px rgba(0,0,0,0.15);
             transform: scale(1.15);
         }
 
@@ -54,9 +59,9 @@
         }
         .thumbnail.active,
         .thumbnail.active:hover {
-            border-color: #f97316;
+            border-color: #ff5245ff;
             transform: scale(1.07);
-            box-shadow: 0 0 0 3px #f9731640, 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 0 0 3px #46454540, 0 4px 8px rgba(0,0,0,0.15);
         }
     </style>
 </head>
@@ -107,29 +112,31 @@
             <div class="text-sm text-gray-500 mb-6">
                 <a href="#" class="hover:text-orange-500">Men</a> / 
                 <a href="#" class="hover:text-orange-500">Shirts</a> / 
-                <span class="text-gray-800">Geometric Print Regular Fit</span>
+                <span class="text-gray-800">{{product.name}}</span>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <!-- 🖼️ Image Gallery: Thumbnails on LEFT, Main on RIGHT -->
+                <!-- 🖼️ Image Gallery-->
                 <div class="fade-in">
                     <div class="flex flex-col md:flex-row gap-4">
                         <!-- Thumbnails (vertical on md+) -->
                         <div class="flex md:flex-col gap-3 flex-wrap md:flex-nowrap">
-                            <div class="thumbnail w-20 h-20 rounded-lg bg-rose-200 border-2 border-transparent cursor-pointer active"></div>
-                            <div class="thumbnail w-20 h-20 rounded-lg bg-emerald-200 border-2 border-transparent cursor-pointer"></div>
-                            <div class="thumbnail w-20 h-20 rounded-lg bg-indigo-200 border-2 border-transparent cursor-pointer"></div>
-                            <div class="thumbnail w-20 h-20 rounded-lg bg-amber-200 border-2 border-transparent cursor-pointer"></div>
+                            {% for image_url in default_images %}
+                                <div class="thumbnail w-20 h-20 rounded-lg bg-rose-200 border-2 border-transparent cursor-pointer {% if forloop.first %}active{% endif %}"
+                                data-index="{{forloop.counter0}}" style="background-image: url('{{image_url}}'); background-size: cover; background-position: center;">
+                                </div>
+                                {% empty %}
+                                <div class="thumbnail w-20 h-20 rounded-lg bg-gray-200 border-2 border-transparent"></div>
+                            {% endfor %}
                         </div>
 
                         <!-- Main Image -->
-                        <div class="flex-1 bg-gradient-to-br from-rose-100 to-rose-300 rounded-2xl aspect-square md:aspect-[4/5] flex items-center justify-center shadow-xl relative overflow-hidden">
-                            <div class="text-center px-6">
-                                <div class="bg-white/85 backdrop-blur-sm rounded-xl p-6 inline-block">
-                                    <h2 class="text-2xl font-bold text-gray-800 mb-2">URB_N Geometric Print</h2>
-                                    <p class="text-gray-600">Front & Back View</p>
-                                </div>
-                            </div>
+                        <div id="main-image-container" class="flex-1 bg-gradient-to-br from-rose-100 to-rose-300 rounded-2xl aspect-square md:aspect-[4/5] flex items-center justify-center shadow-xl relative overflow-hidden">
+                            {% if default_images %}
+                            <img src="{{ default_images.0 }}" alt="{{ product.name }}" class="w-full h-full object-contain p-4">
+                            {% else %}
+                            <div class="text-gray-400">No image available</div>
+                            {% endif %}
                             <button class="absolute top-4 right-4 p-2.5 bg-white/95 rounded-full shadow-lg hover:bg-white transition-colors">
                                 <i data-lucide="heart" class="text-gray-600 hover:text-red-500 w-5 h-5"></i>
                             </button>
@@ -139,8 +146,8 @@
 
                 <!-- 📄 Product Info -->
                 <div class="fade-in" style="animation-delay: 0.1s">
-                    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Geometric Print Regular Fit Shirt</h1>
-                    <p class="text-orange-600 font-semibold text-lg">₹1,299 <span class="line-through text-gray-500 ml-2">₹1,999</span> <span class="ml-2 bg-red-100 text-red-700 px-2 py-0.5 rounded">35% OFF</span></p>
+                    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{{product.name}}</h1>
+                    <p class="text-orange-600 font-semibold text-lg">{{display_price}} <span class="line-through text-gray-500 ml-2">₹1,999</span> <span class="ml-2 bg-red-100 text-red-700 px-2 py-0.5 rounded">35% OFF</span></p>
                     <div class="flex items-center mt-2">
                         <div class="flex text-amber-400">
                             <i data-lucide="star" class="fill-current w-5 h-5"></i>
@@ -157,36 +164,112 @@
                         <div>
                             <div class="flex justify-between items-center mb-3">
                                 <label class="font-semibold text-gray-800">Color</label>
-                                <span class="text-gray-500 text-sm">Rose Pink (Selected)</span>
+                                <span id="selected-color-text" class="text-gray-500 text-sm">
+                                    {{ default_color|default:"Select a color" }}
+                                </span>
                             </div>
                             <div class="flex flex-wrap gap-3">
-                                <div class="relative w-10 h-10 rounded-full bg-rose-500 border-2 border-white shadow cursor-pointer color-swatch selected"></div>
-                                <div class="relative w-10 h-10 rounded-full bg-emerald-500 border-2 border-white shadow cursor-pointer color-swatch"></div>
-                                <div class="relative w-10 h-10 rounded-full bg-indigo-600 border-2 border-white shadow cursor-pointer color-swatch"></div>
-                                <div class="relative w-10 h-10 rounded-full bg-amber-500 border-2 border-white shadow cursor-pointer color-swatch"></div>
+                                {% for color, variant_list in color_variants.items %}
+                                {% with first_variant=variant_list.0 %}
+                                <div class="relative w-10 h-10 rounded-full border-2 border-white shadow cursor-pointer color-swatch {% if color == default_color %}selected{% endif %}"
+                                    data-color="{{ color }}"
+                                    data-images='{{ images_by_color|get_item:color|to_json|safe }}'
+                                    style="background-color: {{ color|lower }};"
+                                    title="{{ color }}">
+                                </div>
+                                {% endwith %}
+                                {% empty %}
+                                <span class="text-gray-500 italic">No colors available</span>
+                                {% endfor %}
                             </div>
                         </div>
 
                         <!-- ✅ Size Selector -->
-                        <div>
+                        <div id="size-section" class="pt-2">
                             <div class="flex justify-between items-center mb-3">
-                                <label class="font-semibold text-gray-800">Size</label>
-                                <button class="text-orange-500 text-sm hover:underline">Size Guide</button>
+                                <label class="font-semibold text-gray-800 text-lg">Size</label>
+                                <button class="text-orange-500 text-sm font-medium hover:underline flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Size Guide
+                                </button>
                             </div>
-                            <div class="flex flex-wrap gap-2">
-                                <button class="size-option w-12 h-12 rounded-lg border border-gray-300 flex items-center justify-center font-medium">S</button>
-                                <button class="size-option w-12 h-12 rounded-lg border border-gray-300 flex items-center justify-center font-medium">M</button>
-                                <button class="size-option w-12 h-12 rounded-lg border border-gray-300 flex items-center justify-center font-medium selected">L</button>
-                                <button class="size-option w-12 h-12 rounded-lg border border-gray-300 flex items-center justify-center font-medium">XL</button>
-                                <button class="size-option w-12 h-12 rounded-lg border border-gray-300 flex items-center justify-center font-medium">XXL</button>
+
+                            <div class="flex flex-wrap gap-3" id="size-buttons">
+                                {% if default_color %}
+                                    {% for variant in color_variants|get_item:default_color %}
+                                        {% if variant.is_in_stock %}
+                                            <button
+                                                class="size-option w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 border-gray-300 
+                                                    flex items-center justify-center font-bold text-gray-800 text-base
+                                                    transition-all duration-200 
+                                                    hover:scale-105 hover:shadow-md hover:border-orange-400
+                                                    focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-opacity-50
+                                                    {% if forloop.first %}selected{% endif %}"
+                                                data-variant-id="{{ variant.id }}"
+                                            >
+                                                {{ variant.size }}
+                                            </button>
+                                        {% else %}
+                                            <div class="relative group">
+                                                <button
+                                                    disabled
+                                                    class="w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 border-gray-200 
+                                                        bg-gray-50 flex items-center justify-center font-bold text-gray-400 text-base
+                                                        cursor-not-allowed opacity-80"
+                                                    title="Out of stock"
+                                                >
+                                                    <del class="text-gray-500">{{ variant.size }}</del>
+                                                </button>
+                                                <!-- Optional: subtle "OOS" badge -->
+                                                <span class="absolute -top-2 -right-2 bg-gray-200 text-gray-600 text-[10px] font-medium px-1.5 py-0.5 rounded-full">
+                                                    OOS
+                                                </span>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-gray-500 italic col-span-full">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.172 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                        Select a color first to see available sizes
+                                    </div>
+                                {% endif %}
                             </div>
-                            <p class="text-xs text-gray-500 mt-2">✔ In stock (L, XL) | ✘ Out of stock (S, M, XXL)</p>
+
+                            <!-- ✅ Stock Status (optional but helpful) -->
+                            <div id="stock-message" class="mt-4 flex items-center">
+                                {% if default_color %}
+                                    {% with in_stock=color_variants|get_item:default_color|length_in_stock %}
+                                        {% if in_stock > 0 %}
+                                            <span class="flex items-center text-green-600 font-medium">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                In stock • Ships in 24h
+                                            </span>
+                                        {% else %}
+                                            <span class="flex items-center text-red-500 font-medium">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                                Temporarily out of stock
+                                            </span>
+                                            <button class="ml-3 text-sm text-orange-500 underline hover:no-underline">
+                                                Notify when available
+                                            </button>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endif %}
+                            </div>
                         </div>
 
                         <!-- ✅ Actions -->
                         <div class="pt-4 border-t">
                             <div class="flex flex-col sm:flex-row gap-4">
-                                <button class="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-lg font-semibold transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center">
+                                <button id="addCartBtn" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-4 rounded-lg font-semibold transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center">
                                     <i data-lucide="shopping-cart" class="mr-2"></i> Add to Cart
                                 </button>
                                 <button class="flex-1 bg-black hover:bg-gray-800 text-white py-4 rounded-lg font-semibold transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md">
@@ -194,7 +277,7 @@
                                 </button>
                             </div>
                             <div class="mt-4 text-sm text-gray-600 flex items-center">
-                                <i data-lucide="truck" class="mr-2 text-orange-500"></i>
+                                <i data-lucide="truck" class="mr-2 text-red-500"></i>
                                 Free delivery • Easy returns • 7-day exchange
                             </div>
                         </div>
@@ -208,11 +291,7 @@
                                 <i data-lucide="chevron-down" class="w-5 h-5 transform group-open:rotate-180 transition-transform"></i>
                             </summary>
                             <div class="mt-3 text-gray-600 space-y-2 pl-1">
-                                <p>• Regular fit, spread collar, full sleeves</p>
-                                <p>• 100% premium cotton — soft, breathable, non-crease</p>
-                                <p>• All-over geometric print inspired by abstract art</p>
-                                <p>• Sustainably dyed, OEKO-TEX® certified</p>
-                                <p>• Model wears size L (Height: 6'1")</p>
+                                {{product.description}}
                             </div>
                         </details>
 
@@ -232,7 +311,6 @@
             </div>
 
             <!-- ✅ Reviews Section -->
-            <!-- ✅ REVIEWS SECTION — FIXED -->
             <div class="mt-16 fade-in" style="animation-delay: 0.2s">
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">Customer Reviews</h2>
 
@@ -360,46 +438,130 @@
     <script>
     lucide.createIcons();
 
-    document.addEventListener('DOMContentLoaded', function() {
-        // Thumbnails
+    document.addEventListener('DOMContentLoaded', function () {
+        // ====== IMAGE GALLERY (thumbs → main) ======
         document.querySelectorAll('.thumbnail').forEach(thumb => {
             thumb.addEventListener('click', () => {
-                document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+                const index = parseInt(thumb.dataset.index);
+                const allThumbs = document.querySelectorAll('.thumbnail');
+                allThumbs.forEach(t => t.classList.remove('active'));
                 thumb.classList.add('active');
+                
+                const urls = JSON.parse(document.querySelector('.color-swatch.selected')?.dataset.images || '[]');
+                if (urls[index]) {
+                    document.querySelector('#main-image-container img').src = urls[index];
+                }
             });
         });
 
-        // Color swatches
+        // ====== COLOR SWITCHING ======
         document.querySelectorAll('.color-swatch').forEach(swatch => {
             swatch.addEventListener('click', () => {
+                // Update UI
                 document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
                 swatch.classList.add('selected');
+                
+                const color = swatch.dataset.color;
+                const images = JSON.parse(swatch.dataset.images);
+                document.getElementById('selected-color-text').textContent = color;
+
+                // Update thumbnails & main image
+                const thumbContainer = document.getElementById('thumbnail-container');
+                thumbContainer.innerHTML = '';
+                images.forEach((url, idx) => {
+                    const div = document.createElement('div');
+                    div.className = `thumbnail w-20 h-20 rounded-lg bg-gray-200 border-2 border-transparent cursor-pointer ${idx === 0 ? 'active' : ''}`;
+                    div.dataset.index = idx;
+                    div.style.backgroundImage = `url('${url}')`;
+                    div.style.backgroundSize = 'cover';
+                    div.style.backgroundPosition = 'center';
+                    thumbContainer.appendChild(div);
+                });
+
+                // Update main image
+                if (images.length) {
+                    document.querySelector('#main-image-container img').src = images[0];
+                }
+
+                // Update sizes
+                updateSizesForColor(color);
             });
         });
 
-        // Size buttons
-        document.querySelectorAll('.size-option').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.size-option').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-            });
-        });
+        // ====== SIZE SELECTION ======
+        function updateSizesForColor(color) {
+            const variantsByColor = {{ color_variants|to_json|safe }};
+            const variants = variantsByColor[color] || [];
+            const sizeButtons = document.getElementById('size-buttons');
+            const stockMsg = document.getElementById('stock-message');
 
-        // Add to cart feedback
-        const cartBtn = document.querySelector('.bg-orange-500');
+            sizeButtons.innerHTML = '';
+            const inStockSizes = [];
+            const outOfStockSizes = [];
+
+            variants.forEach(v => {
+                const btn = document.createElement('button');
+                btn.className = `size-option w-12 h-12 rounded-lg flex items-center justify-center font-medium border ${v.stock > 0 ? 'border-gray-300' : 'border-gray-200 bg-gray-100 line-through'}`;
+                btn.textContent = v.size;
+                btn.dataset.variantId = v.id;
+                if (v.stock > 0) {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.size-option').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                    });
+                    if (inStockSizes.length === 0) btn.classList.add('selected'); // auto-select first in-stock
+                    inStockSizes.push(v.size);
+                } else {
+                    btn.disabled = true;
+                    btn.title = "Out of stock";
+                    outOfStockSizes.push(v.size);
+                }
+                sizeButtons.appendChild(btn);
+            });
+
+            if (inStockSizes.length > 0) {
+                stockMsg.innerHTML = `✔ In stock (${inStockSizes.join(', ')})`;
+            } else if (outOfStockSizes.length > 0) {
+                stockMsg.innerHTML = `✘ Out of stock (${outOfStockSizes.join(', ')})`;
+            } else {
+                stockMsg.textContent = 'No sizes available';
+            }
+        }
+
+        // ====== Add to Cart Feedback ======
+        const cartBtn = document.getElementById('addCartBtn');
         if (cartBtn) {
-            cartBtn.addEventListener('click', function() {
+            cartBtn.addEventListener('click', function () {
+                const selectedSizeBtn = document.querySelector('.size-option.selected');
+                const selectedSwatch = document.querySelector('.color-swatch.selected');
+                
+                if (!selectedSwatch) {
+                    alert('Please select a color.');
+                    return;
+                }
+                if (!selectedSizeBtn) {
+                    alert('Please select a size.');
+                    return;
+                }
+
                 const original = this.innerHTML;
                 this.innerHTML = '<i data-lucide="check" class="mr-2"></i> Added!';
-                this.classList.replace('bg-orange-500', 'bg-green-500');
+                this.classList.replace('bg-red-500', 'bg-green-500');
                 lucide.createIcons();
 
                 setTimeout(() => {
                     this.innerHTML = original;
-                    this.classList.replace('bg-green-500', 'bg-orange-500');
+                    this.classList.replace('bg-green-500', 'bg-red-500');
                     lucide.createIcons();
                 }, 1500);
             });
+        }
+
+        // Trigger initial size load on page load (if default color exists)
+        const defaultSwatch = document.querySelector('.color-swatch.selected');
+        if (defaultSwatch) {
+            const color = defaultSwatch.dataset.color;
+            updateSizesForColor(color);
         }
     });
     </script>       
