@@ -53,96 +53,51 @@ class ProductDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         product = self.object
 
-        # 🔁 Fetch & process data
-        try:
-            variants = product.variants.filter(
-                stock__gte=0
-            ).prefetch_related(
-                Prefetch(
-                    'images',
-                    queryset=ProductImage.objects.order_by('-is_primary', '-created_at'),
-                    to_attr='image_list'  # efficient access
-                )
+        # Fetch all variants with images
+        variants = product.variants.filter(
+            stock__gte=0
+        ).prefetch_related(
+            Prefetch(
+                'images',
+                queryset=ProductImage.objects.order_by('-is_primary', '-created_at'),
+                to_attr='prefetched_images'
             )
+        )
 
-            # --- Build data structures ---
-            color_variants = {}      # for Django template loops (full objects)
-            js_variants = {}         # for JS: only primitives
-            images_by_color = {}     # for Django & JS (URLs only)
+        # Build raw data structures (no UX decisions)
+        variants_by_color = {}
+        images_by_color = {}
 
-            for variant in variants:
-                color = variant.color
+        for variant in variants:
+            color = variant.color
 
-                # 1. Group full variants (for {% for %} in template)
-                color_variants.setdefault(color, []).append(variant)
+            # Raw variant data (truth only)
+            if color not in variants_by_color:
+                variants_by_color[color] = []
+            variants_by_color[color].append({
+                'id': variant.id,
+                'size': variant.size,
+                'stock': variant.stock,
+                'price': float(variant.price) if variant.price else None,
+            })
 
-                # 2. Build JS-safe variant data (id, size, stock)
-                if color not in js_variants:
-                    js_variants[color] = []
-                js_variants[color].append({
-                    'id': variant.id,
-                    'size': variant.size,
-                    'stock': variant.stock,
-                    # Add more if needed: 'price': float(variant.price), etc.
-                })
+            # All images for each color
+            if color not in images_by_color:
+                images_by_color[color] = set()
+            for img in variant.prefetched_images:
+                images_by_color[color].add(img.image_url)
 
-                # 3. Collect image URLs (deduplicated)
-                if color not in images_by_color:
-                    images_by_color[color] = set()
-                for img in variant.image_list:
-                    images_by_color[color].add(img.image_url)
+        # Convert sets to lists
+        for color in images_by_color:
+            images_by_color[color] = list(images_by_color[color])
 
-            # Convert sets → lists (preserve primary-first order if needed)
-            for color in images_by_color:
-                # Optional: sort to put is_primary first — but we already ordered in DB
-                images_by_color[color] = list(images_by_color[color])
-
-            # Default selection
-            default_color = next(iter(color_variants), None)
-            default_images = images_by_color.get(default_color, [
-                "https://via.placeholder.com/400x500?text=No+Image  "
-            ])
-
-        except Exception as e:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Error building product detail context for pk={product.pk}: {e}", exc_info=True)
-            js_variants = {}
-            images_by_color = {}
-            default_color = None
-            default_images = ["https://via.placeholder.com/400x500?text=Error  "]
-
-        # ✅ Inject into context
+        # Context with raw data
         context.update({
-            # For Django template loops (we'll reconstruct minimal variant data)
-            'color_variants': self._build_template_variants(js_variants),
-            # For JavaScript
-            'variants_by_color_json': js_variants,
-            'images_by_color': images_by_color,
-            'default_color': default_color,
-            'default_images': default_images,
+            'product': product,
+            'variants_by_color_json': variants_by_color,
+            'images_by_color_json': images_by_color,
+            'all_colors': list(variants_by_color.keys()),
             'display_price': product.get_display_price(),
         })
 
         return context
-
-    def _build_template_variants(self, js_variants):
-        """
-        Reconstruct minimal variant-like objects for template rendering.
-        Returns dict: {color: [{'size': ..., 'is_in_stock': ...}, ...]}
-        """
-        if js_variants is None:
-            return {}
-
-        template_variants = {}
-        for color, variants in js_variants.items():
-            template_variants[color] = [
-                {
-                    'size': v['size'],
-                    'is_in_stock': v['stock'] > 0,
-                    'id': v['id'],
-                    'stock': v['stock'],
-                }
-                for v in variants
-            ]
-        return template_variants

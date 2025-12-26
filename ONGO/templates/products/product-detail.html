@@ -6,9 +6,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>URB_N Men Geometric Print Shirt | Ongo</title>
-    <link href="https://fonts.cdnfonts.com/css/asgrike" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.cdnfonts.com/css/asgrike  " rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com  "></script>
+    <script src="https://unpkg.com/lucide@latest  "></script>
     <style>
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -71,7 +71,7 @@
     <nav class="fixed-nav bg-white shadow-sm top-0 left-0 right-0 z-50">
         <div class="container mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="Ongo Logo" class="h-8">
+                <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg  " alt="Ongo Logo" class="h-8">
                 <div class="relative w-96">
                     <input type="text" placeholder="shirts for men" class="w-full px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
                     <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
@@ -116,27 +116,17 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <!-- 🖼️ Image Gallery-->
+                <!-- 🖼️ Image Gallery -->
                 <div class="fade-in">
                     <div class="flex flex-col md:flex-row gap-4">
                         <!-- Thumbnails (vertical on md+) -->
-                        <div class="flex md:flex-col gap-3 flex-wrap md:flex-nowrap">
-                            {% for image_url in default_images %}
-                                <div class="thumbnail w-20 h-20 rounded-lg bg-rose-200 border-2 border-transparent cursor-pointer {% if forloop.first %}active{% endif %}"
-                                data-index="{{forloop.counter0}}" style="background-image: url('{{image_url}}'); background-size: cover; background-position: center;">
-                                </div>
-                                {% empty %}
-                                <div class="thumbnail w-20 h-20 rounded-lg bg-gray-200 border-2 border-transparent"></div>
-                            {% endfor %}
+                        <div id="thumbnail-container" class="flex md:flex-col gap-3 flex-wrap md:flex-nowrap">
+                            <!-- Will be populated by JS -->
                         </div>
 
                         <!-- Main Image -->
                         <div id="main-image-container" class="flex-1 bg-gradient-to-br from-rose-100 to-rose-300 rounded-2xl aspect-square md:aspect-[4/5] flex items-center justify-center shadow-xl relative overflow-hidden">
-                            {% if default_images %}
-                            <img src="{{ default_images.0 }}" alt="{{ product.name }}" class="w-full h-full object-contain p-4">
-                            {% else %}
-                            <div class="text-gray-400">No image available</div>
-                            {% endif %}
+                            <img id="main-image" src="" alt="{{ product.name }}" class="w-full h-full object-contain p-4">
                             <button class="absolute top-4 right-4 p-2.5 bg-white/95 rounded-full shadow-lg hover:bg-white transition-colors">
                                 <i data-lucide="heart" class="text-gray-600 hover:text-red-500 w-5 h-5"></i>
                             </button>
@@ -164,23 +154,10 @@
                         <div>
                             <div class="flex justify-between items-center mb-3">
                                 <label class="font-semibold text-gray-800">Color</label>
-                                <span id="selected-color-text" class="text-gray-500 text-sm">
-                                    {{ default_color|default:"Select a color" }}
-                                </span>
+                                <span id="selected-color-text" class="text-gray-500 text-sm">Select a color</span>
                             </div>
-                            <div class="flex flex-wrap gap-3">
-                                {% for color, variant_list in color_variants.items %}
-                                {% with first_variant=variant_list.0 %}
-                                <div class="relative w-10 h-10 rounded-full border-2 border-white shadow cursor-pointer color-swatch {% if color == default_color %}selected{% endif %}"
-                                    data-color="{{ color }}"
-                                    data-images='{{ images_by_color|get_item:color|to_json|safe }}'
-                                    style="background-color: {{ color|lower }};"
-                                    title="{{ color }}">
-                                </div>
-                                {% endwith %}
-                                {% empty %}
-                                <span class="text-gray-500 italic">No colors available</span>
-                                {% endfor %}
+                            <div id="color-options" class="flex flex-wrap gap-3">
+                                <!-- Will be populated by JS -->
                             </div>
                         </div>
 
@@ -197,72 +174,12 @@
                             </div>
 
                             <div class="flex flex-wrap gap-3" id="size-buttons">
-                                {% if default_color %}
-                                    {% for variant in color_variants|get_item:default_color %}
-                                        {% if variant.is_in_stock %}
-                                            <button
-                                                class="size-option w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 border-gray-300 
-                                                    flex items-center justify-center font-bold text-gray-800 text-base
-                                                    transition-all duration-200 
-                                                    hover:scale-105 hover:shadow-md hover:border-orange-400
-                                                    focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-opacity-50
-                                                    {% if forloop.first %}selected{% endif %}"
-                                                data-variant-id="{{ variant.id }}"
-                                            >
-                                                {{ variant.size }}
-                                            </button>
-                                        {% else %}
-                                            <div class="relative group">
-                                                <button
-                                                    disabled
-                                                    class="w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 border-gray-200 
-                                                        bg-gray-50 flex items-center justify-center font-bold text-gray-400 text-base
-                                                        cursor-not-allowed opacity-80"
-                                                    title="Out of stock"
-                                                >
-                                                    <del class="text-gray-500">{{ variant.size }}</del>
-                                                </button>
-                                                <!-- Optional: subtle "OOS" badge -->
-                                                <span class="absolute -top-2 -right-2 bg-gray-200 text-gray-600 text-[10px] font-medium px-1.5 py-0.5 rounded-full">
-                                                    OOS
-                                                </span>
-                                            </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                {% else %}
-                                    <div class="text-gray-500 italic col-span-full">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.172 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                        </svg>
-                                        Select a color first to see available sizes
-                                    </div>
-                                {% endif %}
+                                <!-- Will be populated by JS -->
                             </div>
 
-                            <!-- ✅ Stock Status (optional but helpful) -->
+                            <!-- ✅ Stock Status -->
                             <div id="stock-message" class="mt-4 flex items-center">
-                                {% if default_color %}
-                                    {% with in_stock=color_variants|get_item:default_color|length_in_stock %}
-                                        {% if in_stock > 0 %}
-                                            <span class="flex items-center text-green-600 font-medium">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                                </svg>
-                                                In stock • Ships in 24h
-                                            </span>
-                                        {% else %}
-                                            <span class="flex items-center text-red-500 font-medium">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                                Temporarily out of stock
-                                            </span>
-                                            <button class="ml-3 text-sm text-orange-500 underline hover:no-underline">
-                                                Notify when available
-                                            </button>
-                                        {% endif %}
-                                    {% endwith %}
-                                {% endif %}
+                                <span class="text-gray-500 text-sm">Select color and size to see availability</span>
                             </div>
                         </div>
 
@@ -413,8 +330,8 @@
                                             <i data-lucide="star" class="fill-current w-4 h-4"></i>
                                             <i data-lucide="star" class="fill-current w-4 h-4"></i>
                                             <i data-lucide="star" class="fill-current w-4 h-4"></i>
-                                            <i data-lucide="star" class="w-4 h-4"></i>
-                                            <i data-lucide="star" class="w-4 h-4"></i>
+                                            <i data-lucide="star" class="fill-current w-4 h-4"></i>
+                                            <i data-lucide="star" class="fill-current w-4 h-4"></i>
                                         </div>
                                     </div>
                                     <p class="text-gray-500 text-sm mt-0.5">2 weeks ago • Verified Purchase</p>
@@ -439,130 +356,239 @@
     lucide.createIcons();
 
     document.addEventListener('DOMContentLoaded', function () {
-        // ====== IMAGE GALLERY (thumbs → main) ======
-        document.querySelectorAll('.thumbnail').forEach(thumb => {
-            thumb.addEventListener('click', () => {
-                const index = parseInt(thumb.dataset.index);
-                const allThumbs = document.querySelectorAll('.thumbnail');
-                allThumbs.forEach(t => t.classList.remove('active'));
-                thumb.classList.add('active');
+        // Get raw data from backend
+        const variantsByColor = {{ variants_by_color_json|safe }};
+        const imagesByColor = {{ images_by_color_json|safe }};
+        const availableColors = {{ all_colors|safe }};
+        
+        // DOM elements
+        const colorOptions = document.getElementById('color-options');
+        const sizeButtons = document.getElementById('size-buttons');
+        const thumbnailContainer = document.getElementById('thumbnail-container');
+        const mainImage = document.getElementById('main-image');
+        const selectedColorText = document.getElementById('selected-color-text');
+        const stockMessage = document.getElementById('stock-message');
+        const addCartBtn = document.getElementById('addCartBtn');
+        
+        let selectedColor = null;
+        let selectedSize = null;
+        let selectedVariant = null;
+        
+        // Initialize color options
+        function initializeColors() {
+            colorOptions.innerHTML = '';
+            availableColors.forEach(color => {
+                const div = document.createElement('div');
+                div.className = 'relative w-10 h-10 rounded-full border-2 border-white shadow cursor-pointer color-swatch';
+                div.dataset.color = color;
+                div.dataset.images = JSON.stringify(imagesByColor[color]);
+                div.style.backgroundColor = color.toLowerCase();
+                div.title = color;
                 
-                const urls = JSON.parse(document.querySelector('.color-swatch.selected')?.dataset.images || '[]');
-                if (urls[index]) {
-                    document.querySelector('#main-image-container img').src = urls[index];
-                }
-            });
-        });
-
-        // ====== COLOR SWITCHING ======
-        document.querySelectorAll('.color-swatch').forEach(swatch => {
-            swatch.addEventListener('click', () => {
-                // Update UI
-                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-                swatch.classList.add('selected');
-                
-                const color = swatch.dataset.color;
-                const images = JSON.parse(swatch.dataset.images);
-                document.getElementById('selected-color-text').textContent = color;
-
-                // Update thumbnails & main image
-                const thumbContainer = document.getElementById('thumbnail-container');
-                thumbContainer.innerHTML = '';
-                images.forEach((url, idx) => {
-                    const div = document.createElement('div');
-                    div.className = `thumbnail w-20 h-20 rounded-lg bg-gray-200 border-2 border-transparent cursor-pointer ${idx === 0 ? 'active' : ''}`;
-                    div.dataset.index = idx;
-                    div.style.backgroundImage = `url('${url}')`;
-                    div.style.backgroundSize = 'cover';
-                    div.style.backgroundPosition = 'center';
-                    thumbContainer.appendChild(div);
+                div.addEventListener('click', () => {
+                    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                    div.classList.add('selected');
+                    selectedColor = color;
+                    selectedColorText.textContent = color;
+                    
+                    updateThumbnails();
+                    updateSizes();
                 });
-
-                // Update main image
-                if (images.length) {
-                    document.querySelector('#main-image-container img').src = images[0];
-                }
-
-                // Update sizes
-                updateSizesForColor(color);
+                
+                colorOptions.appendChild(div);
             });
-        });
-
-        // ====== SIZE SELECTION ======
-        function updateSizesForColor(color) {
-            const variantsByColor = {{ color_variants|to_json|safe }};
-            const variants = variantsByColor[color] || [];
-            const sizeButtons = document.getElementById('size-buttons');
-            const stockMsg = document.getElementById('stock-message');
-
+            
+            // Auto-select first color if available
+            if (availableColors.length > 0) {
+                const firstSwatch = colorOptions.querySelector('.color-swatch');
+                firstSwatch.classList.add('selected');
+                selectedColor = availableColors[0];
+                selectedColorText.textContent = availableColors[0];
+                
+                updateThumbnails();
+                updateSizes();
+            }
+        }
+        
+        // Update thumbnails based on selected color
+        function updateThumbnails() {
+            if (!selectedColor || !imagesByColor[selectedColor]) {
+                thumbnailContainer.innerHTML = '';
+                return;
+            }
+            
+            const images = imagesByColor[selectedColor];
+            thumbnailContainer.innerHTML = '';
+            
+            images.forEach((url, idx) => {
+                const div = document.createElement('div');
+                div.className = `thumbnail w-20 h-20 rounded-lg bg-gray-200 border-2 border-transparent cursor-pointer ${idx === 0 ? 'active' : ''}`;
+                div.dataset.index = idx;
+                div.style.backgroundImage = `url('${url}')`;
+                div.style.backgroundSize = 'cover';
+                div.style.backgroundPosition = 'center';
+                
+                div.addEventListener('click', () => {
+                    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+                    div.classList.add('active');
+                    mainImage.src = url;
+                });
+                
+                thumbnailContainer.appendChild(div);
+            });
+            
+            // Set first image as main
+            if (images.length > 0) {
+                mainImage.src = images[0];
+            }
+        }
+        
+        // Update size options based on selected color
+        function updateSizes() {
+            if (!selectedColor || !variantsByColor[selectedColor]) {
+                sizeButtons.innerHTML = '<div class="text-gray-500 italic">No sizes available</div>';
+                stockMessage.innerHTML = '<span class="text-gray-500 text-sm">No sizes available</span>';
+                return;
+            }
+            
+            const variants = variantsByColor[selectedColor];
             sizeButtons.innerHTML = '';
-            const inStockSizes = [];
-            const outOfStockSizes = [];
-
-            variants.forEach(v => {
+            
+            let firstInStock = null;
+            
+            variants.forEach(variant => {
                 const btn = document.createElement('button');
-                btn.className = `size-option w-12 h-12 rounded-lg flex items-center justify-center font-medium border ${v.stock > 0 ? 'border-gray-300' : 'border-gray-200 bg-gray-100 line-through'}`;
-                btn.textContent = v.size;
-                btn.dataset.variantId = v.id;
-                if (v.stock > 0) {
+                
+                if (variant.stock > 0) {
+                    btn.className = 'size-option w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 border-gray-300 flex items-center justify-center font-bold text-gray-800 text-base transition-all duration-200 hover:scale-105 hover:shadow-md hover:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-opacity-50';
+                    btn.textContent = variant.size;
+                    btn.dataset.variantId = variant.id;
+                    btn.dataset.size = variant.size;
+                    
                     btn.addEventListener('click', () => {
                         document.querySelectorAll('.size-option').forEach(b => b.classList.remove('selected'));
                         btn.classList.add('selected');
+                        selectedSize = variant.size;
+                        selectedVariant = variant;
+                        updateAddToCartButton();
                     });
-                    if (inStockSizes.length === 0) btn.classList.add('selected'); // auto-select first in-stock
-                    inStockSizes.push(v.size);
+                    
+                    if (!firstInStock) {
+                        firstInStock = variant;
+                        btn.classList.add('selected');
+                        selectedSize = variant.size;
+                        selectedVariant = variant;
+                    }
                 } else {
+                    btn.className = 'w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 border-gray-200 bg-gray-50 flex items-center justify-center font-bold text-gray-400 text-base cursor-not-allowed opacity-80';
+                    btn.textContent = variant.size;
                     btn.disabled = true;
                     btn.title = "Out of stock";
-                    outOfStockSizes.push(v.size);
+                    
+                    const badge = document.createElement('span');
+                    badge.className = 'absolute -top-2 -right-2 bg-gray-200 text-gray-600 text-[10px] font-medium px-1.5 py-0.5 rounded-full';
+                    badge.textContent = 'OOS';
+                    btn.appendChild(badge);
                 }
+                
                 sizeButtons.appendChild(btn);
             });
-
-            if (inStockSizes.length > 0) {
-                stockMsg.innerHTML = `✔ In stock (${inStockSizes.join(', ')})`;
-            } else if (outOfStockSizes.length > 0) {
-                stockMsg.innerHTML = `✘ Out of stock (${outOfStockSizes.join(', ')})`;
+            
+            updateStockMessage();
+            updateAddToCartButton();
+        }
+        
+        // Update stock message
+        function updateStockMessage() {
+            if (!selectedColor) {
+                stockMessage.innerHTML = '<span class="text-gray-500 text-sm">Select a color first</span>';
+                return;
+            }
+            
+            const variants = variantsByColor[selectedColor] || [];
+            const inStock = variants.filter(v => v.stock > 0);
+            const outOfStock = variants.filter(v => v.stock <= 0);
+            
+            if (inStock.length > 0) {
+                const inStockSizes = inStock.map(v => v.size).join(', ');
+                stockMessage.innerHTML = `
+                    <span class="flex items-center text-green-600 font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        In stock • Ships in 24h (${inStockSizes})
+                    </span>
+                `;
+            } else if (outOfStock.length > 0) {
+                stockMessage.innerHTML = `
+                    <span class="flex items-center text-red-500 font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Temporarily out of stock
+                    </span>
+                    <button class="ml-3 text-sm text-orange-500 underline hover:no-underline">
+                        Notify when available
+                    </button>
+                `;
             } else {
-                stockMsg.textContent = 'No sizes available';
+                stockMessage.innerHTML = '<span class="text-gray-500 text-sm">No sizes available</span>';
             }
         }
+        
+        // Update Add to Cart button
+        function updateAddToCartButton() {
+            if (!selectedVariant) {
+                addCartBtn.disabled = true;
+                addCartBtn.textContent = 'Select Size';
+                addCartBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                addCartBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                return;
+            }
+            
+            if (selectedVariant.stock <= 0) {
+                addCartBtn.disabled = true;
+                addCartBtn.textContent = 'Out of Stock';
+                addCartBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                addCartBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                return;
+            }
+            
+            addCartBtn.disabled = false;
+            addCartBtn.innerHTML = '<i data-lucide="shopping-cart" class="mr-2"></i> Add to Cart';
+            addCartBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            addCartBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+            lucide.createIcons();
+        }
+        
+        // Add to Cart handler
+        addCartBtn.addEventListener('click', function() {
+            if (!selectedVariant) {
+                alert('Please select a size.');
+                return;
+            }
+            
+            const original = this.innerHTML;
+            this.innerHTML = '<i data-lucide="check" class="mr-2"></i> Added!';
+            this.classList.replace('bg-red-500', 'bg-green-500');
+            lucide.createIcons();
 
-        // ====== Add to Cart Feedback ======
-        const cartBtn = document.getElementById('addCartBtn');
-        if (cartBtn) {
-            cartBtn.addEventListener('click', function () {
-                const selectedSizeBtn = document.querySelector('.size-option.selected');
-                const selectedSwatch = document.querySelector('.color-swatch.selected');
-                
-                if (!selectedSwatch) {
-                    alert('Please select a color.');
-                    return;
-                }
-                if (!selectedSizeBtn) {
-                    alert('Please select a size.');
-                    return;
-                }
-
-                const original = this.innerHTML;
-                this.innerHTML = '<i data-lucide="check" class="mr-2"></i> Added!';
-                this.classList.replace('bg-red-500', 'bg-green-500');
+            setTimeout(() => {
+                this.innerHTML = original;
+                this.classList.replace('bg-green-500', 'bg-red-500');
                 lucide.createIcons();
-
-                setTimeout(() => {
-                    this.innerHTML = original;
-                    this.classList.replace('bg-green-500', 'bg-red-500');
-                    lucide.createIcons();
-                }, 1500);
+            }, 1500);
+            
+            console.log('Adding to cart:', {
+                productId: {{ product.id }},
+                variantId: selectedVariant.id,
+                color: selectedColor,
+                size: selectedSize
             });
-        }
-
-        // Trigger initial size load on page load (if default color exists)
-        const defaultSwatch = document.querySelector('.color-swatch.selected');
-        if (defaultSwatch) {
-            const color = defaultSwatch.dataset.color;
-            updateSizesForColor(color);
-        }
+        });
+        
+        // Initialize the page
+        initializeColors();
     });
     </script>       
 </body>
