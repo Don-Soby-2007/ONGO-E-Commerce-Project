@@ -110,8 +110,8 @@
         <div class="max-w-7xl mx-auto">
             <!-- Breadcrumb -->
             <div class="text-sm text-gray-500 mb-6">
-                <a href="#" class="hover:text-orange-500">Men</a> / 
-                <a href="#" class="hover:text-orange-500">Shirts</a> / 
+                <a href="{% url 'landing' %}" class="hover:text-orange-500">Home</a> / 
+                <a href="#" class="hover:text-orange-500">{{product.category}}</a> / 
                 <span class="text-gray-800">{{product.name}}</span>
             </div>
 
