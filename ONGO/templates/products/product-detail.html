@@ -137,7 +137,7 @@
                 <!-- 📄 Product Info -->
                 <div class="fade-in" style="animation-delay: 0.1s">
                     <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{{product.name}}</h1>
-                    <p class="text-orange-600 font-semibold text-lg">{{display_price}} <span class="line-through text-gray-500 ml-2">₹1,999</span> <span class="ml-2 bg-red-100 text-red-700 px-2 py-0.5 rounded">35% OFF</span></p>
+                    <p><span id="current-price" class="text-orange-600 font-semibold text-lg" >₹{{ display_price|default:"0.00" }}</span> <span class="line-through text-gray-500 ml-2">₹1,999</span> <span class="ml-2 bg-red-100 text-red-700 px-2 py-0.5 rounded">35% OFF</span></p>
                     <div class="flex items-center mt-2">
                         <div class="flex text-amber-400">
                             <i data-lucide="star" class="fill-current w-5 h-5"></i>
@@ -369,6 +369,7 @@
         const selectedColorText = document.getElementById('selected-color-text');
         const stockMessage = document.getElementById('stock-message');
         const addCartBtn = document.getElementById('addCartBtn');
+        const currentPriceElement = document.getElementById('current-price');
         
         let selectedColor = null;
         let selectedSize = null;
@@ -470,6 +471,7 @@
                         btn.classList.add('selected');
                         selectedSize = variant.size;
                         selectedVariant = variant;
+                        currentPriceElement.innerText = variant.price;
                         updateAddToCartButton();
                     });
                     
@@ -478,6 +480,7 @@
                         btn.classList.add('selected');
                         selectedSize = variant.size;
                         selectedVariant = variant;
+                        currentPriceElement.innerText = variant.price;
                     }
                 } else {
                     btn.className = 'w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 border-gray-200 bg-gray-50 flex items-center justify-center font-bold text-gray-400 text-base cursor-not-allowed opacity-80';
