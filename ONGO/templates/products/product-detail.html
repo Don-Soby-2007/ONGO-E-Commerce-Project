@@ -124,10 +124,11 @@
                             <!-- Will be populated by JS -->
                         </div>
 
-                        <!-- Main Image -->
-                        <div id="main-image-container" class="flex-1 bg-gradient-to-br from-rose-100 to-rose-300 rounded-2xl aspect-square md:aspect-[4/5] flex items-center justify-center shadow-xl relative overflow-hidden">
+                        <!-- Main Image Container -->
+                        <div class="relative z-10 w-full h-full flex items-center justify-center">
                             <img id="main-image" src="" alt="{{ product.name }}" class="w-full h-full object-contain p-4">
-                            <button class="absolute top-4 right-4 p-2.5 bg-white/95 rounded-full shadow-lg hover:bg-white transition-colors">
+                            <!-- Wishlist button positioned above the image -->
+                            <button class="absolute top-8 right-8 p-2.5 bg-white/95 rounded-full shadow-lg hover:bg-white transition-colors z-20">
                                 <i data-lucide="heart" class="text-gray-600 hover:text-red-500 w-5 h-5"></i>
                             </button>
                         </div>
