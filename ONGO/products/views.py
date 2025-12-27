@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView
-from .models import Product, ProductImage
-from django.db.models import Prefetch
+from .models import Product, ProductImage, Category
+from django.db.models import Prefetch, Min, Case, When, DecimalField
+from django.db.models.functions import Coalesce
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 
@@ -30,9 +31,72 @@ class ProductListView(ListView):
     paginate_by = 8
 
     def get_queryset(self):
-        return (
-            Product.objects.filter(is_active=True, category__is_active=True).prefetch_related("variants__images")
+        queryset = (
+            Product.objects
+            .filter(is_active=True, category__is_active=True)
+            .select_related('category')
+            .prefetch_related('variants__images')
         )
+
+        # ===== 1. DYNAMIC CATEGORY FILTER (by slug) =====
+        category_name = self.request.GET.getlist('category')  # e.g. ['men', 'women']
+        if category_name:
+            queryset = queryset.filter(category__name__in=category_name)
+
+        # ===== 2. PRICE FILTER =====
+        min_price = self.request.GET.get('min')
+        max_price = self.request.GET.get('max')
+
+        queryset = queryset.annotate(
+            display_price=Min(
+                Case(
+                    When(
+                        variants__stock__gt=0,
+                        then=Coalesce('variants__sale_price', 'variants__price')
+                    ),
+                    output_field=DecimalField()
+                )
+            )
+        )
+
+        if min_price:
+            try:
+                queryset = queryset.filter(display_price__gte=float(min_price))
+            except (ValueError, TypeError):
+                pass
+
+        if max_price:
+            try:
+                queryset = queryset.filter(display_price__lte=float(max_price))
+            except (ValueError, TypeError):
+                pass
+
+        # ===== 3. SORTING =====
+        sort = self.request.GET.get('sort', 'latest')
+        ordering = {
+            'oldest': ['created_at'],
+            'l-h': ['display_price', '-created_at'],
+            'h-l': ['-display_price', '-created_at'],
+            'a-z': ['name'],
+            'z-a': ['-name'],
+        }.get(sort, ['-created_at'])
+
+        return queryset.order_by(*ordering)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['categories'] = Category.objects.filter(is_active=True).order_by('name')
+
+        # Preserve filters for pagination
+        get_params = self.request.GET.copy()
+        get_params.pop('page', None)
+        context['filter_params'] = get_params.urlencode()
+
+        # Current active filters (for UI state)
+        context['selected_categories'] = self.request.GET.getlist('category')
+
+        return context
 
 
 # Landing Page

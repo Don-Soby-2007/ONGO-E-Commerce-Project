@@ -39,6 +39,15 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
+        #price-error {
+            transition: opacity 0.2s ease;
+        }
+        #price-error.hidden {
+            opacity: 0;
+            height: 0;
+            margin: 0;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -105,65 +114,36 @@
                     <div class="mb-6">
                         <h4 class="font-semibold mb-3">Price</h4>
                         <div class="flex items-center space-x-2">
-                            <input name="min" type="number" placeholder="Min" min="0" class="w-20 px-2 py-1 border rounded">
+                            <input id="price-min" name="min" value="{{ request.GET.min|default:'' }}" type="number" placeholder="Min" min="0" class="w-20 px-2 py-1 border rounded">
                             <span>to</span>
-                            <input name="max" type="number" placeholder="Max" min="1" class="w-20 px-2 py-1 border rounded">
+                            <input id="price-max" name="max" value="{{ request.GET.max|default:'' }}" type="number" placeholder="Max" min="1" class="w-20 px-2 py-1 border rounded">
                         </div>
+                        <!-- ✅ Error message placeholder -->
+                        <span id="price-error" class="text-red-500 text-sm mt-1 hidden"></span>
                     </div>
 
                     <!-- Category Filters -->
                     <div class="mb-6">
                         <h4 class="font-semibold mb-3">Shop For</h4>
                         <div class="flex flex-wrap gap-2">
-                            <!-- Hidden checkbox + styled label -->
+                            {% for cat in categories %}
                             <label class="px-3 py-1 border rounded-full text-sm cursor-pointer
-                                        bg-white hover:bg-gray-100 transition-colors
-                                        focus-within:ring-2 focus-within:ring-red-500 focus-within:ring-offset-1">
-                            <input 
+                                            bg-white hover:bg-gray-100 transition-colors
+                                            focus-within:ring-2 focus-within:ring-red-500">
+                                <input 
                                 type="checkbox" 
                                 name="category" 
-                                value="men"
+                                value="{{ cat.name }}"
                                 class="sr-only peer" 
-                                
-                            />
-                            <span class="peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500">
-                                Men
-                            </span>
+                                {% if cat.name in selected_categories %}checked{% endif %}
+                                onchange="this.form.submit()"
+                                />
+                                <span class="peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500">
+                                {{ cat.name }}
+                                </span>
                             </label>
-
-                            <label class="px-3 py-1 border rounded-full text-sm cursor-pointer
-                                        bg-white hover:bg-gray-100 transition-colors
-                                        focus-within:ring-2 focus-within:ring-red-500 focus-within:ring-offset-1">
-                            <input 
-                                type="checkbox" 
-                                name="category" 
-                                value="women"
-                                class="sr-only peer" 
-                                
-                            />
-                            <span class="peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500">
-                                Women
-                            </span>
-                            </label>
-
-                            <label class="px-3 py-1 border rounded-full text-sm cursor-pointer
-                                        bg-white hover:bg-gray-100 transition-colors
-                                        focus-within:ring-2 focus-within:ring-red-500 focus-within:ring-offset-1">
-                            <input 
-                                type="checkbox" 
-                                name="category" 
-                                value="kids"
-                                class="sr-only peer" 
-                               
-                            />
-                            <span class="peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500">
-                                Kids
-                            </span>
-                            </label>
+                            {% endfor %}
                         </div>
-
-                        <!-- Optional: auto-submit on change (no submit button needed) -->
-                        <input type="submit" class="sr-only" />
                     </div>
 
                     <!-- Additional Filters -->
@@ -180,13 +160,14 @@
                                 <select name="sort"
                                 class="appearance-none bg-white border border-gray-300 rounded px-3 py-2 w-full 
                                         focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500
-                                        cursor-pointer text-gray-700">
+                                        cursor-pointer text-gray-700"
+                                        onchange="this.form.submit()">
                                 <option>Latest</option>
-                                <option>Oldest</option>
-                                <option>Price: Low to High</option>
-                                <option>Price: High to Low</option>
-                                <option>Aa-Zz</option>
-                                <option>Zz-Aa</option>
+                                <option  value='oldest' {% if request.GET.sort == 'oldest' %}selected{% endif %}>Oldest</option>
+                                <option value="l-h" {% if request.GET.sort == 'l-h' %}selected{% endif %}>Price: Low to High</option>
+                                <option value='h-l' {% if request.GET.sort == 'h-l' %}selected{% endif %}>Price: High to Low</option>
+                                <option value='a-z' {% if request.GET.sort == 'a-z' %}selected{% endif %}>Aa-Zz</option>
+                                <option value='z-a' {% if request.GET.sort == 'z-a' %}selected{% endif %}>Zz-Aa</option>
                                 </select>
 
                             </div>
@@ -225,11 +206,64 @@
     <main>
 
     <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
+    lucide.createIcons();
 
-        document.querySelectorAll('input[type="checkbox"][name="category"]')
-        .forEach(el => el.addEventListener('change', e => e.target.form.submit()));
+    // Reusable: show/hide error
+    function showError(message) {
+        const el = document.getElementById('price-error');
+        if (el) {
+        el.textContent = message;
+        el.classList.remove('hidden');
+        }
+    }
+
+    function clearError() {
+        const el = document.getElementById('price-error');
+        if (el) {
+        el.classList.add('hidden');
+        el.textContent = '';
+        }
+    }
+
+    // Validate before submit
+    function validatePrice() {
+        const minInput = document.getElementById('price-min');
+        const maxInput = document.getElementById('price-max');
+        
+        // Parse values — empty string → null
+        const min = minInput.value ? parseFloat(minInput.value) : null;
+        const max = maxInput.value ? parseFloat(maxInput.value) : null;
+
+        clearError();
+
+        // Only validate if both are present
+        if (min !== null && max !== null) {
+        if (min > max) {
+            showError("Min price must be less than max price");
+            return false;
+        }
+        if (min < 0 || max < 0) {
+            showError("Price cannot be negative");
+            return false;
+        }
+        }
+
+        return true;
+    }
+
+    // Attach handlers
+    document.querySelectorAll('input[type="checkbox"][name="category"]')
+        .forEach(el => el.addEventListener('change', e => {
+        if (validatePrice()) e.target.form.submit();
+        }));
+
+    // Handle manual "Enter" or form submit
+    document.querySelector('form[method="GET"]').addEventListener('submit', function(e) {
+        if (!validatePrice()) {
+        e.preventDefault(); //  Prevent submission
+        }
+    });
+
     </script>
 </body>
 </html>
