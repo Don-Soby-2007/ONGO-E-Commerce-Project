@@ -90,73 +90,114 @@
     <div class="container mx-auto px-4 py-8">
         <div class="flex">
             <!-- Fixed Filters Sidebar -->
-            <aside class="fixed-sidebar p-4">
-                <div>
-                    <br>
-                    <br>
-                </div>
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-bold">FILTERS</h3>
-                    <button class="text-orange-500 text-sm">Clear all</button>
-                </div>
-
-                <!-- Price Filter -->
-                <div class="mb-6">
-                    <h4 class="font-semibold mb-3">Price</h4>
-                    <div class="flex items-center space-x-2">
-                        <input type="number" placeholder="Min" min="0" class="w-20 px-2 py-1 border rounded">
-                        <span>to</span>
-                        <input type="number" placeholder="Max" min="1" class="w-20 px-2 py-1 border rounded">
+            <form methode="GET" action='{% url "product_list" %}'>
+                <aside class="fixed-sidebar p-4">
+                    <div>
+                        <br>
+                        <br>
                     </div>
-                </div>
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold">FILTERS</h3>
+                        <a href="{% url 'product_list' %}" class="text-orange-500 text-sm">Clear all</a>
+                    </div>
 
-                <!-- Category Filters -->
-                <div class="mb-6">
-                    <h4 class="font-semibold mb-3">Shop For</h4>
-                    <div class="flex flex-wrap gap-2">
+                    <!-- Price Filter -->
+                    <div class="mb-6">
+                        <h4 class="font-semibold mb-3">Price</h4>
+                        <div class="flex items-center space-x-2">
+                            <input name="min" type="number" placeholder="Min" min="0" class="w-20 px-2 py-1 border rounded">
+                            <span>to</span>
+                            <input name="max" type="number" placeholder="Max" min="1" class="w-20 px-2 py-1 border rounded">
+                        </div>
+                    </div>
+
+                    <!-- Category Filters -->
+                    <div class="mb-6">
+                        <h4 class="font-semibold mb-3">Shop For</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <!-- Hidden checkbox + styled label -->
+                            <label class="px-3 py-1 border rounded-full text-sm cursor-pointer
+                                        bg-white hover:bg-gray-100 transition-colors
+                                        focus-within:ring-2 focus-within:ring-red-500 focus-within:ring-offset-1">
+                            <input 
+                                type="checkbox" 
+                                name="category" 
+                                value="men"
+                                class="sr-only peer" 
+                                
+                            />
+                            <span class="peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500">
+                                Men
+                            </span>
+                            </label>
+
+                            <label class="px-3 py-1 border rounded-full text-sm cursor-pointer
+                                        bg-white hover:bg-gray-100 transition-colors
+                                        focus-within:ring-2 focus-within:ring-red-500 focus-within:ring-offset-1">
+                            <input 
+                                type="checkbox" 
+                                name="category" 
+                                value="women"
+                                class="sr-only peer" 
+                                
+                            />
+                            <span class="peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500">
+                                Women
+                            </span>
+                            </label>
+
+                            <label class="px-3 py-1 border rounded-full text-sm cursor-pointer
+                                        bg-white hover:bg-gray-100 transition-colors
+                                        focus-within:ring-2 focus-within:ring-red-500 focus-within:ring-offset-1">
+                            <input 
+                                type="checkbox" 
+                                name="category" 
+                                value="kids"
+                                class="sr-only peer" 
+                               
+                            />
+                            <span class="peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500">
+                                Kids
+                            </span>
+                            </label>
+                        </div>
+
+                        <!-- Optional: auto-submit on change (no submit button needed) -->
+                        <input type="submit" class="sr-only" />
+                    </div>
+
+                    <!-- Additional Filters -->
+                    <div class="space-y-4">
                         
-                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100 focus:bg-red-500 focus:border-red-500">Men</button>
-                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100 focus:bg-red-500 focus:border-red-500">Women</button>
-                        <button class="px-3 py-1 border rounded-full text-sm hover:bg-gray-100 focus:bg-red-500 focus:border-red-500">Kids</button>
+                        <details class="group border-b border-gray-200 pb-4 open:border-orange-500">
+                            <summary class="flex justify-between items-center font-semibold text-gray-800 cursor-pointer list-none focus:outline-none">
+                                Sort
+                                <i data-lucide="chevron-down" class="w-5 h-5 transform group-open:rotate-180 transition-transform"></i>
+                            </summary>
+
+                            <!-- Styled native select -->
+                            <div class="relative mt-2">
+                                <select name="sort"
+                                class="appearance-none bg-white border border-gray-300 rounded px-3 py-2 w-full 
+                                        focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500
+                                        cursor-pointer text-gray-700">
+                                <option>Latest</option>
+                                <option>Oldest</option>
+                                <option>Price: Low to High</option>
+                                <option>Price: High to Low</option>
+                                <option>Aa-Zz</option>
+                                <option>Zz-Aa</option>
+                                </select>
+
+                            </div>
+                        </details>
                         
                     </div>
-                </div>
-
-                <!-- Additional Filters -->
-                <div class="space-y-4">
-                    <div class="flex justify-between align-center">
-                        <h4 class="font-semibold mb-2">Size</h4>
-                        <i data-lucide="chevron-down" class="text-gray-500"></i>
-                    </div>
-                    <div class="flex justify-between align-center">
-                        <h4 class="font-semibold mb-2">Color</h4>
-                        <i data-lucide="chevron-down" class="text-gray-500"></i>
-                    </div>
-                    <div class="flex justify-between align-center">
-                        <h4 class="font-semibold mb-2">Discount</h4>
-                        <i data-lucide="chevron-down" class="text-gray-500"></i>
-                    </div>
-                    <div class="flex justify-between align-center">
-                        <h4 class="font-semibold mb-2">Gender</h4>
-                        <i data-lucide="chevron-down" class="text-gray-500"></i>
-                    </div>
-                </div>
-            </aside>
+                </aside>
+            </form>
 
             <!-- Product Grid -->
             <div class="product-grid flex-1 p-4">
-                <div class="flex justify-between items-center mb-6">
-                    <p class="text-gray-700">You searched for shirts for men - 588 products available</p>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-gray-700">Sort By</span>
-                        <select class="px-3 py-1 border rounded">
-                            <option>Relevance</option>
-                            <option>Price: Low to High</option>
-                            <option>Price: High to Low</option>
-                            <option>Newest</option>
-                        </select>
-                    </div>
-                </div>
 
                 <!-- Products -->
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -186,6 +227,9 @@
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
+
+        document.querySelectorAll('input[type="checkbox"][name="category"]')
+        .forEach(el => el.addEventListener('change', e => e.target.form.submit()));
     </script>
 </body>
 </html>
