@@ -114,9 +114,9 @@
                     <div class="mb-6">
                         <h4 class="font-semibold mb-3">Price</h4>
                         <div class="flex items-center space-x-2">
-                            <input id="price-min" name="min" value="{{ request.GET.min|default:'' }}" type="number" placeholder="Min" min="0" class="w-20 px-2 py-1 border rounded">
+                            <input id="price-min" name="min" value="{{ request.GET.min|default:'' }}" type="number" placeholder="Min" min="0" class="w-20 px-2 py-1 border rounded" onchange="validatePrice()">
                             <span>to</span>
-                            <input id="price-max" name="max" value="{{ request.GET.max|default:'' }}" type="number" placeholder="Max" min="1" class="w-20 px-2 py-1 border rounded">
+                            <input id="price-max" name="max" value="{{ request.GET.max|default:'' }}" type="number" placeholder="Max" min="1" class="w-20 px-2 py-1 border rounded" onchange="validatePrice()">
                         </div>
                         <!-- ✅ Error message placeholder -->
                         <span id="price-error" class="text-red-500 text-sm mt-1 hidden"></span>
@@ -135,9 +135,8 @@
                                 name="category" 
                                 value="{{ cat.name }}"
                                 class="sr-only peer" 
-                                {% if cat.name in selected_categories %}checked{% endif %}
-                                onchange="this.form.submit()"
-                                />
+                                {% if cat.name in selected_categories %}checked{% endif %}>
+
                                 <span class="peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500">
                                 {{ cat.name }}
                                 </span>
@@ -157,11 +156,11 @@
 
                             <!-- Styled native select -->
                             <div class="relative mt-2">
-                                <select name="sort"
+                                <select id='sort' name="sort"
                                 class="appearance-none bg-white border border-gray-300 rounded px-3 py-2 w-full 
                                         focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500
                                         cursor-pointer text-gray-700"
-                                        onchange="this.form.submit()">
+                                        >
                                 <option>Latest</option>
                                 <option  value='oldest' {% if request.GET.sort == 'oldest' %}selected{% endif %}>Oldest</option>
                                 <option value="l-h" {% if request.GET.sort == 'l-h' %}selected{% endif %}>Price: Low to High</option>
@@ -257,6 +256,13 @@
         if (validatePrice()) e.target.form.submit();
         }));
 
+    // Attach handlers
+    document.getElementById('sort').addEventListener('change', function(e) {
+        if(validatePrice()){
+            e.target.form.submit();
+        }
+    });
+        
     // Handle manual "Enter" or form submit
     document.querySelector('form[method="GET"]').addEventListener('submit', function(e) {
         if (!validatePrice()) {
