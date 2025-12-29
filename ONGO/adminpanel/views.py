@@ -740,7 +740,7 @@ class ProductEditView(View):
                         variant_indexes.add(idx)
                     except IndexError:
                         continue
-
+            print('variant_indexes', variant_indexes)
             # ✅ EARLY FILTER: Skip variants missing essential fields (avoid None price errors)
             valid_indexes = []
             for idx in variant_indexes:
@@ -755,6 +755,8 @@ class ProductEditView(View):
 
             if not variant_indexes:
                 raise ValidationError("At least one variant is required")
+
+            print("valid_indexes", valid_indexes)
 
             # ===== DELETE VARIANTS =====
             # ✅ 1. Explicit deletions from frontend
@@ -800,6 +802,7 @@ class ProductEditView(View):
                     "size": request.POST.get(f"variants[{idx}][size]"),
                     "stock": request.POST.get(f"variants[{idx}][stock]"),
                 }
+                print("raw variants", raw_variant_data)
 
                 variant_data = validate_variant_fields(raw_variant_data)
 
@@ -858,9 +861,11 @@ class ProductEditView(View):
                 images_list = list(variant.images.all())
                 if images_list:
                     for img in images_list:
-                        img.is_primary = False
-                    images_list[0].is_primary = True
-                    ProductImage.objects.bulk_update(images_list, ["is_primary"])
+                        if img.is_primary:
+                            break
+                    else:
+                        images_list[0].is_primary = True
+                        ProductImage.objects.bulk_update(images_list, ["is_primary"])
 
             messages.success(request, "Product updated successfully")
             return redirect("products")

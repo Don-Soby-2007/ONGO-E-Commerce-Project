@@ -457,11 +457,20 @@ function addVariant() {
 
     const clone = first.cloneNode(true);
 
-    // Clear values
-    clone.querySelectorAll("input:not([type='hidden']), select").forEach(el => {
+    // ✅ Critical: clear variant ID for new variant
+    const idInput = clone.querySelector("[data-field='variant-id']");
+    if (idInput) idInput.value = "";  // ← THIS IS THE FIX
+
+    // Clear other inputs
+    clone.querySelectorAll("input:not([type='file'][type='hidden']), select").forEach(el => {
         el.value = "";
     });
-    clone.querySelectorAll(".error-text").forEach(el => el.remove());
+
+    // Clear file inputs
+    clone.querySelectorAll("input[type='file']").forEach(input => {
+        input.value = "";
+    });
+    
 
     // ✅ RESET ALL PREVIEWS (both SVG placeholders and <img> previews)
     clone.querySelectorAll("div[id^='preview']").forEach(previewDiv => {
@@ -470,11 +479,6 @@ function addVariant() {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
         `;
-    });
-
-    // ✅ Clear file inputs (critical!)
-    clone.querySelectorAll("input[type='file']").forEach(input => {
-        input.value = ""; // resets file selection
     });
 
     container.appendChild(clone);
