@@ -807,40 +807,49 @@ class ProductEditView(View):
                         stock=variant_data.get("stock"),
                     )
 
-                # Imange Identification
+                    # Imange Identification
 
-                db_images = {str(img.id): img for img in variant.images.all()}
+                    db_images = {str(img.id): img for img in variant.images.all()}
 
-                submitted_image_ids = set(request.POST.getlist(f"variants[{idx}][existing_images][]"))
+                    submitted_image_ids = set(request.POST.getlist(f"variants[{idx}][existing_images][]"))
 
-                # delete removed images
+                    # delete removed images
 
-                for img_id, img in db_images.items():
-                    if img_id not in submitted_image_ids:
-                        cloudinary.uploader.destroy(img.public_id)
-                        img.delete()
+                    for img_id, img in db_images.items():
+                        if img_id not in submitted_image_ids:
+                            cloudinary.uploader.destroy(img.public_id)
+                            img.delete()
 
-                # image upload
+                    # image upload
 
-                images = request.FILES.getlist(f"variants[{idx}][images][]")
+                    images = request.FILES.getlist(f"variants[{idx}][images][]")
 
-                if images:
-                    validate_images(images)
+                    if images:
+                        validate_images(images)
 
-                    for i, img in enumerate(images):
-                        upload = cloudinary.uploader.upload(
-                            img,
-                            folder="products/variants",
-                            public_id=f"variant_{variant.id}_{uuid.uuid4().hex[:8]}",
-                            resource_type="image"
-                        )
+                        for i, img in enumerate(images):
+                            upload = cloudinary.uploader.upload(
+                                img,
+                                folder="products/variants",
+                                public_id=f"variant_{variant.id}_{uuid.uuid4().hex[:8]}",
+                                resource_type="image"
+                            )
 
-                        ProductImage.objects.create(
-                            product_variant=variant,
-                            image_url=upload["secure_url"],
-                            public_id=upload["public_id"],
-                            is_primary=(i == 0 and not variant.images.exists())
-                        )
+                            ProductImage.objects.create(
+                                product_variant=variant,
+                                image_url=upload["secure_url"],
+                                public_id=upload["public_id"],
+                            )
+
+                    images = list(variant.images.all())
+
+                    if images:
+                        # reset all
+                        for img in images:
+                            img.is_primary = False
+                        images[0].is_primary = True
+
+                        ProductImage.objects.bulk_update(images, ["is_primary"])
 
             messages.success(request, "Product updated successfully")
             return redirect("products")
