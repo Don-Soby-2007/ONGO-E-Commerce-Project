@@ -463,16 +463,18 @@ function addVariant() {
     });
     clone.querySelectorAll(".error-text").forEach(el => el.remove());
 
-    // Reset previews
-    clone.querySelectorAll("svg").forEach(svg => {
-        const parent = svg.closest("div[id^='preview']");
-        if (parent) {
-            parent.innerHTML = `
-                <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-            `;
-        }
+    // ✅ RESET ALL PREVIEWS (both SVG placeholders and <img> previews)
+    clone.querySelectorAll("div[id^='preview']").forEach(previewDiv => {
+        previewDiv.innerHTML = `
+            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+        `;
+    });
+
+    // ✅ Clear file inputs (critical!)
+    clone.querySelectorAll("input[type='file']").forEach(input => {
+        input.value = ""; // resets file selection
     });
 
     container.appendChild(clone);
