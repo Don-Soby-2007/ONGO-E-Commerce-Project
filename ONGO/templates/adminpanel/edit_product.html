@@ -348,12 +348,13 @@
 {% block scripts %}
 
 <script>
-
 document.addEventListener("DOMContentLoaded", (event) => {
-    syncVariantNames()
-    updateVariantTitles()
-    loadAllServerImages()
-    
+    // ✅ Critical fix: attach delete handler to ALL initial variants (not just first)
+    document.querySelectorAll(".variant-block").forEach(attachRemoveHandler);
+
+    syncVariantNames();
+    updateVariantTitles();
+    loadAllServerImages();
 });
 
 function loadAllServerImages() {
@@ -367,15 +368,11 @@ function loadAllServerImages() {
     });
 }
 
-// Image preview function
-
 function loadServerImage(previewId, imageUrl) {
     const preview = document.getElementById(previewId);
-
     if (preview && imageUrl) {
         preview.innerHTML = `
-            <img src="${imageUrl}"
-                 class="w-full h-full object-cover rounded-lg">
+            <img src="${imageUrl}" class="w-full h-full object-cover rounded-lg">
         `;
     }
 }
@@ -383,18 +380,16 @@ function loadServerImage(previewId, imageUrl) {
 function previewImage(event, previewId) {
     const file = event.target.files[0];
     const preview = document.getElementById(previewId);
-    
     if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
             preview.innerHTML = `
                 <img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover rounded-lg">
             `;
-        }
+        };
         reader.readAsDataURL(file);
     }
 }
-
 
 /* ---------------- CONFIG ---------------- */
 const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
@@ -425,19 +420,19 @@ function validateProduct() {
     let valid = true;
 
     const name = document.querySelector("[name='name']");
-    if (!NAME_REGEX.test(name.value)) {
+    if (!name || !NAME_REGEX.test(name.value)) {
         showError(name, "Only alphabets allowed");
         valid = false;
     }
 
     const category = document.querySelector("[name='category']");
-    if (!category.value) {
+    if (!category || !category.value) {
         showError(category, "Category is required");
         valid = false;
     }
 
     const desc = document.querySelector("[name='description']");
-    if (!DESCRIPTION_REGEX.test(desc.value)) {
+    if (!desc || !DESCRIPTION_REGEX.test(desc.value)) {
         showError(desc, "Invalid description");
         valid = false;
     }
@@ -449,91 +444,88 @@ function validateProduct() {
 function validateVariant(variant) {
     let valid = true;
 
-    const price = variant.querySelector("[data-field='price']");
-    if (!price.value || Number(price.value) <= 0) {
-        showError(price, "Invalid price");
-        valid = false;
-    }
-
-    const stock = variant.querySelector("[data-field='stock']");
-    if (!stock.value || Number(stock.value) <= 0) {
-        showError(stock, "Invalid stock");
-        valid = false;
-    }
-
-    const sku = variant.querySelector("[data-field='SKU']");
-    if (!SKU_REGEX.test(sku.value)) {
-        showError(sku, "Format: ABC-123");
-        valid = false;
-    }
-
-    const color = variant.querySelector("[data-field='color']");
-    if (!COLOR_REGEX.test(color.value)) {
-        showError(color, "Only alphabets allowed");
-        valid = false;
-    }
-
-    const size = variant.querySelector("[data-field='size']");
-    if (!size.value || size.value.includes("Select")) {
-        showError(size, "Select a size");
-        valid = false;
-    }
-
+    const priceEl = variant.querySelector("[data-field='price']");
+    const stockEl = variant.querySelector("[data-field='stock']");
+    const skuEl = variant.querySelector("[data-field='SKU']");
+    const colorEl = variant.querySelector("[data-field='color']");
+    const sizeEl = variant.querySelector("[data-field='size']");
     const imageInputs = variant.querySelectorAll("[data-field='images']");
 
-    // count existing images from server
-    const existingCount = variant.querySelectorAll(".server-image").length;
-
-    // validate newly uploaded images (type + size)
-    let newCount = 0;
-
-    imageInputs.forEach((input, idx) => {
-        if (!input.files.length) return;
-
-        const file = input.files[0];
-        newCount++;
-
-        if (!allowedTypes.includes(file.type)) {
-            showError(input, "Invalid image type (PNG, JPG, WEBP only)");
-            valid = false;
-        }
-
-        if (file.size > maxSize) {
-            showError(input, "Image size must be less than 5MB");
-            valid = false;
-        }
-    });
-
-    // total image count rule
-    const totalCount = existingCount + newCount;
-
-    if (totalCount < 3) {
-        showError(imageInputs[0], "Each variant must have at least 3 images");
+    // Price
+    if (!priceEl || !priceEl.value || parseFloat(priceEl.value) <= 0) {
+        showError(priceEl, "Price must be a positive number");
         valid = false;
     }
 
-    return valid
+    // Stock
+    if (!stockEl || !stockEl.value || parseInt(stockEl.value) <= 0) {
+        showError(stockEl, "Stock must be a positive number");
+        valid = false;
+    }
 
+    // SKU
+    if (!skuEl || !SKU_REGEX.test(skuEl.value)) {
+        showError(skuEl, "Format: ABC-123");
+        valid = false;
+    }
+
+    // Color
+    if (!colorEl || !COLOR_REGEX.test(colorEl.value)) {
+        showError(colorEl, "Only alphabets allowed");
+        valid = false;
+    }
+
+    // Size
+    if (!sizeEl || !sizeEl.value || sizeEl.value === "Select Size") {
+        showError(sizeEl, "Select a size");
+        valid = false;
+    }
+
+    // Image count validation: existing + new ≥ 3
+    const existingCount = variant.querySelectorAll(".server-image").length;
+    let newCount = 0;
+
+    imageInputs.forEach(input => {
+        if (input.files && input.files.length > 0) {
+            const file = input.files[0];
+            newCount++;
+
+            if (!allowedTypes.includes(file.type)) {
+                showError(input, "Invalid image type (PNG, JPG, WEBP only)");
+                valid = false;
+            }
+
+            if (file.size > maxSize) {
+                showError(input, "Image size must be under 5MB");
+                valid = false;
+            }
+        }
+    });
+
+    if (existingCount + newCount < 3) {
+        showError(imageInputs[0], "Each variant must have at least 3 images (existing + new)");
+        valid = false;
+    }
+
+    return valid;
 }
 
-
-/* ---------------- SUBMIT CHECK ---------------- */
+/* ---------------- SUBMIT HANDLER ---------------- */
 document.getElementById("productForm").addEventListener("submit", function (e) {
-
-    document.querySelectorAll(".variant-block").forEach(variant => {
-    const price = variant.querySelector("[data-field='price']");
-    if (!price || !price.value.trim()) {
-        variant.remove();
-    }
-    });
-
     let valid = true;
 
+    // ✅ DO NOT remove variants here — only validate
     if (!validateProduct()) valid = false;
 
-    document.querySelectorAll(".variant-block").forEach(variant => {
-        if (!validateVariant(variant)) valid = false;
-    });
+    const variantBlocks = Array.from(document.querySelectorAll(".variant-block"));
+    if (variantBlocks.length === 0) {
+        showError(document.querySelector("[name='name']"), "At least one variant is required");
+        valid = false;
+    } else {
+        variantBlocks.forEach(variant => {
+            if (!validateVariant(variant)) valid = false;
+        });
+    }
 
     if (!valid) {
         e.preventDefault();
@@ -542,74 +534,105 @@ document.getElementById("productForm").addEventListener("submit", function (e) {
 });
 
 /* ---------------- VARIANT DYNAMIC LOGIC ---------------- */
-
 const addVariantBtn = document.getElementById("addVariantBtn");
 const variantsContainer = document.getElementById("variantsContainer");
+let variantCount = document.querySelectorAll(".variant-block").length;
 
-let variantCount = 1;
-
-// Attach remove handler to first variant
-attachRemoveHandler(variantsContainer.querySelector(".variant-block"));
-
-addVariantBtn.addEventListener("click", () => {
-    addVariant();
-});
+addVariantBtn.addEventListener("click", addVariant);
 
 function addVariant() {
     const firstVariant = variantsContainer.querySelector(".variant-block");
+    if (!firstVariant) return;
+
     const clone = firstVariant.cloneNode(true);
 
-    variantCount++;
-
-    // Clear input values
+    // Clear inputs
     clone.querySelectorAll("input, select").forEach(el => {
         if (el.type === "file") {
             el.value = "";
+            // Clear preview
+            const idBase = el.id.split("-")[1] || "0";
+            const preview = clone.querySelector(`[id^="preview-${idBase}-"]`);
+            if (preview) {
+                preview.innerHTML = `
+                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                `;
+            }
         } else {
-            el.value = "";
+            el.value = el.tagName === "SELECT" ? "" : "";
         }
         clearError(el);
     });
 
-    // Update heading
+    // Update title
+    variantCount++;
     clone.querySelector("h1").textContent = `Variant ${variantCount}`;
 
-    // Reset previews
-    clone.querySelectorAll("[id^='preview']").forEach(preview => {
-        preview.innerHTML = `
-            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M12 4v16m8-8H4"></path>
-            </svg>
-        `;
-    });
+    // Reassign IDs and names
+    syncVariantNamesInBlock(clone, variantCount - 1);
 
-    // Update file input IDs & preview IDs (important)
-    clone.querySelectorAll("input[type='file']").forEach((input, i) => {
-        const newId = `upload-${variantCount}-${i}`;
-        const previewId = `preview-${variantCount}-${i}`;
-
-        input.id = newId;
-        input.setAttribute("onchange", `previewImage(event, '${previewId}')`);
-
-        const label = input.nextElementSibling;
-        label.setAttribute("for", newId);
-
-        label.querySelector("div").id = previewId;
-    });
-
+    // Attach delete handler
     attachRemoveHandler(clone);
-    variantsContainer.appendChild(clone);
-    syncVariantNames();
 
+    variantsContainer.appendChild(clone);
     clone.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function syncVariantNamesInBlock(block, index) {
+    const idInput = block.querySelector("[data-field='variant-id']");
+    if (idInput) {
+        idInput.name = `variants[${index}][id]`;
+    }
+
+    block.querySelector("[data-field='price']").name = `variants[${index}][price]`;
+    block.querySelector("[data-field='SKU']").name = `variants[${index}][SKU]`;
+    block.querySelector("[data-field='color']").name = `variants[${index}][color]`;
+    block.querySelector("[data-field='size']").name = `variants[${index}][size]`;
+    block.querySelector("[data-field='stock']").name = `variants[${index}][stock]`;
+
+    block.querySelectorAll("[data-field='images']").forEach((img, j) => {
+        const newId = `upload-${index}-${j}`;
+        const previewId = `preview-${index}-${j}`;
+
+        img.id = newId;
+        img.name = `variants[${index}][images][]`;
+        img.setAttribute("onchange", `previewImage(event, '${previewId}')`);
+
+        const label = img.nextElementSibling;
+        if (label) {
+            label.setAttribute("for", newId);
+            const div = label.querySelector("div");
+            if (div) div.id = previewId;
+        }
+    });
+}
+
+function syncVariantNames() {
+    document.querySelectorAll(".variant-block").forEach((block, i) => {
+        syncVariantNamesInBlock(block, i);
+    });
+}
+
+function updateVariantTitles() {
+    document.querySelectorAll(".variant-block").forEach((block, i) => {
+        block.querySelector("h1").textContent = `Variant ${i + 1}`;
+    });
 }
 
 function attachRemoveHandler(variant) {
     const deleteBtn = variant.querySelector("button.text-rose-500");
+    if (!deleteBtn) return;
 
-    deleteBtn.onclick = () => {
-        if (variantsContainer.querySelectorAll(".variant-block").length === 1) {
+    // Make handler idempotent
+    if (deleteBtn.__listener__) {
+        deleteBtn.removeEventListener("click", deleteBtn.__listener__);
+    }
+
+    const handler = () => {
+        const allBlocks = variantsContainer.querySelectorAll(".variant-block");
+        if (allBlocks.length <= 1) {
             Swal.fire({
                 toast: true,
                 icon: 'error',
@@ -621,16 +644,19 @@ function attachRemoveHandler(variant) {
             return;
         }
 
-        // 🔴 CHECK IF THIS VARIANT EXISTS IN DB
+        // Mark for deletion (optional — backend uses ID diff)
         const idInput = variant.querySelector("[data-field='variant-id']");
-        if (idInput) {
+        if (idInput && idInput.value) {
             const deletedField = document.getElementById("deletedVariants");
-            const current = deletedField.value ? deletedField.value.split(",") : [];
-            current.push(idInput.value);
-            deletedField.value = current.join(",");
+            if (deletedField) {
+                const current = deletedField.value ? deletedField.value.split(",").filter(Boolean) : [];
+                if (!current.includes(idInput.value)) {
+                    current.push(idInput.value);
+                    deletedField.value = current.join(",");
+                }
+            }
         }
 
-        // Remove from DOM
         variant.remove();
 
         Swal.fire({
@@ -642,50 +668,14 @@ function attachRemoveHandler(variant) {
             timer: 3000
         });
 
-        updateVariantTitles();
+        // ✅ Critical: re-sync ALL indices after removal
         syncVariantNames();
+        updateVariantTitles();
     };
+
+    deleteBtn.__listener__ = handler;
+    deleteBtn.addEventListener("click", handler);
 }
-
-
-function updateVariantTitles() {
-    variantCount = 0;
-    variantsContainer.querySelectorAll(".variant-block").forEach(block => {
-        variantCount++;
-        block.querySelector("h1").textContent = `Variant ${variantCount}`;
-    });
-}
-
-function syncVariantNames() {
-    document.querySelectorAll(".variant-block").forEach((v, i) => {
-
-        const idInput = v.querySelector("[data-field='variant-id']");
-        if (idInput) {
-            idInput.name = `variants[${i}][id]`;
-        }
-
-
-        v.querySelector("[data-field='price']").name = `variants[${i}][price]`;
-        v.querySelector("[data-field='SKU']").name = `variants[${i}][SKU]`;
-        v.querySelector("[data-field='color']").name = `variants[${i}][color]`;
-        v.querySelector("[data-field='size']").name = `variants[${i}][size]`;
-        v.querySelector("[data-field='stock']").name = `variants[${i}][stock]`;
-
-        v.querySelectorAll("[data-field='images']").forEach((img, j) => {
-            const newId = `upload-${i}-${j}`;
-            const previewId = `preview-${i}-${j}`;
-
-            img.id = newId;
-            img.name = `variants[${i}][images][]`;
-            img.setAttribute("onchange", `previewImage(event, '${previewId}')`);
-
-            const label = img.nextElementSibling;
-            label.setAttribute("for", newId);
-            label.querySelector("div").id = previewId;
-        });
-    });
-}
-
 </script>
 
 {% endblock scripts %}
