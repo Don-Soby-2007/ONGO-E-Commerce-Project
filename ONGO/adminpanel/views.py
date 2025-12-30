@@ -19,12 +19,14 @@ from django.db import DatabaseError
 from django.db import transaction
 from django.core.exceptions import ValidationError
 
-import cloudinary.uploader
+
 import uuid
 
 import re
 
 import logging
+from cloudinary.uploader import upload as cloudinary_upload
+from cloudinary.uploader import destroy as cloudinary_destroy
 
 logger = logging.getLogger(__name__)
 
@@ -621,7 +623,7 @@ class ProductCreateView(View):
                 validate_images(images, existing_count=0, mode="create")
 
                 for i, img in enumerate(images):
-                    upload = cloudinary.uploader.upload(
+                    upload = cloudinary_upload(
                         img,
                         folder="products/variants",
                         public_id=f"variant_{variant.id}_{uuid.uuid4().hex[:8]}",
@@ -656,7 +658,7 @@ class ToggleProductStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
     login_url = 'admin_login'
 
     def test_func(self):
-        # Only admin can toggle categories
+        # Only admin can toggle products
         return self.request.user.is_staff
 
     def handle_no_permission(self):
@@ -727,10 +729,16 @@ class ProductEditView(View):
     @transaction.atomic
     def post(self, request, pk):
         try:
-            # ===== Product update =====
+            # Validate product data first
             product_data = validate_product_fields(request.POST)
-            product = Product.objects.get(pk=pk)
-            category = Category.objects.get(id=product_data['category_id'], is_active=True)
+
+            # Fetch product within transaction to ensure consistency
+            product = get_object_or_404(Product, pk=pk)
+
+            # Fetch and validate category
+            category = get_object_or_404(Category, id=product_data['category_id'], is_active=True)
+
+            # Update product
             product.category = category
             product.name = product_data['name']
             product.description = product_data['description']
@@ -742,19 +750,21 @@ class ProductEditView(View):
                 if key.startswith("variants["):
                     try:
                         idx = key.split("[")[1].split("]")[0]
+                        # Validate that idx is a valid integer
+                        int(idx)  # This will raise ValueError if not an integer
                         variant_indexes.add(idx)
-                    except IndexError:
+                    except (IndexError, ValueError):
                         continue
             print('variant_indexes', variant_indexes)
-            # ✅ EARLY FILTER: Skip variants missing essential fields (avoid None price errors)
+            
+            # Filter valid indexes
             valid_indexes = []
             for idx in variant_indexes:
                 price = request.POST.get(f"variants[{idx}][price]")
                 sku = request.POST.get(f"variants[{idx}][SKU]")
-                if price and sku:  # only process if critical fields exist
+                if price and sku:
                     valid_indexes.append(idx)
                 else:
-                    # Optional: log for debugging
                     logger.debug(f"Skipping variant idx={idx} (missing price/SKU)")
             variant_indexes = sorted(valid_indexes, key=int)
 
@@ -764,38 +774,51 @@ class ProductEditView(View):
             print("valid_indexes", valid_indexes)
 
             # ===== DELETE VARIANTS =====
-            # ✅ 1. Explicit deletions from frontend
+            # Handle explicitly deleted variants
             deleted_ids_str = request.POST.get("deleted_variants", "")
+            deleted_ids = []
             if deleted_ids_str:
-                deleted_ids = [vid.strip() for vid in deleted_ids_str.split(",") if vid.strip()]
-                if deleted_ids:
-                    # 🔒 Security: only delete variants of this product
-                    ProductVariant.objects.filter(
-                        id__in=deleted_ids,
-                        product=product
-                    ).delete()
-
-            # ✅ 2. Fallback: delete variants not submitted (safety net)
-            submitted_variant_ids = {
-                request.POST.get(f"variants[{idx}][id]")
-                for idx in variant_indexes
-                if request.POST.get(f"variants[{idx}][id]")
-            }
-
-            # Include explicitly deleted IDs to avoid double-delete warnings
-            all_kept_or_deleted_ids = submitted_variant_ids | set(deleted_ids_str.split(",") if deleted_ids_str else [])
-
-            db_variants = ProductVariant.objects.filter(product=product)
-            for db_variant in db_variants:
-                if str(db_variant.id) not in all_kept_or_deleted_ids:
-                    # Safety cleanup (should rarely trigger)
-                    for img in db_variant.images.all():
+                for vid_str in deleted_ids_str.split(","):
+                    vid_str = vid_str.strip()
+                    if vid_str:
                         try:
-                            cloudinary.uploader.destroy(img.public_id)
-                        except Exception as e:
-                            logger.warning(f"Cloudinary delete failed for {img.public_id}: {e}")
-                        img.delete()
-                    db_variant.delete()
+                            # Validate ID as integer (since models use default AutoField)
+                            deleted_ids.append(int(vid_str))
+                        except ValueError:
+                            logger.warning(f"Invalid variant ID in deleted_variants: {vid_str}")
+                            continue
+
+            if deleted_ids:
+                # Only delete variants belonging to this product
+                ProductVariant.objects.filter(
+                    id__in=deleted_ids,
+                    product=product
+                ).delete()
+
+            # Get all submitted variant IDs to identify which ones to keep
+            submitted_variant_ids = set()
+            for idx in variant_indexes:
+                variant_id = request.POST.get(f"variants[{idx}][id]")
+                if variant_id:
+                    try:
+                        # Validate ID as integer
+                        int(variant_id)
+                        submitted_variant_ids.add(variant_id)
+                    except ValueError:
+                        logger.warning(f"Invalid variant ID in submission: {variant_id}")
+                        continue
+
+            # Delete variants that are not submitted (cleanup)
+            variants_to_delete = ProductVariant.objects.filter(product=product).exclude(id__in=submitted_variant_ids)
+            for variant in variants_to_delete:
+                # Delete associated images
+                for img in variant.images.all():
+                    try:
+                        cloudinary_destroy(img.public_id)
+                    except Exception as e:
+                        logger.warning(f"Cloudinary delete failed for {img.public_id}: {e}")
+                    img.delete()
+                variant.delete()
 
             # ===== UPDATE/CREATE VARIANTS =====
             for idx in variant_indexes:
@@ -812,8 +835,8 @@ class ProductEditView(View):
                 variant_data = validate_variant_fields(raw_variant_data)
 
                 if variant_id:
-                    # Update existing
-                    variant = ProductVariant.objects.get(id=variant_id, product=product)
+                    # Update existing variant - ensure it belongs to this product
+                    variant = get_object_or_404(ProductVariant, id=variant_id, product=product)
                     variant.price = variant_data["price"]
                     variant.sku = variant_data["sku"]
                     variant.color = variant_data["color"]
@@ -821,7 +844,7 @@ class ProductEditView(View):
                     variant.stock = variant_data["stock"]
                     variant.save()
                 else:
-                    # Create new
+                    # Create new variant
                     variant = ProductVariant.objects.create(
                         product=product,
                         price=variant_data["price"],
@@ -831,29 +854,69 @@ class ProductEditView(View):
                         stock=variant_data["stock"],
                     )
 
-                # ===== IMAGE HANDLING (unchanged logic) =====
-                # Existing images
-                db_images = {str(img.id): img for img in variant.images.all()}
+                # ===== IMAGE HANDLING =====
+                # Get all existing images for this variant
+                all_existing_images = {str(img.id): img for img in variant.images.all()}
+                
+                # Get IDs of images to keep
                 submitted_image_ids = set(request.POST.getlist(f"variants[{idx}][existing_images][]"))
-
-                # Delete removed images
-                for img_id, img in db_images.items():
+                
+                # Process image deletions
+                for img_id, img in all_existing_images.items():
                     if img_id not in submitted_image_ids:
+                        # Delete image from both DB and Cloudinary
                         try:
-                            cloudinary.uploader.destroy(img.public_id)
+                            cloudinary_destroy(img.public_id)
                         except Exception as e:
                             logger.warning(f"Cloudinary destroy failed: {e}")
                         img.delete()
-
-                # Upload new images
-                existing_count = len(request.POST.getlist(f"variants[{idx}][existing_images][]"))
-                images = request.FILES.getlist(f"variants[{idx}][images][]")
-                validate_images(images, existing_count=existing_count, mode="edit")
-
-                if images:
-                    for i, img in enumerate(images):
-                        upload = cloudinary.uploader.upload(
-                            img,
+                
+                # Process image replacements (if any)
+                # This is where we handle edited images
+                for key in request.POST.keys():
+                    if key.startswith("replaced_image_"):
+                        # Extract image ID from key
+                        img_id_str = key.replace("replaced_image_", "")
+                        try:
+                            img_id = int(img_id_str)
+                            # Get the replacement file
+                            replacement_files = request.FILES.getlist(key)
+                            if replacement_files:
+                                replacement_file = replacement_files[0]  # Take first file if multiple
+                                
+                                # Validate the replacement file
+                                validate_images([replacement_file], existing_count=0, mode="edit")
+                                
+                                # Find the existing image to replace
+                                existing_img = all_existing_images.get(str(img_id))
+                                if existing_img:
+                                    # Upload new file to Cloudinary
+                                    upload = cloudinary_upload(
+                                        replacement_file,
+                                        folder="products/variants",
+                                        public_id=existing_img.public_id,  # Reuse the same public ID
+                                        resource_type="image"
+                                    )
+                                    
+                                    # Update the existing image record with new file details
+                                    existing_img.image_url = upload["secure_url"]
+                                    existing_img.public_id = upload["public_id"]
+                                    existing_img.save()
+                                else:
+                                    # If the image ID doesn't exist, skip this replacement
+                                    logger.warning(f"Replacement image ID {img_id} not found for variant {variant.id}")
+                        except ValueError:
+                            logger.warning(f"Invalid image ID in replaced_image key: {key}")
+                
+                # Handle new image uploads
+                new_images = request.FILES.getlist(f"variants[{idx}][images][]")
+                if new_images:
+                    # Count current existing images to validate total count
+                    current_existing_count = len(submitted_image_ids)
+                    validate_images(new_images, existing_count=current_existing_count, mode="edit")
+                    for img_file in new_images:
+                        upload = cloudinary_upload(
+                            img_file,
                             folder="products/variants",
                             public_id=f"variant_{variant.id}_{uuid.uuid4().hex[:8]}",
                             resource_type="image"
@@ -864,15 +927,33 @@ class ProductEditView(View):
                             public_id=upload["public_id"],
                         )
 
-                # Set primary image
-                images_list = list(variant.images.all())
-                if images_list:
-                    for img in images_list:
-                        if img.is_primary:
+                # Handle primary image selection
+                primary_image_id = request.POST.get(f"variants[{idx}][primary_image_id]")
+                if primary_image_id:
+                    # Validate that the primary image ID is among the current images
+                    current_images = variant.images.all()
+                    primary_img = None
+                    for img in current_images:
+                        if str(img.id) == primary_image_id:
+                            primary_img = img
                             break
+                    
+                    if primary_img:
+                        # Reset all images to non-primary
+                        variant.images.update(is_primary=False)
+                        # Set the selected image as primary
+                        primary_img.is_primary = True
+                        primary_img.save(update_fields=['is_primary'])
                     else:
-                        images_list[0].is_primary = True
-                        ProductImage.objects.bulk_update(images_list, ["is_primary"])
+                        # If primary image ID is invalid, just skip setting primary
+                        pass
+                else:
+                    # If no primary image was explicitly selected, maintain existing primary status
+                    # If no primary exists and there are images, set the first one as primary
+                    current_images = list(variant.images.all())
+                    if current_images and not any(img.is_primary for img in current_images):
+                        current_images[0].is_primary = True
+                        current_images[0].save(update_fields=['is_primary'])
 
             messages.success(request, "Product updated successfully")
             return redirect("products")

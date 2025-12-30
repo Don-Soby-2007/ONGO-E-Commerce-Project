@@ -156,8 +156,7 @@
                         <div class="lg:col-span-1">
                             <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Size</label>
                             <select name="variants[{{ forloop.counter0 }}][size]" class="input-field w-full px-4 py-2 rounded-lg bg-white" required>
-                                <option value="">Select</option>
-                                <option value="Kids"{% if variant.size == 'Kids' %} selected{% endif %}>Kids</option>
+                                <option value="">Select Size</option>
                                 <option value="S"{% if variant.size == 'S' %} selected{% endif %}>S</option>
                                 <option value="M"{% if variant.size == 'M' %} selected{% endif %}>M</option>
                                 <option value="L"{% if variant.size == 'L' %} selected{% endif %}>L</option>
