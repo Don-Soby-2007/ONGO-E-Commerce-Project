@@ -127,6 +127,85 @@
         </div>
     </template>
 
+    <!-- Cropper Modal -->
+    <div id="cropperModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 scale-95 transition-transform duration-300">
+        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+        <h3 class="text-xl font-bold text-gray-800">Crop & Adjust Image</h3>
+        <button id="closeCropperModal" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-full transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        </div>
+
+        <div class="p-6">
+        <!-- Image Preview + Cropper -->
+        <div class="relative mb-6 bg-gray-50 rounded-xl overflow-hidden border border-gray-200 h-80 flex items-center justify-center">
+            <img id="cropperImage" src="" class="max-w-full max-h-full hidden">
+            <div id="cropperContainer" class="w-full h-full"></div>
+            <div id="cropperLoader" class="absolute inset-0 flex items-center justify-center">
+            <svg class="w-8 h-8 text-gray-400 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <button type="button" id="rotateLeft" class="flex flex-col items-center justify-center p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition btn-transition">
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+            </svg>
+            <span class="text-xs mt-1 text-gray-600">↺</span>
+            </button>
+            <button type="button" id="rotateRight" class="flex flex-col items-center justify-center p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition btn-transition">
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 008-8v2M3 10l6-6m-6 6l6 6" />
+            </svg>
+            <span class="text-xs mt-1 text-gray-600">↻</span>
+            </button>
+            <button type="button" id="zoomIn" class="flex flex-col items-center justify-center p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition btn-transition">
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <span class="text-xs mt-1 text-gray-600">+</span>
+            </button>
+            <button type="button" id="zoomOut" class="flex flex-col items-center justify-center p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition btn-transition">
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6M7 10h10" />
+            </svg>
+            <span class="text-xs mt-1 text-gray-600">−</span>
+            </button>
+        </div>
+
+        <!-- Crop Info -->
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Square crop (1:1) for best thumbnail
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex justify-end gap-3">
+            <button type="button" id="cancelCrop" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition">
+            Cancel
+            </button>
+            <button type="button" id="applyCrop" class="px-5 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 btn-transition flex items-center">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Apply Crop
+            </button>
+        </div>
+        </div>
+    </div>
+    </div>
+
     <!-- Your toast JS -->
     <script src="{% static 'js/common/toast.js' %}"></script>
     <script>

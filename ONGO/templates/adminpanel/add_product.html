@@ -1,610 +1,526 @@
 {% extends "common/base_admin_list.html" %}
 {% block style %}
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
 <style>
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    /* Professional Micro-interactions */
+    .input-field {
+        transition: all 0.2s ease-in-out;
+        border: 1px solid #e2e8f0;
+    }
+    .input-field:focus {
+        border-color: #ef4444; /* Red-500 */
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        transform: translateY(-1px);
+    }
+    
+    /* Variant Card styling */
+    .variant-card {
+        border-left: 4px solid transparent;
+        transition: all 0.3s ease;
+    }
+    .variant-card:hover {
+        border-left-color: #ef4444;
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+    }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    /* Sticky Footer */
+    .sticky-footer {
+        position: sticky;
+        bottom: 0;
+        z-index: 40;
+        backdrop-filter: blur(12px);
+        background-color: rgba(255, 255, 255, 0.95);
+        border-top: 1px solid #e5e7eb;
+        box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
 
-        @keyframes scaleIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
+    /* Animations */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in-up { animation: fadeInUp 0.4s ease-out; }
 
-        .fade-in-down {
-            animation: fadeInDown 0.5s ease-out;
-        }
-
-        .fade-in-up {
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        .scale-in {
-            animation: scaleIn 0.4s ease-out;
-        }
-
-        .delay-100 {
-            animation-delay: 0.1s;
-            animation-fill-mode: backwards;
-        }
-
-        .delay-200 {
-            animation-delay: 0.2s;
-            animation-fill-mode: backwards;
-        }
-
-        .input-transition {
-            transition: all 0.3s ease;
-        }
-
-        .input-transition:focus {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        .btn-transition {
-            transition: all 0.3s ease;
-        }
-
-        .btn-transition:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .btn-transition:active {
-            transform: translateY(0);
-        }
-
-        .image-upload-box {
-            transition: all 0.3s ease;
-        }
-
-        .image-upload-box:hover {
-            transform: scale(1.05);
-            border-color: #ef4444;
-        }
-
-        .card-hover {
-            transition: all 0.3s ease;
-        }
-
-        .card-hover:hover {
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-        }
-    </style>
-
+    /* Hide default file input */
+    .hidden-input { display: none; }
+</style>
 {% endblock style %}
+
 {% block content %}
 
-        <!-- Back link -->
-        <div class="mb-6">
-            <a href="{% url 'products' %}" class="text-red-500 hover:text-red-700 font-medium flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-                Back to Products
-            </a>
+<div class="max-w-7xl mx-auto">
+    <nav class="flex text-gray-500 text-sm mb-6" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="{% url 'products' %}" class="inline-flex items-center hover:text-red-600 transition">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                    Products
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                    <span class="ml-1 text-gray-700 font-medium md:ml-2">Create Product</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Add New Product</h1>
+            <p class="mt-2 text-gray-500">Fill in the details below to create a new product listing.</p>
         </div>
-
-        <!-- Header -->
-        <div class="mb-8 fade-in-down">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Add New Product</h1>
-            <p class="text-red-500">Enter the details for the new product.</p>
+        <div class="mt-4 md:mt-0">
+             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                Draft Mode
+            </span>
         </div>
+    </div>
 
-        <!-- Main Form -->
-        <form method='POST' action='{% url "add_product" %}' id="productForm" data-mode='create' enctype="multipart/form-data">
-            {% csrf_token %}
-            <!-- First Card: Product Name, Category, Description -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 scale-in card-hover">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <!-- Product Name -->
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                            Product Name
-                        </label>
-                        <input 
-                            type="text"
-                            name='name'
-                            placeholder="Enter the product name..."
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
-                        >
-                    </div>
+    <form method='POST' action='{% url "add_product" %}' id="productForm" enctype="multipart/form-data" class="pb-4">
+        {% csrf_token %}
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-3">
+                <div class="bg-red-100 p-2 rounded-lg">
+                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h2 class="text-lg font-bold text-gray-800">General Information</h2>
+            </div>
+            
+            <div class="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Product Name <span class="text-red-500">*</span></label>
+                    <input type="text" name='name' placeholder="e.g. Vintage Leather Jacket" class="input-field w-full px-4 py-2.5 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none">
+                </div>
 
-                    <!-- Category -->
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                            Category
-                        </label>
-                        <select name='category' class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition appearance-none bg-white cursor-pointer">
-                            <option>Select Category</option>
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Category <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <select name='category' class="input-field w-full px-4 py-2.5 rounded-lg text-gray-900 bg-white appearance-none cursor-pointer focus:outline-none">
+                            <option value="">Select a Category</option>
                             {% for category in categories %}
                             <option value='{{category.id}}'>{{category.name}}</option>
                             {% endfor %}
                         </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Description -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Description
-                    </label>
-                    <textarea 
-                        rows="5"
-                        name='description'
-                        placeholder="Add product Description"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition resize-none"
-                    ></textarea>
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description <span class="text-red-500">*</span></label>
+                    <textarea name='description' rows="4" placeholder="Detailed product description..." class="input-field w-full px-4 py-2.5 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none resize-y"></textarea>
                 </div>
             </div>
+        </div>
 
-            <!-- Second Card: Price, SKU, Color, Size, Images -->
-            <div id="variantsContainer">
-                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 fade-in-up delay-100 card-hover variant-block">
-                    <div class="flex justify-between items-center">
-                        <h1 class="text-1xl md:text-2xl font-bold text-gray-900 mb-2">Variant 1</h1>
-                        <button type="button" class="text-rose-500">
-                            <i data-lucide="trash" class="w-5 h-5 ml-2"></i>
+        <div class="mb-12">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-gray-900">Product Variants</h2>
+                <span class="text-sm font-medium px-3 py-1 bg-gray-100 rounded-full text-gray-600" id="variantCountBadge">1 Variant</span>
+            </div>
+
+            <div id="variantsContainer" class="space-y-6">
+                </div>
+        </div>
+
+        <div class="sticky-footer px-6 py-4 -mx-4 md:-mx-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 max-w-7xl mx-auto">
+                
+                <button type="button" id="addVariantBtn" class="w-full md:w-auto inline-flex items-center justify-center px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition shadow-md hover:shadow-lg group">
+                    <svg class="w-5 h-5 mr-2 text-gray-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Add Another Variant
+                </button>
+
+                <div class="flex gap-3 w-full md:w-auto justify-end">
+                    <a href='{% url "products" %}' class="w-full md:w-auto px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition bg-white text-center">
+                        Cancel
+                    </a>
+                    <button type="submit" class="w-full md:w-auto px-8 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition shadow-md hover:shadow-lg flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Save Product
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="cropperModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity backdrop-blur-sm"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl">
+                <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-900" id="modal-title">Crop Image</h3>
+                        <button type="button" id="closeCropperBtn" class="text-gray-400 hover:text-gray-500">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                    <div class="relative h-96 w-full bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                        <img id="cropperImage" src="" class="max-w-full h-full object-contain">
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500 text-center">Drag to adjust. Scroll to zoom. (1:1 Ratio)</p>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-gray-100">
+                    <button type="button" id="cropImageBtn" class="inline-flex w-full justify-center rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto transition">
+                        Crop & Upload
+                    </button>
+                    <button type="button" id="cancelCropBtn" class="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto transition">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- State Management ---
+        const variantsContainer = document.getElementById('variantsContainer');
+        const cropperModal = document.getElementById('cropperModal');
+        let cropper = null;
+        let activeFileInput = null; // The input[type=file] we are adding to
+        let activeFile = null;      // The raw file selected for cropping
+        
+        // --- Constants ---
+        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+        const MIN_IMAGES = 3;
+
+        // --- Initial Setup ---
+        addVariant(); // Add first variant by default
+
+        // --- Event Listeners ---
+        document.getElementById('addVariantBtn').addEventListener('click', () => addVariant());
+        document.getElementById('closeCropperBtn').addEventListener('click', closeCropper);
+        document.getElementById('cancelCropBtn').addEventListener('click', closeCropper);
+        document.getElementById('cropImageBtn').addEventListener('click', applyCrop);
+        document.getElementById('productForm').addEventListener('submit', validateForm);
+
+        // Global delegation for dynamic elements
+        variantsContainer.addEventListener('click', function(e) {
+            // Delete Variant
+            if (e.target.closest('.delete-variant-btn')) {
+                const card = e.target.closest('.variant-card');
+                removeVariant(card);
+            }
+            // Trigger Image Upload
+            if (e.target.closest('.trigger-upload-btn')) {
+                const card = e.target.closest('.variant-card');
+                const fileInput = card.querySelector('.hidden-input');
+                fileInput.value = ''; // Reset to allow re-selecting same file
+                fileInput.click();
+            }
+            // Remove Image Preview
+            if (e.target.closest('.remove-image-btn')) {
+                const btn = e.target.closest('.remove-image-btn');
+                const previewItem = btn.closest('.preview-item');
+                const wrapper = previewItem.closest('.image-wrapper');
+                const indexToRemove = parseInt(previewItem.dataset.index);
+                
+                removeImageFromStorage(wrapper, indexToRemove);
+                previewItem.remove();
+                
+                // Update badge count or UI state
+                updateImageUI(wrapper);
+            }
+        });
+
+        variantsContainer.addEventListener('change', function(e) {
+            if (e.target.classList.contains('hidden-input')) {
+                const file = e.target.files[0];
+                if (file) handleFileSelect(file, e.target);
+            }
+        });
+
+        // --- Core Functions ---
+
+        function addVariant() {
+            const index = document.querySelectorAll('.variant-card').length;
+            const template = `
+                <div class="variant-card bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 animate-fade-in-up" data-index="${index}">
+                    <div class="flex justify-between items-start mb-6 pb-4 border-b border-gray-100">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800 variant-title">Variant ${index + 1}</h3>
+                            <p class="text-xs text-gray-400">Define the specifics for this SKU.</p>
+                        </div>
+                        <button type="button" class="delete-variant-btn text-gray-400 hover:text-red-500 transition p-2 rounded-full hover:bg-red-50">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <!-- Price -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                Price
-                            </label>
-                            <input 
-                                type="text"
-                                name="variants[0][price]"
-                                data-field="price"
-                                placeholder="Enter price"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
-                            >
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                        <div class="lg:col-span-1">
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Price (₹)</label>
+                            <input type="number" name="variants[${index}][price]" class="input-field w-full px-4 py-2 rounded-lg" placeholder="0.00" required>
                         </div>
-
-                        <!-- SKU -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                SKU
-                            </label>
-                            <input 
-                                type="text"
-                                name="variants[0][SKU]"
-                                data-field="SKU"
-                                placeholder="Enter SKU"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
-                            >
+                        <div class="lg:col-span-1">
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">SKU</label>
+                            <input type="text" name="variants[${index}][SKU]" class="input-field w-full px-4 py-2 rounded-lg" placeholder="PROD-001" required>
                         </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <!-- Color -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                Colour
-                            </label>
-                            <input 
-                                type="text"
-                                name="variants[0][color]"
-                                data-field="color"
-                                placeholder="Enter colour"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition"
-                            >
+                        <div class="lg:col-span-1">
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Color</label>
+                            <input type="text" name="variants[${index}][color]" class="input-field w-full px-4 py-2 rounded-lg" placeholder="e.g. Midnight Blue" required>
                         </div>
-
-                        <!-- Size -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                Size
-                            </label>
-                            <select 
-                                type="text"
-                                name="variants[0][size]"
-                                data-field="size"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition appearance-none bg-white cursor-pointer"
-                            >
-                            <option>Select Size</option>
-                            <option>Kids</option>
-                            <option>S</option>
-                            <option>M</option>
-                            <option>L</option>
-                            <option>XL</option>
-                            <option>XXl</option>
-                            <option>XXl</option>
+                        <div class="lg:col-span-1">
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Size</label>
+                            <select name="variants[${index}][size]" class="input-field w-full px-4 py-2 rounded-lg bg-white" required>
+                                <option value="">Select</option>
+                                <option>Kids</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option>
                             </select>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Stock</label>
-                            <input type="text" name="variants[0][stock]" data-field="stock" placeholder="Enter Stock Quantity" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent input-transition">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                         <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Stock Qty</label>
+                            <input type="number" name="variants[${index}][stock]" class="input-field w-full px-4 py-2 rounded-lg" placeholder="100" required>
+                        </div>
+                    </div>
+
+                    <div class="image-wrapper bg-gray-50 rounded-xl p-4 border border-dashed border-gray-300 hover:border-red-400 transition relative">
+                        <div class="flex flex-col items-center justify-center text-center">
+                            <div class="preview-container flex flex-wrap gap-4 justify-start w-full min-h-[100px] mb-4">
+                                <div class="empty-state w-full flex flex-col items-center justify-center py-4 text-gray-400">
+                                    <svg class="w-8 h-8 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <span class="text-sm">No images added yet</span>
+                                </div>
+                            </div>
+                            
+                            <button type="button" class="trigger-upload-btn px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition shadow-sm flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                Add Image (Crop Enabled)
+                            </button>
+                            <p class="text-xs text-red-500 mt-2 hidden min-req-msg">Minimum 3 images required.</p>
                         </div>
                         
-                    </div>
-
-                    <!-- Image Upload Section -->
-                    <div class="grid grid-cols-3 gap-4">
-                        <!-- Upload Box 1 -->
-                        <div class="image-upload-box aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-50">
-                            <input type="file" name="variants[0][images][]" data-field="images" id="upload1" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="previewImage(event, 'preview1')">
-                            <label for="upload1" class="cursor-pointer flex flex-col items-center">
-                                <div id="preview1" class="w-full h-full flex items-center justify-center">
-                                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                    </svg>
-                                </div>
-                            </label>
-                        </div>
-
-                        <!-- Upload Box 2 -->
-                        <div class="image-upload-box aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-50">
-                            <input type="file" name="variants[0][images][]" data-field="images" id="upload2" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="previewImage(event, 'preview2')">
-                            <label for="upload2" class="cursor-pointer flex flex-col items-center">
-                                <div id="preview2" class="w-full h-full flex items-center justify-center">
-                                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                    </svg>
-                                </div>
-                            </label>
-                        </div>
-
-                        <!-- Upload Box 3 -->
-                        <div class="image-upload-box aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-50">
-                            <input type="file" name="variants[0][images][]" data-field="images" id="upload3" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="previewImage(event, 'preview3')">
-                            <label for="upload3" class="cursor-pointer flex flex-col items-center">
-                                <div id="preview3" class="w-full h-full flex items-center justify-center">
-                                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                    </svg>
-                                </div>
-                            </label>
-                        </div>
+                        <input type="file" class="hidden-input" accept="image/*">
+                        
+                        <input type="file" name="variants[${index}][images][]" class="final-input hidden" multiple>
                     </div>
                 </div>
-            </div>
-
-            <!-- Add Variant Button -->
-
-            <div class="flex justify-center my-6">
-                <button type="button" id="addVariantBtn" class=" flex item-center px-6 py-2.5 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 btn-transition">
-                    Add Variant
-                    <i data-lucide="plus" class="w-5 h-6 ml-2"></i>
-                </button>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex justify-end gap-4 fade-in-up delay-200">
-                <a href='{% url "products" %}'>
-                    <button 
-                        type="button"
-                        class="px-8 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 btn-transition"
-                    >
-                        Cancel
-                    </button>
-                </a>
-                
-                <button 
-                    type="submit"
-                    class="px-8 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 btn-transition"
-                >
-                    Add Product
-                </button>
-            </div>
-        </form>
-
-
-{% endblock content %}
-{% block scripts %}
-
-<script>
-
-syncVariantNames()
-
- // Image preview function
-        function previewImage(event, previewId) {
-            const file = event.target.files[0];
-            const preview = document.getElementById(previewId);
+            `;
             
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.innerHTML = `
-                        <img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover rounded-lg">
-                    `;
-                }
-                reader.readAsDataURL(file);
+            variantsContainer.insertAdjacentHTML('beforeend', template);
+            
+            reindexVariants(); // Update UI counters
+
+            // Auto-scroll to the new card
+            const newCard = variantsContainer.lastElementChild;
+            if(index > 0) { // Don't scroll on initial load (variant 0)
+                setTimeout(() => {
+                    newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Visual cue
+                    newCard.classList.add('ring-2', 'ring-red-100');
+                    setTimeout(() => newCard.classList.remove('ring-2', 'ring-red-100'), 1000);
+                }, 100);
             }
         }
 
+        function removeVariant(card) {
+            const allCards = document.querySelectorAll('.variant-card');
+            if (allCards.length <= 1) {
+                Swal.fire({ icon: 'warning', title: 'Action blocked', text: 'You must have at least one product variant.' });
+                return;
+            }
 
-/* ---------------- CONFIG ---------------- */
-const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
-const maxSize = 5 * 1024 * 1024;
-
-const NAME_REGEX = /^[A-Za-z\s]+$/;
-const DESCRIPTION_REGEX = /^[A-Za-z\s.,-]+$/;
-const COLOR_REGEX = /^[A-Za-z\s]+$/;
-const SKU_REGEX = /^[A-Za-z]+-[0-9]+$/;
-
-/* ---------------- HELPERS ---------------- */
-function showError(el, msg) {
-    clearError(el);
-    const p = document.createElement("p");
-    p.className = "error-text text-red-600 text-sm mt-1";
-    p.textContent = msg;
-    el.classList.add("border-red-500");
-    el.parentElement.appendChild(p);
-}
-
-function clearError(el) {
-    el.classList.remove("border-red-500");
-    el.parentElement.querySelectorAll(".error-text").forEach(e => e.remove());
-}
-
-/* ---------------- PRODUCT VALIDATION ---------------- */
-function validateProduct() {
-    let valid = true;
-
-    const name = document.querySelector("[name='name']");
-    if (!NAME_REGEX.test(name.value)) {
-        showError(name, "Only alphabets allowed");
-        valid = false;
-    }
-
-    const category = document.querySelector("[name='category']");
-    if (!category.value) {
-        showError(category, "Category is required");
-        valid = false;
-    }
-
-    const desc = document.querySelector("[name='description']");
-    if (!DESCRIPTION_REGEX.test(desc.value)) {
-        showError(desc, "Invalid description");
-        valid = false;
-    }
-
-    return valid;
-}
-
-/* ---------------- VARIANT VALIDATION ---------------- */
-function validateVariant(variant) {
-    let valid = true;
-
-    const price = variant.querySelector("[data-field='price']");
-    if (!price.value || Number(price.value) <= 0) {
-        showError(price, "Invalid price");
-        valid = false;
-    }
-
-    const stock = variant.querySelector("[data-field='stock']");
-    if (!stock.value || Number(stock.value) <= 0) {
-        showError(stock, "Invalid stock");
-        valid = false;
-    }
-
-    const sku = variant.querySelector("[data-field='SKU']");
-    if (!SKU_REGEX.test(sku.value)) {
-        showError(sku, "Format: ABC-123");
-        valid = false;
-    }
-
-    const color = variant.querySelector("[data-field='color']");
-    if (!COLOR_REGEX.test(color.value)) {
-        showError(color, "Only alphabets allowed");
-        valid = false;
-    }
-
-    const size = variant.querySelector("[data-field='size']");
-    if (!size.value || size.value.includes("Select")) {
-        showError(size, "Select a size");
-        valid = false;
-    }
-
-    const images = variant.querySelectorAll("[data-field='images']");
-
-    images.forEach((input, idx) => {
-        if (!input.files.length) {
-            showError(input, `Image ${idx + 1} is required`);
-            valid = false;
-            return;
-        }
-
-        const file = input.files[0];
-
-        if (!allowedTypes.includes(file.type)) {
-            showError(input, "Invalid image type");
-            valid = false;
-        }
-
-        if (file.size > maxSize) {
-            showError(input, "Max 5MB allowed");
-            valid = false;
-        }
-    });
-
-    return valid;
-}
-
-/* ---------------- SUBMIT CHECK ---------------- */
-document.getElementById("productForm").addEventListener("submit", function (e) {
-    let valid = true;
-
-    if (!validateProduct()) valid = false;
-
-    document.querySelectorAll(".variant-block").forEach(variant => {
-        if (!validateVariant(variant)) valid = false;
-    });
-
-    if (!valid) {
-        e.preventDefault();
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-});
-
-/* ---------------- VARIANT DYNAMIC LOGIC ---------------- */
-
-const addVariantBtn = document.getElementById("addVariantBtn");
-const variantsContainer = document.getElementById("variantsContainer");
-
-let variantCount = 1;
-
-// Attach remove handler to first variant
-attachRemoveHandler(variantsContainer.querySelector(".variant-block"));
-
-addVariantBtn.addEventListener("click", () => {
-    addVariant();
-});
-
-function addVariant() {
-    const firstVariant = variantsContainer.querySelector(".variant-block");
-    const clone = firstVariant.cloneNode(true);
-
-    variantCount++;
-
-    // Clear input values
-    clone.querySelectorAll("input, select").forEach(el => {
-        if (el.type === "file") {
-            el.value = "";
-        } else {
-            el.value = "";
-        }
-        clearError(el);
-    });
-
-    // Update heading
-    clone.querySelector("h1").textContent = `Variant ${variantCount}`;
-
-    // Reset previews
-    clone.querySelectorAll("[id^='preview']").forEach(preview => {
-        preview.innerHTML = `
-            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M12 4v16m8-8H4"></path>
-            </svg>
-        `;
-    });
-
-    // Update file input IDs & preview IDs (important)
-    clone.querySelectorAll("input[type='file']").forEach((input, i) => {
-        const newId = `upload-${variantCount}-${i}`;
-        const previewId = `preview-${variantCount}-${i}`;
-
-        input.id = newId;
-        input.setAttribute("onchange", `previewImage(event, '${previewId}')`);
-
-        const label = input.nextElementSibling;
-        label.setAttribute("for", newId);
-
-        label.querySelector("div").id = previewId;
-    });
-
-    attachRemoveHandler(clone);
-    variantsContainer.appendChild(clone);
-    syncVariantNames();
-
-    clone.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function attachRemoveHandler(variant) {
-    const deleteBtn = variant.querySelector("button.text-rose-500");
-
-    deleteBtn.onclick = () => {
-        if (variantsContainer.children.length === 1) {
             Swal.fire({
-                toast: true,
-                icon: 'error',
-                title: 'Atleast one Variant is required',
-                animation: true,
-                position: 'top-right',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer)
-                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                title: 'Delete Variant?',
+                text: "This action cannot be undone.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Yes, delete it'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    card.remove();
+                    reindexVariants();
+                    Swal.fire({ icon: 'success', title: 'Deleted', timer: 1500, showConfirmButton: false });
                 }
-            })
-            return;
+            });
         }
-        variant.remove();
-        Swal.fire({
-                toast: true,
-                icon: 'success',
-                title: 'Variant Removed',
-                animation: true,
-                position: 'top-right',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer)
-                toast.addEventListener('mouseleave', Swal.resumeTimer)
+
+        // Critical: Re-calculates indices so Django backend receives sequential arrays
+        function reindexVariants() {
+            const cards = document.querySelectorAll('.variant-card');
+            
+            // Update Badge
+            const badge = document.getElementById('variantCountBadge');
+            if(badge) badge.textContent = `${cards.length} Variant(s)`;
+
+            cards.forEach((card, idx) => {
+                // Update Title
+                card.querySelector('.variant-title').textContent = `Variant ${idx + 1}`;
+                card.dataset.index = idx;
+
+                // Update Input Names
+                const inputs = card.querySelectorAll('input, select');
+                inputs.forEach(input => {
+                    const name = input.getAttribute('name');
+                    if (name) {
+                        // Regex replaces variants[X] with variants[newIndex]
+                        const newName = name.replace(/variants\[\d+\]/, `variants[${idx}]`);
+                        input.setAttribute('name', newName);
+                    }
+                });
+            });
+        }
+
+        // --- Image & Cropper Logic ---
+
+        function handleFileSelect(file, inputElement) {
+            if (!file.type.startsWith('image/')) {
+                Swal.fire('Error', 'Please select a valid image file.', 'error');
+                return;
+            }
+            if (file.size > MAX_SIZE) {
+                Swal.fire('Error', 'File size exceeds 5MB limit.', 'error');
+                return;
+            }
+
+            activeFile = file;
+            activeFileInput = inputElement; // The .hidden-input
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.getElementById('cropperImage');
+                img.src = e.target.result;
+                cropperModal.classList.remove('hidden');
+                
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(img, {
+                    aspectRatio: 1, // Square crop
+                    viewMode: 1,
+                    autoCropArea: 0.9,
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function closeCropper() {
+            cropperModal.classList.add('hidden');
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+            if(activeFileInput) activeFileInput.value = ''; // Reset
+        }
+
+        function applyCrop() {
+            if (!cropper) return;
+
+            cropper.getCroppedCanvas({ width: 800, height: 800, fillColor: '#fff' }).toBlob((blob) => {
+                const wrapper = activeFileInput.closest('.image-wrapper');
+                const finalInput = wrapper.querySelector('.final-input');
+                const previewContainer = wrapper.querySelector('.preview-container');
+
+                // 1. Create a new file from blob
+                const newFile = new File([blob], `variant_img_${Date.now()}.jpg`, { type: 'image/jpeg' });
+
+                // 2. Add to the DataTransfer object of the final input
+                const dt = new DataTransfer();
+                // Copy existing files
+                Array.from(finalInput.files).forEach(f => dt.items.add(f));
+                // Add new file
+                dt.items.add(newFile);
+                finalInput.files = dt.files; // Update input
+
+                // 3. UI Update: Add Preview
+                const url = URL.createObjectURL(blob);
+                const fileIndex = finalInput.files.length - 1; // Index of the newly added file
+
+                const previewHtml = `
+                    <div class="preview-item relative group w-24 h-24 rounded-lg overflow-hidden border border-gray-200 shadow-sm" data-index="${fileIndex}">
+                        <img src="${url}" class="w-full h-full object-cover">
+                        <button type="button" class="remove-image-btn absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition transform hover:scale-110">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                `;
+                
+                // Remove empty state if present
+                const emptyState = previewContainer.querySelector('.empty-state');
+                if(emptyState) emptyState.remove();
+
+                previewContainer.insertAdjacentHTML('beforeend', previewHtml);
+                
+                updateImageUI(wrapper);
+                closeCropper();
+
+            }, 'image/jpeg', 0.9);
+        }
+
+        function removeImageFromStorage(wrapper, indexToRemove) {
+            const finalInput = wrapper.querySelector('.final-input');
+            const dt = new DataTransfer();
+            
+            // Rebuild FileList excluding the removed index
+            Array.from(finalInput.files).forEach((file, i) => {
+                if (i !== indexToRemove) dt.items.add(file);
+            });
+            
+            finalInput.files = dt.files;
+            
+            // Re-index UI data attributes to match new FileList order
+            const remainingPreviews = wrapper.querySelectorAll('.preview-item');
+            remainingPreviews.forEach((item, i) => {
+                item.dataset.index = i;
+            });
+        }
+
+        function updateImageUI(wrapper) {
+            const finalInput = wrapper.querySelector('.final-input');
+            const count = finalInput.files.length;
+            const msg = wrapper.querySelector('.min-req-msg');
+            
+            if (count < MIN_IMAGES) {
+                msg.classList.remove('hidden');
+                wrapper.classList.add('border-red-300', 'bg-red-50');
+            } else {
+                msg.classList.add('hidden');
+                wrapper.classList.remove('border-red-300', 'bg-red-50');
+            }
+        }
+
+        // --- Validation ---
+
+        function validateForm(e) {
+            let isValid = true;
+            const variants = document.querySelectorAll('.variant-card');
+            
+            // 1. Check Images per variant
+            variants.forEach(variant => {
+                const finalInput = variant.querySelector('.final-input');
+                if (finalInput.files.length < MIN_IMAGES) {
+                    isValid = false;
+                    variant.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    variant.querySelector('.image-wrapper').classList.add('ring-2', 'ring-red-500');
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: `Variant ${parseInt(variant.dataset.index)+1}: At least ${MIN_IMAGES} images required.` });
                 }
-            })
-        updateVariantTitles();
-        syncVariantNames();
-    };
-}
+            });
 
-function updateVariantTitles() {
-    variantCount = 0;
-    variantsContainer.querySelectorAll(".variant-block").forEach(block => {
-        variantCount++;
-        block.querySelector("h1").textContent = `Variant ${variantCount}`;
+            if (!isValid) {
+                e.preventDefault();
+            }
+        }
     });
-}
-
-function syncVariantNames() {
-    document.querySelectorAll(".variant-block").forEach((v, i) => {
-        v.querySelector("[data-field='price']").name = `variants[${i}][price]`;
-        v.querySelector("[data-field='SKU']").name = `variants[${i}][SKU]`;
-        v.querySelector("[data-field='color']").name = `variants[${i}][color]`;
-        v.querySelector("[data-field='size']").name = `variants[${i}][size]`;
-        v.querySelector("[data-field='stock']").name = `variants[${i}][stock]`;
-
-        v.querySelectorAll("[data-field='images']").forEach((img, j) => {
-            const newId = `upload-${i}-${j}`;
-            const previewId = `preview-${i}-${j}`;
-
-            img.id = newId;
-            img.name = `variants[${i}][images][]`;
-            img.setAttribute("onchange", `previewImage(event, '${previewId}')`);
-
-            const label = img.nextElementSibling;
-            label.setAttribute("for", newId);
-            label.querySelector("div").id = previewId;
-        });
-    });
-}
-
-
-
 </script>
-
 {% endblock scripts %}
