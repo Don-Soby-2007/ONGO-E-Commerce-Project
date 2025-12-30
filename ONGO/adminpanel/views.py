@@ -720,7 +720,7 @@ class ProductEditView(View):
         return render(request, self.template_name, {
             "product": product,
             "variants": variants,
-            "size": ["Kids", "S", "M", "L", "XL", "XXL"],
+            "size": ["S", "M", "L", "XL", "XXL"],
             "categories": Category.objects.filter(is_active=True)
         })
 
@@ -846,10 +846,11 @@ class ProductEditView(View):
                         img.delete()
 
                 # Upload new images
-                existing_count = len(request.POST.getlist(f"variant[{idx}][existing_images][]"))
+                existing_count = len(request.POST.getlist(f"variants[{idx}][existing_images][]"))
                 images = request.FILES.getlist(f"variants[{idx}][images][]")
+                validate_images(images, existing_count=existing_count, mode="edit")
+
                 if images:
-                    validate_images(images, existing_count=existing_count, mode="edit")
                     for i, img in enumerate(images):
                         upload = cloudinary.uploader.upload(
                             img,

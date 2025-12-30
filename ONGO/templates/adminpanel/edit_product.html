@@ -418,7 +418,20 @@ function attachRemoveHandler(variant) {
     deleteBtn.addEventListener("click", () => {
         const blocks = document.querySelectorAll("#variantsContainer .variant-block");
         if (blocks.length <= 1) {
-            alert("At least one variant is required");
+            Swal.fire({
+                toast: true,
+                icon: 'error',
+                title: 'Atleast one Variant is required',
+                animation: true,
+                position: 'top-right',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            })
             return;
         }
 
@@ -445,8 +458,20 @@ function attachRemoveHandler(variant) {
         syncVariantNames();
         updateVariantTitles();
 
-        // Optional: visual feedback
-        console.log("✅ Variant deleted. deleted_variants =", document.getElementById("deletedVariants").value);
+        Swal.fire({
+                toast: true,
+                icon: 'success',
+                title: 'Variant Removed',
+                animation: true,
+                position: 'top-right',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            })
     });
 }
 
@@ -460,6 +485,11 @@ function addVariant() {
     // ✅ Critical: clear variant ID for new variant
     const idInput = clone.querySelector("[data-field='variant-id']");
     if (idInput) idInput.value = "";  // ← THIS IS THE FIX
+
+    const deleteBtn = clone.querySelector("button.text-rose-500");
+    if (deleteBtn) {
+        delete deleteBtn.dataset.attached; // ← allows attachRemoveHandler to bind
+    }
 
     // Clear other inputs
     clone.querySelectorAll("input:not([type='file'][type='hidden']), select").forEach(el => {
