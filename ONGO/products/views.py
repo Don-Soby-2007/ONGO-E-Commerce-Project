@@ -38,7 +38,13 @@ class ProductListView(ListView):
             .prefetch_related('variants__images')
         )
 
-        # ===== 1. DYNAMIC CATEGORY FILTER (by slug) =====
+        # Search Query
+        q = self.request.GET.get('q')
+
+        if q:
+            queryset = queryset.filter(name__icontains=q)
+
+        # Dynamic Category View
         category_name = self.request.GET.getlist('category')  # e.g. ['men', 'women']
         if category_name:
             queryset = queryset.filter(category__name__in=category_name)

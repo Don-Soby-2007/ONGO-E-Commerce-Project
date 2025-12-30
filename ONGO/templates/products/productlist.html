@@ -52,13 +52,14 @@
 </head>
 <body class="bg-gray-50">
     <!-- Fixed Navbar -->
+    <form methode="GET" action='{% url "product_list" %}'>
     <nav class="fixed-nav">
         <div class="container mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-4">
                 <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="Ongo Logo" class="h-8">
                 <div class="relative w-96">
-                    <input type="text" placeholder="shirts for men" class="w-full px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    <input name='q'value="{{request.GET.q|default:''}}" type="text" placeholder="shirts for men" class="w-full px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <button typw=submit class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                         <i data-lucide="search"></i>
                     </button>
                 </div>
@@ -96,113 +97,113 @@
 
     <!-- Main Content --> 
     <main class="my-20 mx-20 overflow-hidden">
-    <div class="container mx-auto px-4 py-8">
-        <div class="flex">
-            <!-- Fixed Filters Sidebar -->
-            <form methode="GET" action='{% url "product_list" %}'>
-                <aside class="fixed-sidebar p-4">
-                    <div>
-                        <br>
-                        <br>
-                    </div>
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-lg font-bold">FILTERS</h3>
-                        <a href="{% url 'product_list' %}" class="text-orange-500 text-sm">Clear all</a>
-                    </div>
-
-                    <!-- Price Filter -->
-                    <div class="mb-6">
-                        <h4 class="font-semibold mb-3">Price</h4>
-                        <div class="flex items-center space-x-2">
-                            <input id="price-min" name="min" value="{{ request.GET.min|default:'' }}" type="number" placeholder="Min" min="0" class="w-20 px-2 py-1 border rounded" onchange="validatePrice()">
-                            <span>to</span>
-                            <input id="price-max" name="max" value="{{ request.GET.max|default:'' }}" type="number" placeholder="Max" min="1" class="w-20 px-2 py-1 border rounded" onchange="validatePrice()">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex">
+                <!-- Fixed Filters Sidebar -->
+                    <aside class="fixed-sidebar p-4">
+                        <div>
+                            <br>
+                            <br>
                         </div>
-                        <!-- ✅ Error message placeholder -->
-                        <span id="price-error" class="text-red-500 text-sm mt-1 hidden"></span>
-                    </div>
-
-                    <!-- Category Filters -->
-                    <div class="mb-6">
-                        <h4 class="font-semibold mb-3">Shop For</h4>
-                        <div class="flex flex-wrap gap-2">
-                            {% for cat in categories %}
-                            <label class="px-3 py-1 border rounded-full text-sm cursor-pointer
-                                            bg-white hover:bg-gray-100 transition-colors
-                                            focus-within:ring-2 focus-within:ring-red-500">
-                                <input 
-                                type="checkbox" 
-                                name="category" 
-                                value="{{ cat.name }}"
-                                class="sr-only peer" 
-                                {% if cat.name in selected_categories %}checked{% endif %}>
-
-                                <span class="peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500">
-                                {{ cat.name }}
-                                </span>
-                            </label>
-                            {% endfor %}
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold">FILTERS</h3>
+                            <a href="{% url 'product_list' %}" class="text-orange-500 text-sm">Clear all</a>
                         </div>
-                    </div>
 
-                    <!-- Additional Filters -->
-                    <div class="space-y-4">
-                        
-                        <details class="group border-b border-gray-200 pb-4 open:border-orange-500">
-                            <summary class="flex justify-between items-center font-semibold text-gray-800 cursor-pointer list-none focus:outline-none">
-                                Sort
-                                <i data-lucide="chevron-down" class="w-5 h-5 transform group-open:rotate-180 transition-transform"></i>
-                            </summary>
-
-                            <!-- Styled native select -->
-                            <div class="relative mt-2">
-                                <select id='sort' name="sort"
-                                class="appearance-none bg-white border border-gray-300 rounded px-3 py-2 w-full 
-                                        focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500
-                                        cursor-pointer text-gray-700"
-                                        >
-                                <option>Latest</option>
-                                <option  value='oldest' {% if request.GET.sort == 'oldest' %}selected{% endif %}>Oldest</option>
-                                <option value="l-h" {% if request.GET.sort == 'l-h' %}selected{% endif %}>Price: Low to High</option>
-                                <option value='h-l' {% if request.GET.sort == 'h-l' %}selected{% endif %}>Price: High to Low</option>
-                                <option value='a-z' {% if request.GET.sort == 'a-z' %}selected{% endif %}>Aa-Zz</option>
-                                <option value='z-a' {% if request.GET.sort == 'z-a' %}selected{% endif %}>Zz-Aa</option>
-                                </select>
-
+                        <!-- Price Filter -->
+                        <div class="mb-6">
+                            <h4 class="font-semibold mb-3">Price</h4>
+                            <div class="flex items-center space-x-2">
+                                <input id="price-min" name="min" value="{{ request.GET.min|default:'' }}" type="number" placeholder="Min" min="0" class="w-20 px-2 py-1 border rounded" onchange="validatePrice()">
+                                <span>to</span>
+                                <input id="price-max" name="max" value="{{ request.GET.max|default:'' }}" type="number" placeholder="Max" min="1" class="w-20 px-2 py-1 border rounded" onchange="validatePrice()">
                             </div>
-                        </details>
+                            <!-- ✅ Error message placeholder -->
+                            <span id="price-error" class="text-red-500 text-sm mt-1 hidden"></span>
+                        </div>
+
+                        <!-- Category Filters -->
+                        <div class="mb-6">
+                            <h4 class="font-semibold mb-3">Shop For</h4>
+                            <div class="flex flex-wrap gap-2">
+                                {% for cat in categories %}
+                                <label class="px-3 py-1 border rounded-full text-sm cursor-pointer
+                                                bg-white hover:bg-gray-100 transition-colors
+                                                focus-within:ring-2 focus-within:ring-red-500">
+                                    <input 
+                                    type="checkbox" 
+                                    name="category" 
+                                    value="{{ cat.name }}"
+                                    class="sr-only peer" 
+                                    {% if cat.name in selected_categories %}checked{% endif %}>
+
+                                    <span class="peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500">
+                                    {{ cat.name }}
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Additional Filters -->
+                        <div class="space-y-4">
+                            
+                            <details class="group border-b border-gray-200 pb-4 open:border-orange-500">
+                                <summary class="flex justify-between items-center font-semibold text-gray-800 cursor-pointer list-none focus:outline-none">
+                                    Sort
+                                    <i data-lucide="chevron-down" class="w-5 h-5 transform group-open:rotate-180 transition-transform"></i>
+                                </summary>
+
+                                <!-- Styled native select -->
+                                <div class="relative mt-2">
+                                    <select id='sort' name="sort"
+                                    class="appearance-none bg-white border border-gray-300 rounded px-3 py-2 w-full 
+                                            focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500
+                                            cursor-pointer text-gray-700"
+                                            >
+                                    <option>Latest</option>
+                                    <option  value='oldest' {% if request.GET.sort == 'oldest' %}selected{% endif %}>Oldest</option>
+                                    <option value="l-h" {% if request.GET.sort == 'l-h' %}selected{% endif %}>Price: Low to High</option>
+                                    <option value='h-l' {% if request.GET.sort == 'h-l' %}selected{% endif %}>Price: High to Low</option>
+                                    <option value='a-z' {% if request.GET.sort == 'a-z' %}selected{% endif %}>Aa-Zz</option>
+                                    <option value='z-a' {% if request.GET.sort == 'z-a' %}selected{% endif %}>Zz-Aa</option>
+                                    </select>
+
+                                </div>
+                            </details>
+                            
+                        </div>
+                    </aside>
+                </form>
+
+                <!-- Product Grid -->
+                <div class="product-grid flex-1 p-4">
+
+                    <!-- Products -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <!-- Product 1 -->
+                        {% for product in products %}
                         
+                        <a href="{% url 'product_detail' product.id %}" class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
+                            <div class="relative">
+                                <img src="{{product.get_thumbnail_url}}" alt="URB_N Men Geometric Print Regular Fit Shirt" class="w-full h-80 object-cover">
+                                <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow">
+                                    <i data-lucide="heart" class="text-gray-500"></i>
+                                </button>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-semibold text-gray-800">{{product.name}}</h3>
+                                <p class="text-gray-600 mt-2"> ₹{{product.get_display_price}}</p>
+                            </div>
+                        </a>
+
+                        {% endfor %}
                     </div>
-                </aside>
-            </form>
-
-            <!-- Product Grid -->
-            <div class="product-grid flex-1 p-4">
-
-                <!-- Products -->
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    <!-- Product 1 -->
-                    {% for product in products %}
-                    
-                    <a href="{% url 'product_detail' product.id %}" class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
-                        <div class="relative">
-                            <img src="{{product.get_thumbnail_url}}" alt="URB_N Men Geometric Print Regular Fit Shirt" class="w-full h-80 object-cover">
-                            <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow">
-                                <i data-lucide="heart" class="text-gray-500"></i>
-                            </button>
-                        </div>
-                        <div class="p-4">
-                            <h3 class="font-semibold text-gray-800">{{product.name}}</h3>
-                            <p class="text-gray-600 mt-2"> ₹{{product.get_display_price}}</p>
-                        </div>
-                    </a>
-
-                    {% endfor %}
                 </div>
             </div>
         </div>
-    </div>
-    <main>
+    </main>
+</form>
 
     <script>
     lucide.createIcons();
@@ -266,7 +267,7 @@
     // Handle manual "Enter" or form submit
     document.querySelector('form[method="GET"]').addEventListener('submit', function(e) {
         if (!validatePrice()) {
-        e.preventDefault(); //  Prevent submission
+            e.preventDefault(); //  Prevent submission
         }
     });
 
