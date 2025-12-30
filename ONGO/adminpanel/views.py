@@ -546,17 +546,22 @@ def validate_variant_fields(data):
     }
 
 
-def validate_images(images):
+def validate_images(uploaded_images, *, existing_count=0, mode="create"):
 
-    if len(images) != 3:
-        raise ValidationError("Exactly 3 images are required per variant")
+    total_images = existing_count + len(uploaded_images)
 
-    for img in images:
-        if img.content_type not in ALLOWED_IMAGE_TYPES:
-            raise ValidationError("Only PNG, JPG, WEBP images are allowed")
+    if mode == "create" and total_images < 3:
+        raise ValidationError("At least 3 images are required")
 
+    if mode == "edit" and total_images < 1:
+        raise ValidationError("At least 1 image is required")
+
+    for img in uploaded_images:
         if img.size > MAX_IMAGE_SIZE:
-            raise ValidationError("Each image must be under 5MB")
+            raise ValidationError("Image size must be under 5MB")
+
+        if img.content_type not in ALLOWED_IMAGE_TYPES:
+            raise ValidationError("Invalid image format. Use PNG, JPG, or WEBP.")
 
 
 class ProductCreateView(View):
@@ -613,7 +618,7 @@ class ProductCreateView(View):
                 )
 
                 images = request.FILES.getlist(f"variants[{idx}][images][]")
-                validate_images(images)
+                validate_images(images, existing_count=0, mode="create")
 
                 for i, img in enumerate(images):
                     upload = cloudinary.uploader.upload(
@@ -841,9 +846,10 @@ class ProductEditView(View):
                         img.delete()
 
                 # Upload new images
+                existing_count = len(request.POST.getlist(f"variant[{idx}][existing_images][]"))
                 images = request.FILES.getlist(f"variants[{idx}][images][]")
                 if images:
-                    validate_images(images)
+                    validate_images(images, existing_count=existing_count, mode="edit")
                     for i, img in enumerate(images):
                         upload = cloudinary.uploader.upload(
                             img,

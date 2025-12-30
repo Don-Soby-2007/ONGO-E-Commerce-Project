@@ -117,7 +117,7 @@
         </div>
 
         <!-- Main Form -->
-        <form method='POST' action='{% url "edit_product" product.id %}' id="productForm" enctype="multipart/form-data">
+        <form method='POST' action='{% url "edit_product" product.id %}' id="productForm" data-mode='edit' enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" name="deleted_variants" id="deletedVariants">
             <!-- First Card: Product Name, Category, Description -->
@@ -613,26 +613,46 @@ function validateVariant(variant) {
         valid = false;
     }
 
-    // Image count validation: existing + new ≥ 3
-    const existingCount = variant.querySelectorAll(".server-image").length;
-    let newCount = 0;
+    const form = document.getElementById("productForm");
+    const mode = form.dataset.mode || "create";
+
+    // Count existing images that are NOT removed
+    const existingImages = variant.querySelectorAll(
+        "input[name$='[existing_images][]']"
+    ).length;
+
+    // Count new uploads
+    let newImages = 0;
 
     imageInputs.forEach(input => {
         if (input.files && input.files.length > 0) {
-            const file = input.files[0];
-            newCount++;
+            newImages++;
 
+            const file = input.files[0];
             if (!allowedTypes.includes(file.type)) {
-                showError(input, "Invalid image type (PNG, JPG, WEBP only)");
+                showError(input, "Invalid image type");
                 valid = false;
             }
-
             if (file.size > maxSize) {
-                showError(input, "Image size must be under 5MB");
+                showError(input, "Max 5MB allowed");
                 valid = false;
             }
         }
     });
+
+    // ✅ FINAL RULES
+    const totalImages = existingImages + newImages;
+
+    if (mode === "create" && totalImages < 3) {
+        showError(imageInputs[0], "At least 3 images required");
+        valid = false;
+    }
+
+    if (mode === "edit" && totalImages < 1) {
+        showError(imageInputs[0], "At least 1 image is required");
+        valid = false;
+    }
+
 };
 
 </script>
