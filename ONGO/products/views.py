@@ -107,6 +107,8 @@ class ProductListView(ListView):
 
 # Landing Page
 def LandingView(request):
+    if request.user.is_authenticated:
+        return redirect('home')
     return render(request, 'products/landing.html')
 
 

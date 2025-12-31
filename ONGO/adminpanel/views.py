@@ -756,7 +756,7 @@ class ProductEditView(View):
                     except (IndexError, ValueError):
                         continue
             print('variant_indexes', variant_indexes)
-            
+
             # Filter valid indexes
             valid_indexes = []
             for idx in variant_indexes:
@@ -857,10 +857,10 @@ class ProductEditView(View):
                 # ===== IMAGE HANDLING =====
                 # Get all existing images for this variant
                 all_existing_images = {str(img.id): img for img in variant.images.all()}
-                
+
                 # Get IDs of images to keep
                 submitted_image_ids = set(request.POST.getlist(f"variants[{idx}][existing_images][]"))
-                
+
                 # Process image deletions
                 for img_id, img in all_existing_images.items():
                     if img_id not in submitted_image_ids:
@@ -870,7 +870,7 @@ class ProductEditView(View):
                         except Exception as e:
                             logger.warning(f"Cloudinary destroy failed: {e}")
                         img.delete()
-                
+
                 # Process image replacements (if any)
                 # This is where we handle edited images
                 for key in request.POST.keys():
@@ -883,10 +883,10 @@ class ProductEditView(View):
                             replacement_files = request.FILES.getlist(key)
                             if replacement_files:
                                 replacement_file = replacement_files[0]  # Take first file if multiple
-                                
+
                                 # Validate the replacement file
                                 validate_images([replacement_file], existing_count=0, mode="edit")
-                                
+
                                 # Find the existing image to replace
                                 existing_img = all_existing_images.get(str(img_id))
                                 if existing_img:
@@ -897,7 +897,7 @@ class ProductEditView(View):
                                         public_id=existing_img.public_id,  # Reuse the same public ID
                                         resource_type="image"
                                     )
-                                    
+
                                     # Update the existing image record with new file details
                                     existing_img.image_url = upload["secure_url"]
                                     existing_img.public_id = upload["public_id"]
@@ -907,7 +907,7 @@ class ProductEditView(View):
                                     logger.warning(f"Replacement image ID {img_id} not found for variant {variant.id}")
                         except ValueError:
                             logger.warning(f"Invalid image ID in replaced_image key: {key}")
-                
+
                 # Handle new image uploads
                 new_images = request.FILES.getlist(f"variants[{idx}][images][]")
                 if new_images:
@@ -937,7 +937,7 @@ class ProductEditView(View):
                         if str(img.id) == primary_image_id:
                             primary_img = img
                             break
-                    
+
                     if primary_img:
                         # Reset all images to non-primary
                         variant.images.update(is_primary=False)
