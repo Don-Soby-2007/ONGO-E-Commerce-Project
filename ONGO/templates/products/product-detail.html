@@ -63,6 +63,14 @@
             transform: scale(1.07);
             box-shadow: 0 0 0 3px #46454540, 0 4px 8px rgba(0,0,0,0.15);
         }
+        #zoom-container img {
+        transition: transform 0.25s ease-out;
+        will-change: transform;
+        }
+
+        #zoom-container:hover img {
+            transform: scale(2); /* Adjust zoom level here */
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
@@ -125,7 +133,7 @@
                         </div>
 
                         <!-- Main Image Container -->
-                        <div class="relative z-10 w-full h-full flex items-center justify-center">
+                        <div class="relative overflow-hidden cursor-zoom-in z-10 w-full h-full flex items-center justify-center" id="zoom-container">
                             <img id="main-image" src="" alt="{{ product.name }}" class="w-full h-full object-contain p-4">
                             <!-- Wishlist button positioned above the image -->
                             <button class="absolute top-8 right-8 p-2.5 bg-white/95 rounded-full shadow-lg hover:bg-white transition-colors z-20">
@@ -509,6 +517,25 @@
 
     <script>
     lucide.createIcons();
+    const container = document.getElementById('zoom-container');
+    const img = document.getElementById('main-image');
+
+    container.addEventListener('mousemove', (e) => {
+        // Get dimensions of the container
+        const { left, top, width, height } = container.getBoundingClientRect();
+        
+        // Calculate mouse position in percentage (0 to 100)
+        const x = ((e.pageX - left - window.scrollX) / width) * 100;
+        const y = ((e.pageY - top - window.scrollY) / height) * 100;
+
+        // Move the transform origin to the mouse position
+        img.style.transformOrigin = `${x}% ${y}%`;
+    });
+
+    container.addEventListener('mouseleave', () => {
+        // Reset to center when mouse leaves
+        img.style.transformOrigin = 'center';
+    });
 
     document.addEventListener('DOMContentLoaded', function () {
         // Get raw data from backend
