@@ -81,10 +81,7 @@
             <div class="flex items-center space-x-4">
                 <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg  " alt="Ongo Logo" class="h-8">
                 <div class="relative w-96">
-                    <input type="text" placeholder="shirts for men" class="w-full px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                        <i data-lucide="search"></i>
-                    </button>
+                    
                 </div>
             </div>
             <div class="flex items-center space-x-6">
@@ -119,7 +116,7 @@
             <!-- Breadcrumb -->
             <div class="text-sm text-gray-500 mb-6">
                 <a href="{% url 'landing' %}" class="hover:text-orange-500">Home</a> / 
-                <a href="#" class="hover:text-orange-500">{{product.category}}</a> / 
+                <a href="{% url 'product_list' %}" class="hover:text-orange-500">{{product.category}}</a> / 
                 <span class="text-gray-800">{{product.name}}</span>
             </div>
 
