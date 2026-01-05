@@ -130,6 +130,7 @@
             <div id="variantsContainer" class="space-y-6">
                 {% for variant in variants %}
                 <div class="variant-card bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 animate-fade-in-up" data-index="{{ forloop.counter0 }}" data-variant-id="{{ variant.id }}">
+                    <input type="hidden" name="variants[{{ forloop.counter0 }}][id]" value="{{ variant.id }}">
                     <div class="flex justify-between items-start mb-6 pb-4 border-b border-gray-100">
                         <div>
                             <h3 class="text-lg font-bold text-gray-800 variant-title">Variant {{ forloop.counter }}</h3>
@@ -446,21 +447,23 @@
         function reindexVariants() {
             const cards = document.querySelectorAll('.variant-card');
             
-            // Update Badge
-            const badge = document.getElementById('variantCountBadge');
-            if(badge) badge.textContent = `${cards.length} Variant(s)`;
-
             cards.forEach((card, idx) => {
-                // Update Title
-                card.querySelector('.variant-title').textContent = `Variant ${idx + 1}`;
                 card.dataset.index = idx;
+                card.querySelector('.variant-title').textContent = `Variant ${idx + 1}`;
 
-                // Update Input Names
-                const inputs = card.querySelectorAll('input, select');
+                // 1. Fix the Variant ID input name
+                // Look for the hidden input that stores the Database ID
+                const idInput = card.querySelector('input[name*="[id]"]');
+                if (idInput) {
+                    idInput.name = `variants[${idx}][id]`;
+                }
+
+                // 2. Fix the General inputs (Price, SKU, etc)
+                const inputs = card.querySelectorAll('input:not([type="file"]), select');
                 inputs.forEach(input => {
                     const name = input.getAttribute('name');
                     if (name) {
-                        // Regex replaces variants[X] with variants[newIndex]
+                        // This regex handles nested brackets correctly
                         const newName = name.replace(/variants\[\d+\]/, `variants[${idx}]`);
                         input.setAttribute('name', newName);
                     }

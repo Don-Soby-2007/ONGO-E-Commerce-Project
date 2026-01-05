@@ -755,7 +755,6 @@ class ProductEditView(View):
                         variant_indexes.add(idx)
                     except (IndexError, ValueError):
                         continue
-            print('variant_indexes', variant_indexes)
 
             # Filter valid indexes
             valid_indexes = []
@@ -770,8 +769,6 @@ class ProductEditView(View):
 
             if not variant_indexes:
                 raise ValidationError("At least one variant is required")
-
-            print("valid_indexes", valid_indexes)
 
             # ===== DELETE VARIANTS =====
             # Handle explicitly deleted variants
@@ -830,7 +827,6 @@ class ProductEditView(View):
                     "size": request.POST.get(f"variants[{idx}][size]"),
                     "stock": request.POST.get(f"variants[{idx}][stock]"),
                 }
-                print("raw variants", raw_variant_data)
 
                 variant_data = validate_variant_fields(raw_variant_data)
 
