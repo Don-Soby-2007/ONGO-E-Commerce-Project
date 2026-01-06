@@ -145,7 +145,7 @@ class Address(models.Model):
     country = models.CharField(max_length=150)
     postel_code = models.CharField(max_length=20)
 
-    phone = models.PhoneNumberField(blank=True)
+    phone = models.PositiveIntegerField(blank=False)
 
     is_default = models.BooleanField(default=False)
 

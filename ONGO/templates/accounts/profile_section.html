@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -18,7 +20,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="profile_section.css">
+    <link rel="stylesheet" href="{% static 'css/accounts/profile_section.css' %}">
 
     <!-- Tailwind Config for Custom Colors/Fonts -->
     <script>
@@ -208,7 +210,7 @@
 
     </div>
 
-    <script src="profile_section.js"></script>
+    <script src='{% static "js/accounts/profile_section.js" %}'></script>
 </body>
 
 </html>

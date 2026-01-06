@@ -272,3 +272,23 @@ class LoginView(View):
 def userLogoutView(request):
     logout(request)
     return redirect('login')
+
+
+def ProfileView(request):
+    return render(request, 'accounts/profile_section.html',)
+
+
+def AddressView(request):
+    return render(request, 'accounts/manage_address.html',)
+
+
+def AddAddressView(request):
+    return render(request, 'accounts/add_address.html',)
+
+
+def EditAddressView(request):
+    return render(request, 'accounts/add_address.html',)
+
+
+def PasswordView(request):
+    return render(request, 'accounts/manage_password.html',)
