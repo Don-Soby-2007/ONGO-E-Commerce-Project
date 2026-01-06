@@ -132,3 +132,37 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email or self.username
+
+
+class Address(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
+
+    name = models.CharField(max_length=150)
+    street_address = models.CharField("Street Address", max_length=500)
+
+    city = models.CharField(max_length=150)
+    state = models.CharField(max_length=150)
+    country = models.CharField(max_length=150)
+    postel_code = models.CharField(max_length=20)
+
+    phone = models.PhoneNumberField(blank=True)
+
+    is_default = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'is_default']),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=models.Q(is_default=True),
+                name='one_default_address_per_user'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.name} - {self.city}, {self.country}"
