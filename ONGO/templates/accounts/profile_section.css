@@ -1,0 +1,115 @@
+/* Global Styles to reinforce Black & White Theme */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8f8f8;
+    /* Very light gray for contrast against white cards */
+}
+
+/* Custom Scrollbar for Sidebar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Animation for Profile Edit Hover */
+.profile-edit-btn {
+    transition: all 0.3s ease;
+}
+
+.profile-edit-btn:hover {
+    transform: scale(1.1) rotate(15deg);
+}
+
+/* Base Nav Link Styling */
+.nav-link {
+    transition: all 0.3s ease-in-out;
+    position: relative;
+    /* Remove base overflow:hidden so it doesn't clip if we don't need it, 
+       but active link needs it for slide. we add it to active specifically if needed 
+       or keep it here if it doesn't hurt. kept for consistency. */
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* 
+   ----------------------------------------------------------
+   Review Requirement: 
+   1. Normal links: "normal hover light red colour"
+   2. Active link: "transition to the active class" (Red slide)
+   ----------------------------------------------------------
+*/
+
+/* 1. NON-ACTIVE LINKS */
+.nav-link:not(.active):hover {
+    background-color: #fef2f2;
+    /* Light Red (Red-50) */
+    color: #ef4444 !important;
+    /* Red Text */
+    padding-left: 1.5rem;
+    /* Slide content slightly right */
+}
+
+.nav-link:not(.active):hover i {
+    color: #ef4444 !important;
+    /* Red Icon */
+}
+
+/* Remove the pseudo-element slide for non-active links */
+.nav-link:not(.active)::before {
+    content: none;
+    display: none;
+}
+
+
+/* 2. ACTIVE LINK */
+.nav-link.active {
+    background-color: #000;
+    color: #fff;
+    border-left: 4px solid #ef4444;
+}
+
+/* The Sliding Red Background ONLY for active link hover */
+.nav-link.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0%;
+    /* Start hidden */
+    height: 100%;
+    background-color: #ef4444;
+    /* Brand Red */
+    z-index: -1;
+    /* Behind text */
+    transition: width 0.3s ease-in-out;
+}
+
+/* Trigger Slide on Hover for Active Link */
+.nav-link.active:hover::before {
+    width: 100%;
+}
+
+/* Active Hover Text & Icon Colors */
+.nav-link.active:hover {
+    background-color: transparent;
+    /* Show the ::before red bg */
+    color: #fff !important;
+    /* Keep text white */
+}
+
+.nav-link.active:hover i {
+    color: #fff !important;
+    /* Keep icon white */
+}
