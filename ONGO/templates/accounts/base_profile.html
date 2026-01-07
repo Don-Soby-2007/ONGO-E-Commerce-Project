@@ -60,12 +60,12 @@
         <!-- User Profile Quick View (Right Side) -->
         <div class="flex items-center space-x-4 cursor-pointer hover:opacity-80 transition-opacity">
             <div class="text-right hidden sm:block">
-                <p class="text-sm font-bold text-gray-900">{{ user.first_name }} {{ user.last_name }}</p>
+                <p class="text-sm font-bold text-gray-900">{{ user.username}}</p>
                 <!-- Assuming user has a related profile or just static for now as requested -->
                 <p class="text-xs text-gray-500">Member</p>
             </div>
-            <div class="h-10 w-10 rounded-full bg-gray-200 overflow-hidden border-2 border-brand-black">
-                <img src="https://ui-avatars.com/api/?name={{ user.first_name|default:'User' }}+{{ user.last_name|default:'Name' }}&background=000&color=fff"
+            <div class="h-10 w-10 rounded-full bg-gray-200 overflow-hidden border-2 border">
+                <img src="{{user.get_profile_picture_url}}"
                     alt="Profile" class="h-full w-full object-cover">
             </div>
         </div>

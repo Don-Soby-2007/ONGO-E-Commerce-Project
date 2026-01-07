@@ -33,7 +33,7 @@
                 <div class="relative group">
                     <!-- Avatar -->
                     <div class="h-32 w-32 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
-                        <img src="https://ui-avatars.com/api/?name={{ user.first_name|default:'User' }}+{{ user.last_name|default:'Name' }}&background=000&color=fff"
+                        <img src="{{user.get_profile_picture_url}}"
                             alt="User Avatar" class="w-full h-full object-cover">
                     </div>
                     <!-- Edit Pencil Button -->
@@ -47,7 +47,7 @@
 
         <!-- Details Section -->
         <div class="pt-20 pb-10 px-8 text-center">
-            <h3 class="text-2xl font-bold text-gray-900">{{ user.first_name }} {{ user.last_name }}</h3>
+            <h3 class="text-2xl font-bold text-gray-900">{{ user.username}}</h3>
             <p class="text-gray-500 text-sm mb-6">Member since {{ user.date_joined|date:"M Y" }}</p>
 
             <!-- User Details Grid -->
@@ -61,7 +61,7 @@
 
                 <div class="space-y-1">
                     <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Phone</label>
-                    <p class="text-gray-900 font-medium font-sans text-lg">{{ user.profile.phone_number|default:"N/A" }}
+                    <p class="text-gray-900 font-medium font-sans text-lg">{{ user.phone_number|default:"N/A" }}
                     </p>
                 </div>
 
@@ -82,7 +82,7 @@
             <div class="mt-8 flex justify-center space-x-4">
                 <button
                     class="px-6 py-2.5 bg-brand-black text-white text-sm font-semibold rounded-lg shadow-md hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-gray-900">
-                    View Public Profile
+                    Edit Profile
                 </button>
             </div>
 

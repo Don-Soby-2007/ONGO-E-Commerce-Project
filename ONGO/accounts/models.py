@@ -119,7 +119,7 @@ class User(AbstractUser):
         if not self.profile_picture:
             # Return default avatar (optional)
             name = self.username.replace(' ', '+')
-            return f"https://ui-avatars.com/api/?name={name}&background=0D8ABC&color=fff"
+            return f"https://ui-avatars.com/api/?name={name}&background=FF9999&color=fff"
 
         # Build optimized Cloudinary URL
         return cloudinary.utils.cloudinary_url(
