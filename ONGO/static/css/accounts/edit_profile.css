@@ -1,0 +1,14 @@
+/* Inherit base styles from Tailwind */
+.profile-edit-btn {
+    transition: all 0.3s ease;
+}
+
+/* Custom focus ring color to match brand red */
+input:focus {
+    --tw-ring-color: #ef4444;
+}
+
+/* Ensure smooth validation error appearance */
+#username-error, #email-error, #phone-error {
+    transition: all 0.2s ease-in-out;
+}

@@ -51,10 +51,11 @@ urlpatterns = [
     # ---------Profile Section----------
 
     path('profile/', views.ProfileView, name='profile'),
+    path('profile/edit', views.EditProfileView, name='edit_profile'),
 
     path('manage-address/', views.AddressView, name='manage_address'),
     path('manage-address/create', views.AddAddressView, name='add_address'),
-    path('manage-address/edit', views.EditAddressView, name="edit_address"),
+    path('manage-address/edit', views.EditAddressView.as_view(), name="edit_address"),
 
     path('manage-password/', views.PasswordView, name='manage_password')
 ]
