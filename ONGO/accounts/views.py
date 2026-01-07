@@ -278,6 +278,58 @@ def ProfileView(request):
     return render(request, 'accounts/profile_section.html',)
 
 
+@method_decorator(login_required, name='dispatch')
+class EditProfileView(View):
+    template_name = 'accounts/edit_profile_section.html'
+
+    def get(self, request):
+        return render(request, self.template_name)
+
+    def post(self, request):
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+
+        user = request.user
+
+        # 1. Regex Validation
+        if not re.match(r'^[a-zA-Z0-9_]{3,}$', username):
+            messages.error(request, "Username must be at least 3 characters alphanumeric/underscore.")
+            return render(request, self.template_name)
+
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            messages.error(request, "Please enter a valid email address.")
+            return render(request, self.template_name)
+
+        # Phone is mandatory
+        if not phone or not re.match(r'^\+?[\d\s-]{10,}$', phone):
+            messages.error(request, "Please enter a valid phone number (min 10 digits).")
+            return render(request, self.template_name)
+
+        # 2. Uniqueness Checks
+        if User.objects.filter(username__iexact=username).exclude(pk=user.pk).exists():
+            messages.error(request, "This username is already taken.")
+            return render(request, self.template_name)
+
+        if User.objects.filter(email__iexact=email).exclude(pk=user.pk).exists():
+            messages.error(request, "This email is already linked to another account.")
+            return render(request, self.template_name)
+
+        # 3. Save Changes
+        try:
+            user.username = username
+            user.email = email
+            user.phone_number = phone
+            user.save()
+            messages.success(request, "Profile updated successfully!")
+            return redirect('profile')
+
+        except Exception as e:
+            logger.error(f"Error updating profile for user {user.id}: {e}")
+            messages.error(request, "Something went wrong while updating your profile.")
+            return render(request, self.template_name)
+
+
 def AddressView(request):
     return render(request, 'accounts/manage_address.html',)
 

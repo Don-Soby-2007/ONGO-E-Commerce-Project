@@ -46,9 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     phoneInput.addEventListener('input', () => {
-        // Allow empty phone if optional, but model implies it exists. If mandatory:
-        if (phoneInput.value.trim() !== '' && !phoneRegex.test(phoneInput.value.trim())) {
-            showError(phoneError, 'Please enter a valid phone number (at least 10 digits).');
+        if (!phoneRegex.test(phoneInput.value.trim())) {
+            showError(phoneError, 'Phone number is required and must be valid (at least 10 digits).');
         } else {
             clearError(phoneError, phoneInput);
         }
@@ -68,8 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
             isValid = false;
         }
 
-        if (phoneInput.value.trim() !== '' && !phoneRegex.test(phoneInput.value.trim())) {
-            showError(phoneError, 'Please enter a valid phone number.');
+        if (!phoneRegex.test(phoneInput.value.trim())) {
+            showError(phoneError, 'Phone number is required and must be valid.');
             isValid = false;
         }
 
