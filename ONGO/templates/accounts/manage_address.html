@@ -34,44 +34,48 @@
     <!-- Addresses Grid -->
     <div class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6">
         {% for address in addresses %}
-            <!-- Address Card 1 (Default) -->
-            <div
-                class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative group">
-                <div class="flex justify-between items-start mb-4">
-                    {% if address.is_default %}
-                        <div class="bg-blue-50 text-blue-600 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">
-                            Default
-                        </div>
-                    {% else %}
-                        <div>
-                        </div>
-                    {% endif %}
-                    
-                    <div class="flex space-x-2">
-                        <a href='{% url "edit_address" address.id %}'>
-                            <button class="text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
-                                <i data-lucide="pencil" class="w-4 h-4"></i>
-                            </button>
-                        </a>
-                        <button class="text-gray-400 hover:text-red-500 transition-colors" title="Delete">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
+        <!-- Address Card (Default) -->
+        <div
+            class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative group">
+            <div class="flex justify-between items-start mb-4">
+                {% if address.is_default %}
+                <div class="bg-blue-50 text-blue-600 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">
+                    Default
                 </div>
-                <h3 class="font-bold text-gray-900 text-lg mb-2">{{address.name}}</h3>
-                <p class="text-gray-600 text-sm leading-relaxed mb-4">
-                    {{address.street_address}}<br>
-                    {{address.state}}, {{address.postal_code}}<br>
-                    {{address.country}}
-                </p>
-                <p class="text-gray-500 text-sm font-medium">Phone: 
-                    <span class="text-gray-900">
-                        {{address.phone}}
-                    </span>
-                </p>
+                {% else %}
+                <div>
+                </div>
+                {% endif %}
+
+                <div class="flex space-x-2">
+                    <a href='{% url "edit_address" address.id %}'>
+                        <button class="text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
+                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                        </button>
+                    </a>
+                    <!-- Delete Button with SweetAlert -->
+                    <button onclick="confirmDelete('{{ address.id }}')"
+                        class="text-gray-400 hover:text-red-500 transition-colors" title="Delete">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
             </div>
+            <!-- Hidden CSRF for JS -->
+            {% csrf_token %}
+            <h3 class="font-bold text-gray-900 text-lg mb-2">{{address.name}}</h3>
+            <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                {{address.street_address}}<br>
+                {{address.state}}, {{address.postal_code}}<br>
+                {{address.country}}
+            </p>
+            <p class="text-gray-500 text-sm font-medium">Phone:
+                <span class="text-gray-900">
+                    {{address.phone}}
+                </span>
+            </p>
+        </div>
         {% endfor %}
-        
+
     </div>
 
 </main>

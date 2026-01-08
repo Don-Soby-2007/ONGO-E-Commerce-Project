@@ -1,22 +1,34 @@
-document.addEventListener('DOMContentLoaded', () => {
-    lucide.createIcons();
+function confirmDelete(addressId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444', // brand-red
+        cancelButtonColor: '#000000',   // brand-black
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Create a form to submit POST request
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/auth/manage-address/delete/${addressId}/`;
 
-    // Mobile Sidebar Toggle (Copying logic for consistency)
-    const toggleBtn = document.getElementById('mobile-menu-toggle');
-    const sidebar = document.getElementById('sidebar');
-
-    if (toggleBtn && sidebar) {
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('-translate-x-full');
-        });
-
-        document.addEventListener('click', (e) => {
-            if (window.innerWidth < 768 &&
-                !sidebar.contains(e.target) &&
-                !toggleBtn.contains(e.target) &&
-                !sidebar.classList.contains('-translate-x-full')) {
-                sidebar.classList.add('-translate-x-full');
+            // Add CSRF token
+            const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+            if (csrfToken) {
+                const hiddenField = document.createElement('input');
+                hiddenField.type = 'hidden';
+                hiddenField.name = 'csrfmiddlewaretoken';
+                hiddenField.value = csrfToken;
+                form.appendChild(hiddenField);
+            } else {
+                // Fallback: Try get cookie or just warn (template should have csrf)
+                console.error("CSRF token not found!");
             }
-        });
-    }
-});
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    })
+}

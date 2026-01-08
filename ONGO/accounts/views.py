@@ -491,5 +491,35 @@ class EditAddressView(View):
             return render(request, self.template_name)
 
 
+def DeleteAddressView(request, pk):
+    if request.method != "POST":
+         return redirect('manage_address')
+         
+    try:
+        address = Address.objects.get(pk=pk, user=request.user)
+        is_default = address.is_default
+        address.delete()
+
+        # If deleted address was default, set the last updated address as default
+        if is_default:
+            last_address = Address.objects.filter(user=request.user).order_by('-updated_at').first()
+            if last_address:
+                last_address.is_default = True
+                last_address.save()
+                messages.warning(request, f"Default address deleted. '{last_address.name}' is now your default address.")
+            else:
+                messages.success(request, "Address deleted successfully.")
+        else:
+            messages.success(request, "Address deleted successfully.")
+
+    except Address.DoesNotExist:
+        messages.error(request, "Address not found.")
+    except Exception as e:
+        logger.error(f"Error deleting address: {e}")
+        messages.error(request, "An error occurred while deleting the address.")
+
+    return redirect('manage_address')
+
+
 def PasswordView(request):
     return render(request, 'accounts/manage_password.html',)
