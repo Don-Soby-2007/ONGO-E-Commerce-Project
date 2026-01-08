@@ -336,6 +336,9 @@ class AddressView(ListView):
     model = Address
     context_object_name = 'addresses'
 
+    def get_queryset(self):
+        return Address.objects.all().order_by('-is_default')
+
 
 class AddAddressView(View):
 
@@ -413,8 +416,79 @@ class AddAddressView(View):
             return render(request, self.template_name)
 
 
-def EditAddressView(request):
-    return render(request, 'accounts/add_address.html',)
+class EditAddressView(View):
+    template_name = 'accounts/edit_address.html'
+
+    def get(self, request, address_id):
+        address = Address.objects.get(id=address_id)
+        return render(request, self.template_name, {'address': address})
+
+    def post(self, request, address_id):
+        full_name = request.POST.get('fullName', '').strip()
+        street_address = request.POST.get('streetAddress', '').strip()
+        phone_number = request.POST.get('phoneNumber', '').strip()
+        city = request.POST.get('city', '').strip()
+        state = request.POST.get('state', '').strip()
+        postal_code = request.POST.get('postalCode', '').strip()
+        country = request.POST.get('country', '').strip()
+        is_default = request.POST.get('defaultAddress') == 'on'
+
+        user = request.user
+
+        if not re.match(r'^[a-zA-Z\s]{3,}$', full_name):
+            messages.error(request, "Name must contain only letters and spaces (min 3 chars).")
+            return render(request, self.template_name)
+
+        if not re.match(r'^[a-zA-Z0-9\s,.\-/#]{5,}$', street_address):
+            messages.error(request, "Address seems invalid. Use letters, numbers, and common symbols.")
+            return render(request, self.template_name)
+
+        if not re.match(r'^\+?[0-9]{10,15}$', phone_number):
+            messages.error(request, "Enter a valid phone number (10-15 digits).")
+            return render(request, self.template_name)
+
+        if not re.match(r'^[a-zA-Z\s]+$', city):
+            messages.error(request, "City must contain only letters.")
+            return render(request, self.template_name)
+
+        if not re.match(r'^[a-zA-Z\s]+$', state):
+            messages.error(request, "State must contain only letters.")
+            return render(request, self.template_name)
+
+        if not re.match(r'^[0-9]{5,6}$', postal_code):
+            messages.error(request, "Postal code must be 5-6 digits.")
+            return render(request, self.template_name)
+
+        if not country:
+            messages.error(request, "Please select a country.")
+            return render(request, self.template_name)
+
+        try:
+            if is_default:
+                Address.objects.filter(user=user, is_default=True).update(is_default=False)
+
+            if not Address.objects.filter(user=user).exists():
+                is_default = True
+
+            Address.objects.filter(id=address_id).update(
+                user=user,
+                name=full_name,
+                street_address=street_address,
+                phone=phone_number,
+                city=city,
+                state=state,
+                country=country,
+                postal_code=postal_code,
+                is_default=is_default
+            )
+
+            messages.success(request, "Address edited successfully!")
+            return redirect('manage_address')
+
+        except Exception as e:
+            logger.error(f"Error saving address for user {user.id}: {e}")
+            messages.error(request, "Something went wrong while saving the address.")
+            return render(request, self.template_name)
 
 
 def PasswordView(request):

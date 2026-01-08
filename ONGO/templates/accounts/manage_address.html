@@ -48,9 +48,11 @@
                     {% endif %}
                     
                     <div class="flex space-x-2">
-                        <button class="text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
-                            <i data-lucide="pencil" class="w-4 h-4"></i>
-                        </button>
+                        <a href='{% url "edit_address" address.id %}'>
+                            <button class="text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                        </a>
                         <button class="text-gray-400 hover:text-red-500 transition-colors" title="Delete">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>

@@ -55,7 +55,7 @@ urlpatterns = [
 
     path('manage-address/', views.AddressView.as_view(), name='manage_address'),
     path('manage-address/create', views.AddAddressView.as_view(), name='add_address'),
-    path('manage-address/edit', views.EditAddressView, name="edit_address"),
+    path('manage-address/edit/<int:address_id>/', views.EditAddressView.as_view(), name="edit_address"),
 
     path('manage-password/', views.PasswordView, name='manage_password')
 ]
