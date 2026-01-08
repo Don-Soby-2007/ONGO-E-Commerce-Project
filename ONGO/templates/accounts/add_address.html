@@ -7,6 +7,10 @@
 <link rel="stylesheet" href="{% static 'css/accounts/manage_address.css' %}">
 {% endblock %}
 
+{% block extra_js %}
+<script src="{% static 'js/accounts/add_address_validation.js' %}"></script>
+{% endblock %}
+
 {% block content %}
 <main class="flex-1 overflow-y-auto p-8 md:p-16 bg-gray-50 flex flex-col items-center justify-start w-full">
 
@@ -23,7 +27,8 @@
         </div>
 
         <!-- Form -->
-        <form class="p-8 space-y-6">
+        <form id="add-address-form" method="POST" class="p-8 space-y-6">
+            {% csrf_token %}
 
             <!-- Full Name -->
             <div>

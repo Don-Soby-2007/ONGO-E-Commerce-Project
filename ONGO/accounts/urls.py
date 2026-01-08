@@ -53,8 +53,8 @@ urlpatterns = [
     path('profile/', views.ProfileView, name='profile'),
     path('profile/edit', views.EditProfileView.as_view(), name='edit_profile'),
 
-    path('manage-address/', views.AddressView, name='manage_address'),
-    path('manage-address/create', views.AddAddressView, name='add_address'),
+    path('manage-address/', views.AddressView.as_view(), name='manage_address'),
+    path('manage-address/create', views.AddAddressView.as_view(), name='add_address'),
     path('manage-address/edit', views.EditAddressView, name="edit_address"),
 
     path('manage-password/', views.PasswordView, name='manage_password')

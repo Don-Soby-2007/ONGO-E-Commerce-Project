@@ -19,6 +19,9 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- Sweet Alert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/accounts/profile_section.css' %}">
 
@@ -135,6 +138,29 @@
         {% block content %}
         {% endblock %}
 
+        {% comment %} {% if messages %}
+            <script>
+                {% for message in messages %}
+                
+                    Swal.fire({
+                        toast: true,
+                        icon: '{{message.tag}}',
+                        title: '{{message}}',
+                        animation: true,
+                        position: 'top-right',
+                        showConfirmButton: false,
+                        timer: 3500,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer)
+                            toast.addEventListener('mouseleave', Swal.resumeTimer)
+                        }
+                    });
+                
+                {% endfor %}
+            </script>
+        {% endif %} {% endcomment %}
+
     </div>
 
     <!-- Base JS that handles sidebar toggle if common -->
@@ -161,6 +187,39 @@
                     }
                 });
             }
+
+            const messages = [
+                {% for message in messages %}
+                    {
+                        text: `{{ message|escapejs }}`,
+                        type: `{{ message.tags }}`
+                    }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            messages.forEach(msg => {
+                let icon = 'info';
+                switch(msg.type) {
+                    case 'error': icon = 'error'; break;
+                    case 'warning': icon = 'warning'; break;
+                    case 'success': icon = 'success'; break;
+                    default: icon = 'info';
+                }
+
+                Swal.fire({
+                    toast: true,
+                    icon: icon,
+                    title: msg.text,
+                    position: 'top-right',
+                    showConfirmButton: false,
+                    timer: 3500,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
+                    }
+                });
+            });
         });
 
         // Initialize Lucide icons

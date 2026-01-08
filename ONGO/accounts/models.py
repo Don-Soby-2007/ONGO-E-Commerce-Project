@@ -14,7 +14,7 @@ class User(AbstractUser):
     """Custom User model with email login, OTP verification, and Cloudinary profile pictures."""
 
     email = models.EmailField(unique=True)
-    phone_number = models.CharField(max_length=10, blank=True, null=True)
+    phone_number = models.CharField(max_length=10, blank=False, null=True)
     profile_picture = models.CharField(max_length=500, blank=True, null=True,  help_text="Cloudinary public_id")
 
     is_blocked = models.BooleanField(default=False)
@@ -143,9 +143,9 @@ class Address(models.Model):
     city = models.CharField(max_length=150)
     state = models.CharField(max_length=150)
     country = models.CharField(max_length=150)
-    postel_code = models.CharField(max_length=20)
+    postal_code = models.CharField(max_length=20)
 
-    phone = models.PositiveIntegerField(blank=False)
+    phone = models.CharField(max_length=10, blank=False, null=True)
 
     is_default = models.BooleanField(default=False)
 
