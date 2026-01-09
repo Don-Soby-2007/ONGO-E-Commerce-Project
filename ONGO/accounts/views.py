@@ -358,6 +358,47 @@ class EditProfileView(View):
             return render(request, self.template_name)
 
 
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name='dispatch')
+class UpdateProfilePhotoView(View):
+    """Handle profile photo upload with cropped image"""
+    
+    def post(self, request):
+        # Get uploaded file
+        profile_photo = request.FILES.get('profile_photo')
+        
+        # Validate presence
+        if not profile_photo:
+            messages.error(request, "No image file provided.")
+            return redirect('profile')
+        
+        # Validate file type
+        allowed_types = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp']
+        if profile_photo.content_type not in allowed_types:
+            messages.error(request, "Invalid file type. Please use PNG, JPG, or WEBP.")
+            return redirect('profile')
+        
+        # Validate file size (5MB)
+        if profile_photo.size > 5 * 1024 * 1024:
+            messages.error(request, "Image too large. Maximum size is 5MB.")
+            return redirect('profile')
+        
+        # Use existing upload_profile_picture method
+        try:
+            success = request.user.upload_profile_picture(profile_photo)
+            if success:
+                messages.success(request, "Profile photo updated successfully!")
+            else:
+                messages.error(request, "Failed to upload image. Please try again.")
+        except ValueError as e:
+            messages.error(request, str(e))
+        except Exception as e:
+            logger.error(f"Error uploading profile photo for user {request.user.id}: {e}")
+            messages.error(request, "An error occurred while uploading your photo. Please try again.")
+        
+        return redirect('profile')
+
+
 class EmailChangeOtpVerificationView(View):
     """Handle OTP verification for email change"""
     template_name = 'accounts/otp_verification_profile.html'

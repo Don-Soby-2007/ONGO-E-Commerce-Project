@@ -52,9 +52,11 @@ urlpatterns = [
 
     path('profile/', views.ProfileView, name='profile'),
     path('profile/edit', views.EditProfileView.as_view(), name='edit_profile'),
-    
+    path('profile/update-photo/', views.UpdateProfilePhotoView.as_view(), name='update_profile_photo'),
+
     # Email Change OTP Verification
-    path('profile/email-change-verify/', views.EmailChangeOtpVerificationView.as_view(), name='email_change_otp_verify'),
+    path('profile/email-change-verify/', views.EmailChangeOtpVerificationView.as_view(),
+         name='email_change_otp_verify'),
     path('profile/cancel-email-change/', views.cancel_email_change, name='cancel_email_change'),
     path('profile/resend-email-otp/', views.resend_email_change_otp, name='resend_email_change_otp'),
 

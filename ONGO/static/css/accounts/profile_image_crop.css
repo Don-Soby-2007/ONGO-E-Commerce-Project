@@ -1,0 +1,178 @@
+/* Profile Photo Upload Modal Styles */
+
+/* Modal Overlay */
+#profilePhotoModal {
+    backdrop-filter: blur(4px);
+}
+
+#profilePhotoModal .modal-overlay {
+    background-color: rgba(17, 24, 39, 0.75);
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Modal Dialog */
+#profilePhotoModal .modal-dialog {
+    transform: translateY(0);
+    transition: all 0.3s ease-out;
+}
+
+#profilePhotoModal.hidden .modal-dialog {
+    transform: translateY(-20px);
+    opacity: 0;
+}
+
+/* Cropper Container */
+.cropper-container {
+    max-height: 400px;
+    margin: 0 auto;
+}
+
+/* Circular Crop Preview */
+.cropper-view-box,
+.cropper-face {
+    border-radius: 50%;
+}
+
+.cropper-view-box {
+    box-shadow: 0 0 0 1px #39f;
+    outline: 0;
+}
+
+/* Cropper Customization */
+.cropper-crop-box {
+    border-radius: 50%;
+}
+
+.cropper-point {
+    display: none !important;
+}
+
+.cropper-line {
+    display: none !important;
+}
+
+.cropper-dashed {
+    border: 0 !important;
+}
+
+/* Image Preview Area */
+.image-preview-container {
+    background: #f9fafb;
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.image-preview-container:hover {
+    border-color: #ef4444;
+    background: #fef2f2;
+}
+
+.image-preview-container.has-image {
+    border-style: solid;
+    border-color: #e5e7eb;
+    background: #ffffff;
+}
+
+/* File Input Button */
+.file-input-label {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.file-input-label:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.file-input-label:active {
+    transform: translateY(0);
+}
+
+/* Button Styles */
+.btn-primary {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-secondary {
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background-color: #f3f4f6;
+}
+
+/* Loading State */
+.loading-spinner {
+    border: 3px solid #f3f4f6;
+    border-top: 3px solid #ef4444;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    #profilePhotoModal .modal-dialog {
+        margin: 1rem;
+        max-width: calc(100% - 2rem);
+    }
+
+    .cropper-container {
+        max-height: 300px;
+    }
+}
+
+/* Error State */
+.error-message {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-10px);
+    }
+
+    75% {
+        transform: translateX(10px);
+    }
+}
+
+/* Prevent body scroll when modal is open */
+body.modal-open {
+    overflow: hidden;
+}

@@ -57,7 +57,7 @@
             <button id="mobile-menu-toggle" class="md:hidden mr-4 text-gray-600 hover:text-gray-900 focus:outline-none">
                 <i data-lucide="menu" class="w-6 h-6"></i>
             </button>
-            <h1 class="text-3xl font-black tracking-tighter text-brand-black">ONGO</h1>
+            <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="Logo" class="h-8">
         </div>
 
         <!-- User Profile Quick View (Right Side) -->
@@ -137,29 +137,6 @@
         <!-- Main Content Area -->
         {% block content %}
         {% endblock %}
-
-        {% comment %} {% if messages %}
-            <script>
-                {% for message in messages %}
-                
-                    Swal.fire({
-                        toast: true,
-                        icon: '{{message.tag}}',
-                        title: '{{message}}',
-                        animation: true,
-                        position: 'top-right',
-                        showConfirmButton: false,
-                        timer: 3500,
-                        timerProgressBar: true,
-                        didOpen: (toast) => {
-                            toast.addEventListener('mouseenter', Swal.stopTimer)
-                            toast.addEventListener('mouseleave', Swal.resumeTimer)
-                        }
-                    });
-                
-                {% endfor %}
-            </script>
-        {% endif %} {% endcomment %}
 
     </div>
 
