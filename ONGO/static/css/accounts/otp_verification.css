@@ -1,0 +1,59 @@
+/* OTP Verification Styles for Profile Section */
+
+/* Custom scrollbar for better UX */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* OTP Input Focus Animation */
+input[type="text"]:focus {
+    transform: scale(1.05);
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Button Hover Effects */
+button[type="submit"]:active {
+    transform: scale(0.98);
+}
+
+/* Resend Link Styles */
+#resendLink {
+    transition: all 0.3s ease;
+}
+
+#resendLink.cursor-not-allowed {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* Card Shadow on Hover */
+.bg-white.rounded-lg:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .flex.space-x-2 {
+        gap: 0.25rem;
+    }
+
+    input[type="text"] {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1rem;
+    }
+}

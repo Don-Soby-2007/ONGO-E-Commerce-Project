@@ -1,0 +1,86 @@
+{% extends 'accounts/base_profile.html' %}
+{% load static %}
+
+{% block title %}Email Verification - ONGO{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/accounts/otp_verification.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="flex-1 overflow-y-auto bg-gray-50 p-6 lg:p-10">
+    <div class="max-w-2xl mx-auto">
+        <!-- Page Header -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">Verify New Email</h1>
+            <p class="text-sm text-gray-500 mt-1">Please verify your new email address to complete the change</p>
+        </div>
+
+        <!-- OTP Verification Card -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+            <!-- Header -->
+            <div class="text-center mb-6">
+                <h2 class="text-xl font-bold text-black">Enter Verification Code</h2>
+                <p class="text-gray-500 mt-1">We've sent a 6-digit code to {{ new_email }}</p>
+            </div>
+
+            <form method="POST" action="{% url 'email_change_otp_verify' %}" id="otpForm">
+                {% csrf_token %}
+
+                <!-- OTP Input Fields -->
+                <div class="flex justify-center space-x-2 mb-6">
+                    <input type="text" id="otp1" maxlength="1"
+                        class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveNext(this, 'otp2')">
+                    <input type="text" id="otp2" maxlength="1"
+                        class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveNext(this, 'otp3')"
+                        onkeydown="moveBack(this, 'otp1')">
+                    <input type="text" id="otp3" maxlength="1"
+                        class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveNext(this, 'otp4')"
+                        onkeydown="moveBack(this, 'otp2')">
+                    <input type="text" id="otp4" maxlength="1"
+                        class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveNext(this, 'otp5')"
+                        onkeydown="moveBack(this, 'otp3')">
+                    <input type="text" id="otp5" maxlength="1"
+                        class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveNext(this, 'otp6')"
+                        onkeydown="moveBack(this, 'otp4')">
+                    <input type="text" id="otp6" maxlength="1"
+                        class="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '');" onkeydown="moveBack(this, 'otp5')">
+                </div>
+
+                <input type="hidden" name="otp" id="otp">
+
+                <!-- Action Buttons -->
+                <div class="flex space-x-4">
+                    <button type="submit"
+                        class="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200">
+                        Verify OTP
+                    </button>
+                    <button type="button" id="cancelEmailChange" data-cancel-url="{% url 'cancel_email_change' %}"
+                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors duration-200">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+
+            <!-- Resend OTP Link -->
+            <div class="text-center mt-4">
+                <p class="text-sm text-gray-500">
+                    Didn't receive the code?
+                    <a href='#' id="resendLink" data-resend-url="{% url 'resend_email_change_otp' %}"
+                        class="font-medium text-gray-900 hover:text-gray-700">Resend OTP in 00:30</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/accounts/otp_verification_profile.js' %}"></script>
+{% endblock %}

@@ -52,6 +52,11 @@ urlpatterns = [
 
     path('profile/', views.ProfileView, name='profile'),
     path('profile/edit', views.EditProfileView.as_view(), name='edit_profile'),
+    
+    # Email Change OTP Verification
+    path('profile/email-change-verify/', views.EmailChangeOtpVerificationView.as_view(), name='email_change_otp_verify'),
+    path('profile/cancel-email-change/', views.cancel_email_change, name='cancel_email_change'),
+    path('profile/resend-email-otp/', views.resend_email_change_otp, name='resend_email_change_otp'),
 
     path('manage-address/', views.AddressView.as_view(), name='manage_address'),
     path('manage-address/create', views.AddAddressView.as_view(), name='add_address'),

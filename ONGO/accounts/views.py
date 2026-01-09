@@ -282,6 +282,7 @@ def ProfileView(request):
 @method_decorator(login_required, name='dispatch')
 class EditProfileView(View):
     template_name = 'accounts/edit_profile_section.html'
+    otp_verification_template = 'accounts/otp_verification_profile.html'
 
     def get(self, request):
         return render(request, self.template_name)
@@ -293,7 +294,8 @@ class EditProfileView(View):
 
         user = request.user
 
-        # 1. Regex Validation
+        original_email = user.email
+
         if not re.match(r'^[a-zA-Z0-9_]{3,}$', username):
             messages.error(request, "Username must be at least 3 characters alphanumeric/underscore.")
             return render(request, self.template_name)
@@ -302,21 +304,47 @@ class EditProfileView(View):
             messages.error(request, "Please enter a valid email address.")
             return render(request, self.template_name)
 
-        # Phone is mandatory
         if not phone or not re.match(r'^\+?[\d\s-]{10,}$', phone):
             messages.error(request, "Please enter a valid phone number (min 10 digits).")
             return render(request, self.template_name)
 
-        # 2. Uniqueness Checks
-        if User.objects.filter(username__iexact=username).exclude(pk=user.pk).exists():
-            messages.error(request, "This username is already taken.")
-            return render(request, self.template_name)
+        if email.lower() != original_email.lower():
+            if User.objects.filter(email__iexact=email).exclude(pk=user.pk).exists():
+                messages.error(request, "This email is already linked to another account.")
+                return render(request, self.template_name)
 
-        if User.objects.filter(email__iexact=email).exclude(pk=user.pk).exists():
-            messages.error(request, "This email is already linked to another account.")
-            return render(request, self.template_name)
+            temp_email = email
 
-        # 3. Save Changes
+            otp = user.generate_otp()
+            logger.info(f"Email change OTP for user {user.email} -> {temp_email}: {otp}")
+
+            send_mail(
+                'Verify Your New Email Address',
+                f'Your OTP to verify new email address is: {otp}. It is valid for 5 minutes.',
+                None,
+                [temp_email],
+                fail_silently=False,
+            )
+
+            # Session: for profilechanges
+            request.session['temp_email_change'] = {
+                'user_id': user.id,
+                'new_email': temp_email,
+                'username': username,
+                'phone': phone
+            }
+
+            return render(request, self.otp_verification_template, {
+                'new_email': temp_email
+            })
+        else:
+            # Email not changed
+            return self._update_profile(user, username, email, phone, request)
+
+    # Private methode for helping to update the profile
+
+    def _update_profile(self, user, username, email, phone, request):
+
         try:
             user.username = username
             user.email = email
@@ -324,11 +352,104 @@ class EditProfileView(View):
             user.save()
             messages.success(request, "Profile updated successfully!")
             return redirect('profile')
-
         except Exception as e:
             logger.error(f"Error updating profile for user {user.id}: {e}")
             messages.error(request, "Something went wrong while updating your profile.")
             return render(request, self.template_name)
+
+
+class EmailChangeOtpVerificationView(View):
+    """Handle OTP verification for email change"""
+    template_name = 'accounts/otp_verification_profile.html'
+
+    def get(self, request):
+        temp_data = request.session.get('temp_email_change')
+        if not temp_data:
+            messages.error(request, "No pending email change found.")
+            return redirect('edit-profile')
+
+        return render(request, self.template_name, {
+            'new_email': temp_data['new_email']
+        })
+
+    def post(self, request):
+        otp_input = request.POST.get('otp')
+        temp_data = request.session.get('temp_email_change')
+
+        if not temp_data or not otp_input:
+            messages.error(request, "No pending email change or OTP found.")
+            return redirect('edit-profile')
+
+        try:
+            user = User.objects.get(pk=temp_data['user_id'])
+        except User.DoesNotExist:
+            messages.error(request, "User not found. Please try changing your email again.")
+            request.session.pop('temp_email_change', None)
+            return redirect('edit-profile')
+
+        if user.verify_otp(otp_input):
+            self._update_profile_with_new_email(user, temp_data, request)
+            request.session.pop('temp_email_change', None)
+            messages.success(request, "Email changed successfully! Profile updated.")
+            return redirect('profile')
+        else:
+            messages.error(request, "Invalid or expired OTP. Please try again.")
+            return render(request, self.template_name, {
+                'new_email': temp_data['new_email']
+            })
+
+    def _update_profile_with_new_email(self, user, temp_data, request):
+        try:
+            user.username = temp_data['username']
+            user.email = temp_data['new_email']
+            user.phone_number = temp_data['phone']
+            user.is_verified = True
+            user.save()
+        except Exception as e:
+            logger.error(f"Error updating profile with new email for user {user.id}: {e}")
+            messages.error(request, "Failed to update profile. Please try again.")
+
+
+def cancel_email_change(request):
+    if request.method == 'POST':
+        request.session.pop('temp_email_change', None)
+        messages.info(request, "Email change cancelled. No changes were made to your email.")
+    return redirect('profile')
+
+
+def resend_email_change_otp(request):
+    if request.method != 'POST':
+        return redirect('edit-profile')
+
+    temp_data = request.session.get('temp_email_change')
+    if not temp_data:
+        return JsonResponse({'success': False, 'message': "No pending email change found."})
+
+    try:
+        user = User.objects.get(pk=temp_data['user_id'])
+        new_email = temp_data['new_email']
+
+        otp = user.generate_otp()
+        logger.info(f"Resent email change OTP for {user.email} -> {new_email}: {otp}")
+
+        send_mail(
+            'Your New Email Verification Code',
+            f'Your OTP to verify new email address is: {otp}. It is valid for 5 minutes.',
+            None,
+            [new_email],
+            fail_silently=False,
+        )
+
+        return JsonResponse({'success': True, 'message': "OTP sent successfully"})
+
+    except User.DoesNotExist:
+        logger.warning("Resend OTP attempted for non-existing user during email change")
+        request.session.pop('temp_email_change', None)
+        return JsonResponse({'success': False, 'message': "User not found"})
+
+    except Exception as e:
+        logger.error(f"Error resending OTP for email change: {e}")
+        return JsonResponse({'success': False, 'message': "Failed to send OTP"})
 
 
 class AddressView(ListView):
