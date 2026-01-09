@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.hashers import check_password, make_password
+
 
 from django.views import View
 from django.views.generic import ListView
@@ -726,7 +726,8 @@ class PasswordView(View):
             return render(request, self.template_name)
 
         if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', new_password):
-            messages.error(request, "Password does not meet requirements. Must contain uppercase, lowercase, number, and special character.")
+            messages.error(request, "Password does not meet requirements. Must contain uppercase, lowercase, number,"
+                                    "and special character.")
             return render(request, self.template_name)
 
         if old_password == new_password:
