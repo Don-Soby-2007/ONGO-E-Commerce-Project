@@ -50,7 +50,7 @@ class SignupView(View):
         password = request.POST.get('password').strip()
         confirm_password = request.POST.get('confirm_password').strip()
 
-        if re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', password) is False:
+        if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', password):
             messages.error(request, "Password must be at least 8 characters long "
                            "and include uppercase,lowercase, number, and special character.")
             return render(request, self.template_name)
@@ -237,7 +237,7 @@ class LoginView(View):
                 messages.error(request, "Enter a valid email")
                 return render(request, self.template_name)
 
-            if re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', password) is False:
+            if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', password):
                 messages.error(request, "Password is wrong. Please Enter a valid Password")
                 return render(request, self.template_name)
 
@@ -397,6 +397,7 @@ class UpdateProfilePhotoView(View):
             messages.error(request, "An error occurred while uploading your photo. Please try again.")
 
         return redirect('profile')
+
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name='dispatch')
@@ -702,19 +703,11 @@ class PasswordView(View):
         return render(request, self.template_name,)
 
     def post(self, request):
-
-        old_password = request.POST.get('old_password').strip()
-        new_password = request.POST.get('new_password').strip()
-        confirm_password = request.POST.get('confirm_password').strip()
+        old_password = request.POST.get('old_password', '').strip()
+        new_password = request.POST.get('new_password', '').strip()
+        confirm_password = request.POST.get('confirm_password', '').strip()
 
         user = request.user
-
-        # Debug information (remove in production)
-        print(f"User authenticated: {request.user.is_authenticated}")
-        print(f"User: {user.username}")
-        print(f"Password hash exists: {bool(user.password)}")
-        print(f"Old password provided: '{old_password}'")
-        print(f"Old password length: {len(old_password)}")
 
         if not old_password:
             messages.error(request, "Please enter your current password.")
@@ -728,29 +721,31 @@ class PasswordView(View):
             messages.error(request, "Please confirm your new password.")
             return render(request, self.template_name)
 
-        if not check_password(old_password, user.password):
+        if not user.check_password(old_password):
             messages.error(request, "The old password is incorrect.")
             return render(request, self.template_name)
 
-        if re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', new_password) is False:
-            messages.error(request, "Password is wrong. Please Enter a valid Password")
+        if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', new_password):
+            messages.error(request, "Password does not meet requirements. Must contain uppercase, lowercase, number, and special character.")
             return render(request, self.template_name)
 
-        if not old_password == new_password:
-            messages.error(request, "The old password and new password must be different")
+        if old_password == new_password:
+            messages.error(request, "The new password must be different from your current password.")
             return render(request, self.template_name)
 
-        if not new_password == confirm_password:
-            messages.error(request, "The new password is mismatched.. Please try again")
+        if new_password != confirm_password:
+            messages.error(request, "The new password and confirmation do not match.")
             return render(request, self.template_name)
 
         try:
-            user.password = make_password(new_password)
+            user.set_password(new_password)
             user.save()
 
             update_session_auth_hash(request, user)
 
-            messages.success(request, "Your Password changed successfully")
+            messages.success(request, "Your password has been changed successfully.")
+            return redirect('profile')
         except Exception as e:
-            messages.error("Something went wrong while passowrd creation")
-            logger.error(f"Unexpected error occured when creating password {user}: {e}")
+            messages.error(request, "Something went wrong while updating your password.")
+            logger.error(f"Unexpected error occurred when updating password for user {user}: {e}")
+            return render(request, self.template_name)
