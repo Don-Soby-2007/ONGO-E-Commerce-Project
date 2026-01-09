@@ -1,19 +1,24 @@
 from django.shortcuts import render, redirect
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import check_password, make_password
+
 from django.views import View
 from django.views.generic import ListView
 from django.views.decorators.cache import never_cache
-from django.core.mail import send_mail
-from django.utils.decorators import method_decorator
 
+from django.core.mail import send_mail
+
+from django.utils.decorators import method_decorator
 
 from django.db import DatabaseError
 
-from .models import User, Address
-
 from django.http import JsonResponse
+
+from .models import User, Address
 
 import re
 import logging
@@ -361,29 +366,24 @@ class EditProfileView(View):
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name='dispatch')
 class UpdateProfilePhotoView(View):
-    """Handle profile photo upload with cropped image"""
-    
+
     def post(self, request):
-        # Get uploaded file
+
         profile_photo = request.FILES.get('profile_photo')
-        
-        # Validate presence
+
         if not profile_photo:
             messages.error(request, "No image file provided.")
             return redirect('profile')
-        
-        # Validate file type
+
         allowed_types = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp']
         if profile_photo.content_type not in allowed_types:
             messages.error(request, "Invalid file type. Please use PNG, JPG, or WEBP.")
             return redirect('profile')
-        
-        # Validate file size (5MB)
+
         if profile_photo.size > 5 * 1024 * 1024:
             messages.error(request, "Image too large. Maximum size is 5MB.")
             return redirect('profile')
-        
-        # Use existing upload_profile_picture method
+
         try:
             success = request.user.upload_profile_picture(profile_photo)
             if success:
@@ -395,12 +395,13 @@ class UpdateProfilePhotoView(View):
         except Exception as e:
             logger.error(f"Error uploading profile photo for user {request.user.id}: {e}")
             messages.error(request, "An error occurred while uploading your photo. Please try again.")
-        
+
         return redirect('profile')
 
-
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name='dispatch')
 class EmailChangeOtpVerificationView(View):
-    """Handle OTP verification for email change"""
+
     template_name = 'accounts/otp_verification_profile.html'
 
     def get(self, request):
@@ -493,6 +494,8 @@ def resend_email_change_otp(request):
         return JsonResponse({'success': False, 'message': "Failed to send OTP"})
 
 
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name='dispatch')
 class AddressView(ListView):
     template_name = 'accounts/manage_address.html'
     model = Address
@@ -502,6 +505,8 @@ class AddressView(ListView):
         return Address.objects.all().order_by('-is_default')
 
 
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name='dispatch')
 class AddAddressView(View):
 
     template_name = 'accounts/add_address.html'
@@ -578,6 +583,8 @@ class AddAddressView(View):
             return render(request, self.template_name)
 
 
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name='dispatch')
 class EditAddressView(View):
     template_name = 'accounts/edit_address.html'
 
@@ -654,6 +661,7 @@ class EditAddressView(View):
 
 
 def DeleteAddressView(request, pk):
+
     if request.method != "POST":
         return redirect('manage_address')
 
@@ -684,5 +692,65 @@ def DeleteAddressView(request, pk):
     return redirect('manage_address')
 
 
-def PasswordView(request):
-    return render(request, 'accounts/manage_password.html',)
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name='dispatch')
+class PasswordView(View):
+
+    template_name = 'accounts/manage_password.html'
+
+    def get(self, request):
+        return render(request, self.template_name,)
+
+    def post(self, request):
+
+        old_password = request.POST.get('old_password').strip()
+        new_password = request.POST.get('new_password').strip()
+        confirm_password = request.POST.get('confirm_password').strip()
+
+        user = request.user
+
+        # Debug information (remove in production)
+        print(f"User authenticated: {request.user.is_authenticated}")
+        print(f"User: {user.username}")
+        print(f"Password hash exists: {bool(user.password)}")
+        print(f"Old password provided: '{old_password}'")
+        print(f"Old password length: {len(old_password)}")
+
+        if not old_password:
+            messages.error(request, "Please enter your current password.")
+            return render(request, self.template_name)
+
+        if not new_password:
+            messages.error(request, "Please enter a new password.")
+            return render(request, self.template_name)
+
+        if not confirm_password:
+            messages.error(request, "Please confirm your new password.")
+            return render(request, self.template_name)
+
+        if not check_password(old_password, user.password):
+            messages.error(request, "The old password is incorrect.")
+            return render(request, self.template_name)
+
+        if re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', new_password) is False:
+            messages.error(request, "Password is wrong. Please Enter a valid Password")
+            return render(request, self.template_name)
+
+        if not old_password == new_password:
+            messages.error(request, "The old password and new password must be different")
+            return render(request, self.template_name)
+
+        if not new_password == confirm_password:
+            messages.error(request, "The new password is mismatched.. Please try again")
+            return render(request, self.template_name)
+
+        try:
+            user.password = make_password(new_password)
+            user.save()
+
+            update_session_auth_hash(request, user)
+
+            messages.success(request, "Your Password changed successfully")
+        except Exception as e:
+            messages.error("Something went wrong while passowrd creation")
+            logger.error(f"Unexpected error occured when creating password {user}: {e}")

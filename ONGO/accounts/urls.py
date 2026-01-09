@@ -65,5 +65,5 @@ urlpatterns = [
     path('manage-address/edit/<int:address_id>/', views.EditAddressView.as_view(), name="edit_address"),
     path('manage-address/delete/<int:pk>/', views.DeleteAddressView, name='delete_address'),
 
-    path('manage-password/', views.PasswordView, name='manage_password')
+    path('manage-password/', views.PasswordView.as_view(), name='manage_password')
 ]
