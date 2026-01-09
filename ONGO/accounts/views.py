@@ -493,8 +493,8 @@ class EditAddressView(View):
 
 def DeleteAddressView(request, pk):
     if request.method != "POST":
-         return redirect('manage_address')
-         
+        return redirect('manage_address')
+
     try:
         address = Address.objects.get(pk=pk, user=request.user)
         is_default = address.is_default
@@ -506,7 +506,8 @@ def DeleteAddressView(request, pk):
             if last_address:
                 last_address.is_default = True
                 last_address.save()
-                messages.warning(request, f"Default address deleted. '{last_address.name}' is now your default address.")
+                messages.warning(request,
+                                 f"Default address deleted. '{last_address.name}' is now your default address.")
             else:
                 messages.success(request, "Address deleted successfully.")
         else:
