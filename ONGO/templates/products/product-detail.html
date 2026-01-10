@@ -77,26 +77,52 @@
 
     <!-- ✅ Reused Fixed Navbar (identical to listing page) -->
     <nav class="fixed-nav bg-white shadow-sm top-0 left-0 right-0 z-50">
-        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg  " alt="Ongo Logo" class="h-8">
-                <div class="relative w-96">
-                    
+        <!-- Grey Section -->
+        <div class="bg-white-100 py-4">
+            <div class="container mx-auto px-4 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="Logo" class="h-8">
                 </div>
-            </div>
-            <div class="flex items-center space-x-6">
-                <button class="text-gray-700 hover:text-orange-500 flex items-center space-x-1">
-                    <i data-lucide="user"></i> <span>Account</span>
-                </button>
-                <button class="text-gray-700 hover:text-orange-500 flex items-center space-x-1">
-                    <i data-lucide="heart"></i> <span>Favourites</span>
-                </button>
-                <button class="text-gray-700 hover:text-orange-500 flex items-center space-x-1">
-                    <i data-lucide="shopping-bag"></i> <span>Basket</span>
-                </button>
-                <button class="text-gray-700 hover:text-orange-500 flex items-center space-x-1">
-                    <i data-lucide="menu"></i> <span>More</span>
-                </button>
+                <div class="flex-1 mx-8">
+                    <div class="relative">
+                        
+                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex gap-5 items-center space-x-4">
+                    <div class="relative inline-block group">
+                        <!-- User Icon -->
+                        <i data-lucide="user-round" class="w-6 h-6 cursor-pointer"></i>
+
+                        <!-- Dropdown -->
+                        <div class="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg 
+                                    opacity-0 invisible group-hover:opacity-100 group-hover:visible 
+                                    transition-all duration-200 z-50">
+                            <a href="{% url 'profile' %}"
+                            class="block px-4 py-2 text-sm hover:bg-gray-100">
+                                My Profile
+                            </a>
+                            <a href="{% url 'logout' %}"
+                            class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-5 items-center space-x-4">
+                        <div class="flex items-center space-x-1">
+                            <i data-lucide="heart"></i>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <i data-lucide="shopping-cart"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="bg-gray-100 py-2 border-t border-gray-200">
@@ -111,7 +137,7 @@
     </nav>
 
     <!-- ✅ Product Detail Section -->
-    <main class="pt-28 pb-16 px-4 md:px-8 lg:px-16">
+    <main class="pt-20 pb-16 px-4 md:px-8 lg:px-16">
         <div class="max-w-7xl mx-auto">
             <!-- Breadcrumb -->
             <div class="text-sm text-gray-500 mb-6">
@@ -186,6 +212,44 @@
                             <!-- ✅ Stock Status -->
                             <div id="stock-message" class="mt-4 flex items-center">
                                 <span class="text-gray-500 text-sm">Select color and size to see availability</span>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-4 border-t">
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <!-- Quantity Input Group -->
+                                <div class="flex items-center">
+                                    <button 
+                                        type="button"
+                                        id="decrement"
+                                        class="w-10 h-10 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-l-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        aria-label="Decrease quantity"
+                                        onclick="updateQuantity(-1)"
+                                        disabled
+                                    >
+                                        <span class="text-lg">−</span>
+                                    </button>
+                                    
+                                    <input 
+                                        type="number" 
+                                        id="quantity-input"
+                                        min="1"
+                                        max="5"
+                                        value="1"
+                                        readonly
+                                        class="w-16 text-center border-y border-gray-300 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 [-moz-appearance:_textfield] [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none"
+                                    />
+                                    
+                                    <button 
+                                        type="button"
+                                        id="increment"
+                                        class="w-10 h-10 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-r-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        aria-label="Increase quantity"
+                                        onclick="updateQuantity(1)"
+                                    >
+                                        <span class="text-lg">+</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -534,11 +598,38 @@
         img.style.transformOrigin = 'center';
     });
 
+    function updateQuantity(change) {
+        const input = document.getElementById('quantity-input');
+        const decrementBtn = document.getElementById('decrement');
+        const incrementBtn = document.getElementById('increment');
+        
+        let currentValue = parseInt(input.value) || 1;
+        let newValue = currentValue + change;
+        
+        // Enforce min/max limits (1-5)
+        if (newValue < 1) newValue = 1;
+        if (newValue > 5) newValue = 5;
+        
+        input.value = newValue;
+        
+        // Update button states
+        decrementBtn.disabled = (newValue <= 1);
+        incrementBtn.disabled = (newValue >= 5);
+        
+        // Optional: Trigger custom event
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         // Get raw data from backend
         const variantsByColor = {{ variants_by_color_json|safe }};
         const imagesByColor = {{ images_by_color_json|safe }};
         const availableColors = {{ all_colors|safe }};
+
+        //Quantity checker
+        const decrementBtn = document.getElementById('decrement');
+        const incrementBtn = document.getElementById('increment');
+        decrementBtn.disabled = true;
         
         // DOM elements
         const colorOptions = document.getElementById('color-options');
