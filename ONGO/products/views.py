@@ -1,13 +1,20 @@
 from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView
-from .models import Product, ProductImage, Category
+from .models import Product, ProductVariant, ProductImage, Category
+from cart.models import Cart
 from django.db.models import Prefetch, Min, Case, When, DecimalField
 from django.db.models.functions import Coalesce
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 
+from django.views import View
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -173,3 +180,47 @@ class ProductDetailView(DetailView):
         })
 
         return context
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AddToCartView(View):
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return JsonResponse({'success': False, 'message': 'Login required'}, status=403)
+
+        try:
+            data = json.loads(request.body)
+            variant_id = data['product_variant_id']
+            qty = data['quantity']
+
+            variant = ProductVariant.objects.get(id=variant_id, product__is_active=True)
+
+            # ✅ Critical: Re-check live stock
+            if qty > variant.stock:
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Only {variant.stock} items left in stock.'
+                })
+
+            if qty < 1 or qty > 5:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Quantity must be between 1 and 5.'
+                })
+
+            # Update or create cart item
+            cart_item, created = Cart.objects.update_or_create(
+                user=request.user,
+                product_variant=variant,
+                defaults={'quantity': qty}
+            )
+
+            return JsonResponse({'success': True, 'message': ''})
+
+        except ProductVariant.DoesNotExist:
+            logger.error(request, f'User tries to use non-existent variant in add to cart : {request.user}')
+            return JsonResponse({'success': False, 'message': 'Invalid product'})
+
+        except Exception as e:
+            logger.error(request, f'Unexpected error occured when adding to cart: {e}')
+            return JsonResponse({'success': False, 'message': 'Error adding to cart'})

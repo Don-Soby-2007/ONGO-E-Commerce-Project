@@ -578,6 +578,9 @@
 
     <script>
     lucide.createIcons();
+    let selectedColor = null;
+    let selectedSize = null;
+    let selectedVariant = null;
     const container = document.getElementById('zoom-container');
     const img = document.getElementById('main-image');
 
@@ -600,24 +603,36 @@
 
     function updateQuantity(change) {
         const input = document.getElementById('quantity-input');
+        if (!input) return;
+
+        // ✅ Safe guard: if no variant selected, do nothing (or reset)
+        if (!selectedVariant) {
+            input.value = 1;
+            const dec = document.getElementById('decrement');
+            const inc = document.getElementById('increment');
+            if (dec) dec.disabled = true;
+            if (inc) inc.disabled = false; // allow increment once variant is chosen
+            return;
+        }
+
+        let currentValue = parseInt(input.value) || 1;
+        const maxQty = Math.min(5, selectedVariant.stock); // Now safe!
+        const minQty = 1;
+
+        let newValue = currentValue + change;
+        newValue = Math.max(minQty, Math.min(maxQty, newValue));
+        input.value = newValue;
+
+        // Update buttons
         const decrementBtn = document.getElementById('decrement');
         const incrementBtn = document.getElementById('increment');
-        
-        let currentValue = parseInt(input.value) || 1;
-        let newValue = currentValue + change;
-        
-        // Enforce min/max limits (1-5)
-        if (newValue < 1) newValue = 1;
-        if (newValue > 5) newValue = 5;
-        
-        input.value = newValue;
-        
-        // Update button states
-        decrementBtn.disabled = (newValue <= 1);
-        incrementBtn.disabled = (newValue >= 5);
-        
-        // Optional: Trigger custom event
-        input.dispatchEvent(new Event('change', { bubbles: true }));
+        if (decrementBtn) decrementBtn.disabled = (newValue <= 1);
+        if (incrementBtn) incrementBtn.disabled = (newValue >= maxQty);
+
+        // Optional: refresh cart button
+        if (typeof updateAddToCartButton === 'function') {
+            updateAddToCartButton();
+        }
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -627,9 +642,13 @@
         const availableColors = {{ all_colors|safe }};
 
         //Quantity checker
-        const decrementBtn = document.getElementById('decrement');
-        const incrementBtn = document.getElementById('increment');
-        decrementBtn.disabled = true;
+        const qtyInput = document.getElementById('quantity-input');
+        const decBtn = document.getElementById('decrement');
+        const incBtn = document.getElementById('increment');
+
+        if (qtyInput) qtyInput.value = 1;
+        if (decBtn) decBtn.disabled = true;
+        if (incBtn) incBtn.disabled = false; 
         
         // DOM elements
         const colorOptions = document.getElementById('color-options');
@@ -640,10 +659,6 @@
         const stockMessage = document.getElementById('stock-message');
         const addCartBtn = document.getElementById('addCartBtn');
         const currentPriceElement = document.getElementById('current-price');
-        
-        let selectedColor = null;
-        let selectedSize = null;
-        let selectedVariant = null;
         
         // Initialize color options
         function initializeColors() {
@@ -729,6 +744,8 @@
             
             variants.forEach(variant => {
                 const btn = document.createElement('button');
+                const maxAllowed = Math.min(5, variant.stock)
+                btn.dataset.maxQty = maxAllowed
                 
                 if (variant.stock > 0) {
                     btn.className = 'size-option w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 border-gray-300 flex items-center justify-center font-bold text-gray-800 text-base transition-all duration-200 hover:scale-105 hover:shadow-md hover:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-opacity-50';
@@ -835,34 +852,112 @@
         }
         
         // Add to Cart handler
-        addCartBtn.addEventListener('click', function() {
+        addCartBtn.addEventListener('click', async function() {
             if (!selectedVariant) {
                 alert('Please select a size.');
                 return;
             }
-            
-            const original = this.innerHTML;
-            this.innerHTML = '<i data-lucide="check" class="mr-2"></i> Added!';
-            this.classList.replace('bg-red-500', 'bg-green-500');
-            lucide.createIcons();
 
-            setTimeout(() => {
-                this.innerHTML = original;
-                this.classList.replace('bg-green-500', 'bg-red-500');
-                lucide.createIcons();
-            }, 1500);
-            
-            console.log('Adding to cart:', {
-                productId: {{ product.id }},
-                variantId: selectedVariant.id,
-                color: selectedColor,
-                size: selectedSize
-            });
+            const quantity = parseInt(document.getElementById('quantity-input').value);
+
+            // ✅ Final server-side validation
+            try {
+                const response = await fetch("{% url 'add_to_cart' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')  // implement getCookie()
+                    },
+                    body: JSON.stringify({
+                        product_variant_id: selectedVariant.id,
+                        quantity: quantity
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    const original = this.innerHTML;
+                    this.innerHTML = '<i data-lucide="check" class="mr-2"></i> Added!';
+                    this.classList.replace('bg-red-500', 'bg-green-500');
+                    lucide.createIcons();
+
+                    setTimeout(() => {
+                        this.innerHTML = original;
+                        this.classList.replace('bg-green-500', 'bg-red-500');
+                        lucide.createIcons();
+                    }, 1500);
+                    
+                    console.log('Adding to cart:', {
+                        productId: {{ product.id }},
+                        variantId: selectedVariant.id,
+                        color: selectedColor,
+                        size: selectedSize
+                    });
+                } else {
+                    // Handle out-of-stock or other errors
+                    alert(data.message || 'Failed to add to cart');
+                    // Optionally refresh stock UI if needed
+                }
+            } catch (error) {
+                console.error('Add to cart failed:', error);
+                alert('Network error. Please try again.');
+            }
         });
         
         // Initialize the page
         initializeColors();
+
+        function updateQuantityControls() {
+            const input = document.getElementById('quantity-input');
+            const decrementBtn = document.getElementById('decrement');
+            const incrementBtn = document.getElementById('increment');
+            
+            if (!selectedVariant) {
+                decrementBtn.disabled = true;
+                incrementBtn.disabled = true;
+                return;
+            }
+            
+            const currentQty = parseInt(input.value) || 1;
+            const maxQty = Math.min(5, selectedVariant.stock); // Critical: use variant-specific limit
+            
+            // Enforce current value within bounds
+            if (currentQty > maxQty) {
+                input.value = maxQty;
+            }
+            
+            // Update button states
+            decrementBtn.disabled = (input.value <= 1);
+            incrementBtn.disabled = (input.value >= maxQty);
+            
+            // Optional: Show stock message
+            const stockMsg = document.getElementById('stock-message');
+            if (stockMsg) {
+                if (maxQty <= 0) {
+                    stockMsg.textContent = 'Out of stock';
+                } else if (maxQty < 5) {
+                    stockMsg.textContent = `${maxQty} left in stock`;
+                } else {
+                    stockMsg.textContent = 'In stock';
+                }
+            }
+        }
     });
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
     </script>       
 </body>
 </html>
