@@ -1,0 +1,95 @@
+<header class="bg-black text-white text-xs font-medium">
+    <div class="container mx-auto px-4 py-2 flex items-center justify-between">
+        <div class="flex space-x-6">
+            <div class="flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15V4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11c0 1.1.9 2 2 2h3"></path>
+                    <path d="M17 8H7m10 8v-3m-6-3h6"></path>
+                    <path d="M7 16.5L21 12l-14-4.5"></path>
+                </svg>
+                <span>Free Shipping</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 9v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9"></path>
+                    <path d="M9 22V12h6v10"></path>
+                    <path d="M15 3h6v6"></path>
+                    <path d="M9 3h6v6"></path>
+                    <path d="M3 3h6v6"></path>
+                    <path d="M19 7h2"></path>
+                    <path d="M5 7h2"></path>
+                </svg>
+                <span>Return To Store</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                    <path d="M12 12h.01"></path>
+                </svg>
+                <span>Online Gift Card</span>
+            </div>
+        </div>
+        <div class="flex space-x-6">
+            <span>Delivering To</span>
+            <span>Download Our Apps</span>
+            <span>Store Locator</span>
+            <span>Help</span>
+        </div>
+    </div>
+</header>
+
+<!-- Grey Section / Main Nav -->
+<div class="bg-gray-100 py-4">
+    <div class="container mx-auto px-4 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'home' %}">
+                <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="Logo"
+                    class="h-8">
+            </a>
+        </div>
+        <div class="flex-1 mx-8">
+            <div class="relative">
+
+                <button class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="relative inline-block group">
+                <!-- User Icon -->
+                <i data-lucide="user-round" class="w-6 h-6 cursor-pointer"></i>
+
+                <!-- Dropdown -->
+                <div class="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg 
+                            opacity-0 invisible group-hover:opacity-100 group-hover:visible 
+                            transition-all duration-200 z-50">
+                    <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">
+                        My Profile
+                    </a>
+                    <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                        Logout
+                    </a>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-1">
+                    <i data-lucide="heart"></i>
+                    <span>Favourites</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <i data-lucide="shopping-cart"></i>
+                    <span>Basket</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
