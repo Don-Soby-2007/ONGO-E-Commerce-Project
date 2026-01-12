@@ -21,7 +21,7 @@
             <h1 class="text-3xl font-bold text-gray-900">
                 Your Cart <span id="item-count" class="text-gray-500 text-xl font-normal">(3 items)</span>
             </h1>
-            <a href="#" class="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+            <a href="{% url 'product_list' %}" class="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i> Continue Shopping
             </a>
         </div>
@@ -33,7 +33,7 @@
                 
                 
                     <!-- Cart Item 1 -->
-                    <div class="cart-item" data-price="{{item.price}}">
+                    <div class="cart-item" data-price="{{item.price}}" data-cart-id = "{{item.id}}">
                         <img src="{{item.image_url}}"
                             alt="Sweatshirt" class="item-image">
 
@@ -49,12 +49,12 @@
 
                             <div class="flex justify-between items-end mt-4">
                                 <div class="quantity-controls">
-                                    <button class="qty-btn minus" data-cart-id ="{{item.id}}" >−</button>
+                                    <button class="qty-btn minus" >-</button>
                                     <input type="number" value="{{item.quantity}}" min="1" max='5' class="qty-input" readonly>
-                                    <button class="qty-btn plus" data-cart-id ="{{item.id}}" >+</button>
+                                    <button class="qty-btn plus" >+</button>
                                 </div>
 
-                                <button class="remove-btn" data-cart-id ="{{item.id}}">
+                                <button class="remove-btn">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                     Remove
                                 </button>

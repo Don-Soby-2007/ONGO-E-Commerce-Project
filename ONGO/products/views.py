@@ -7,6 +7,8 @@ from django.db.models.functions import Coalesce
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 from django.views import View
 
 from django.http import JsonResponse
@@ -183,7 +185,7 @@ class ProductDetailView(DetailView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class AddToCartView(View):
+class AddToCartView(LoginRequiredMixin, View):
     def post(self, request):
         if not request.user.is_authenticated:
             return JsonResponse({'success': False, 'message': 'Login required'}, status=403)

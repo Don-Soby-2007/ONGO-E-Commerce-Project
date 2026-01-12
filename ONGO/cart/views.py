@@ -6,6 +6,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.cache import never_cache
 
 from django.utils.decorators import method_decorator
+
+from django.views import View
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+import json
 # Create your views here.
 
 
@@ -49,3 +56,45 @@ class CartView(LoginRequiredMixin, ListView):
 
         context['cart_items'] = cart_items
         return context
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class QtyAddView(LoginRequiredMixin, View):
+
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            cart_id = data.get('cart_id')
+            action = data.get('action')
+
+            cart_item = Cart.objects.get(id=cart_id, user=request.user)
+
+            if action == 'increase':
+                if cart_item.quantity < 5 and cart_item.product_variant.stock > cart_item.quantity:
+                    cart_item.quantity += 1
+                else:
+                    return JsonResponse({
+                        'error': 'Max quantity reached or insufficient stock.'
+                    }, status=400)
+            elif action == 'decrease':
+                if cart_item.quantity > 1:
+                    cart_item.quantity -= 1
+                else:
+                    return JsonResponse({
+                        'error': 'Minimum quantity is 1.'
+                    }, status=400)
+            else:
+                return JsonResponse({'error': 'Invalid action.'}, status=400)
+
+            cart_item.save()
+
+            # Return updated values
+            return JsonResponse({
+                'success': True,
+                'new_quantity': cart_item.quantity,
+            })
+
+        except Cart.DoesNotExist:
+            return JsonResponse({'error': 'Cart item not found.'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)

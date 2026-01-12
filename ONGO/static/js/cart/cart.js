@@ -14,26 +14,22 @@ document.addEventListener('DOMContentLoaded', function () {
     updateCartTotals();
 
     // Event Delegation for Quantity Buttons and Remove Buttons
-    document.querySelector('.cart-items').addEventListener('click', function (e) {
+    document.querySelector('.cart-items').addEventListener('click', async function (e) {
         // Increase Quantity
         if (e.target.closest('.qty-btn.plus')) {
             const row = e.target.closest('.cart-item');
-            const input = row.querySelector('.qty-input');
-            let val = parseInt(input.value);
-            input.value = val + 1;
-            updateRowTotal(row);
-            updateCartTotals();
+            const cartId = row.dataset.cartId;
+            await updateQuantity(cartId, 'increase', row);
         }
 
         // Decrease Quantity
         if (e.target.closest('.qty-btn.minus')) {
             const row = e.target.closest('.cart-item');
             const input = row.querySelector('.qty-input');
-            let val = parseInt(input.value);
+            let val = parseInt(input.value)
+            const cartId = row.dataset.cartId;
             if (val > 1) {
-                input.value = val - 1;
-                updateRowTotal(row);
-                updateCartTotals();
+                await updateQuantity(cartId, 'decrease', row);
             }
         }
 
@@ -95,5 +91,54 @@ document.addEventListener('DOMContentLoaded', function () {
         // if (discountEl) discountEl.textContent = `-₹${discount.toFixed(2)}`;
         if (totalEl) totalEl.textContent = `₹${total.toFixed(2)}`;
         if (itemCountEl) itemCountEl.textContent = `(${count} items)`;
+    }
+
+    async function updateQuantity(cartId, action, row) {
+        const input = row.querySelector('.qty-input');
+        const originalValue = input.value;
+
+        try {
+            const response = await fetch('/cart/update-quantity/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')  
+                },
+                body: JSON.stringify({
+                    cart_id: cartId,
+                    action: action
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Update UI with new quantity
+                input.value = data.new_quantity;
+            } else {
+                // Revert on error
+                input.value = originalValue;
+                alert(data.error || 'Failed to update quantity.');
+            }
+        } catch (error) {
+            input.value = originalValue;
+            console.error('AJAX error:', error);
+            alert('Network error. Please try again.');
+        }
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 });
