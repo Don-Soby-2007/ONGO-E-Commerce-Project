@@ -212,6 +212,8 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_ADAPTER = 'accounts.adapter.SocialAccountAdapter'
 
 # Optional: redirect after login
+# settings.py
+LOGIN_URL = "/auth/login/"
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 

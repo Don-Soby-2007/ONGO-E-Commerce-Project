@@ -29,92 +29,40 @@
         <div class="cart-grid">
             <!-- Left Column: Cart Items -->
             <div class="cart-items">
-                <!-- Cart Item 1 -->
-                <div class="cart-item" data-price="1299">
-                    <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/desktop-MAX-UBERHP-oneBythree-A-16DEC25.png"
-                        alt="Sweatshirt" class="item-image">
+                {% for item in cart_items %}
+                
+                
+                    <!-- Cart Item 1 -->
+                    <div class="cart-item" data-price="{{item.price}}">
+                        <img src="{{item.image_url}}"
+                            alt="Sweatshirt" class="item-image">
 
-                    <div class="item-details">
-                        <div class="item-header">
-                            <div>
-                                <h3 class="item-title">Graphic Print Sweatshirt</h3>
-                                <p class="item-color">Color: Navy Blue</p>
-                            </div>
-                            <span class="item-price">₹1,299.00</span>
-                        </div>
-
-                        <div class="flex justify-between items-end mt-4">
-                            <div class="quantity-controls">
-                                <button class="qty-btn minus">−</button>
-                                <input type="number" value="1" min="1" class="qty-input" readonly>
-                                <button class="qty-btn plus">+</button>
+                        <div class="item-details">
+                            <div class="item-header">
+                                <div>
+                                    <h3 class="item-title">{{item.product_name}}</h3>
+                                    <p class="item-color">Color: {{item.color}}</p>
+                                    <p class="item-color">Size: {{item.size}}</p>
+                                </div>
+                                <span class="item-price">₹{{ item.price|floatformat:2 }}</span>
                             </div>
 
-                            <button class="remove-btn">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                Remove
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                            <div class="flex justify-between items-end mt-4">
+                                <div class="quantity-controls">
+                                    <button class="qty-btn minus" data-cart-id ="{{item.id}}" >−</button>
+                                    <input type="number" value="{{item.quantity}}" min="1" max='5' class="qty-input" readonly>
+                                    <button class="qty-btn plus" data-cart-id ="{{item.id}}" >+</button>
+                                </div>
 
-                <!-- Cart Item 2 -->
-                <div class="cart-item" data-price="2499">
-                    <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/desktop-MAX-UBERHP-twoBythree-B-17DEC25.png"
-                        alt="Jacket" class="item-image">
-
-                    <div class="item-details">
-                        <div class="item-header">
-                            <div>
-                                <h3 class="item-title">Winter Puffer Jacket</h3>
-                                <p class="item-color">Color: Black</p>
+                                <button class="remove-btn" data-cart-id ="{{item.id}}">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    Remove
+                                </button>
                             </div>
-                            <span class="item-price">₹2,499.00</span>
-                        </div>
-
-                        <div class="flex justify-between items-end mt-4">
-                            <div class="quantity-controls">
-                                <button class="qty-btn minus">−</button>
-                                <input type="number" value="1" min="1" class="qty-input" readonly>
-                                <button class="qty-btn plus">+</button>
-                            </div>
-
-                            <button class="remove-btn">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                Remove
-                            </button>
                         </div>
                     </div>
-                </div>
 
-                <!-- Cart Item 3 -->
-                <div class="cart-item" data-price="899">
-                    <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/desktop-MAX-UBERHP-fourBythree-D-16DEC25.png"
-                        alt="T-Shirt" class="item-image">
-
-                    <div class="item-details">
-                        <div class="item-header">
-                            <div>
-                                <h3 class="item-title">Casual Cotton T-Shirt</h3>
-                                <p class="item-color">Color: White</p>
-                            </div>
-                            <span class="item-price">₹899.00</span>
-                        </div>
-
-                        <div class="flex justify-between items-end mt-4">
-                            <div class="quantity-controls">
-                                <button class="qty-btn minus">−</button>
-                                <input type="number" value="1" min="1" class="qty-input" readonly>
-                                <button class="qty-btn plus">+</button>
-                            </div>
-
-                            <button class="remove-btn">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                Remove
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
 
             <!-- Right Column: Order Summary -->
@@ -155,7 +103,7 @@
                     </button>
 
                     <p class="text-xs text-center text-gray-500 mt-3">
-                        Estimated delivery directly to your doorstep in 3–5 business days
+                        Estimated delivery directly to your doorstep in 3 - 5 business days
                     </p>
                 </div>
             </div>
