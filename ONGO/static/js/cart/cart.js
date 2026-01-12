@@ -3,14 +3,26 @@ document.addEventListener('DOMContentLoaded', function () {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+    if (document.querySelectorAll('.cart-item').length === 0) {
+        document.querySelector('.cart-grid').innerHTML = `
+                        <div class="col-span-full text-center py-20">
+                            <h2 class="text-2xl font-bold mb-4">Your cart is empty</h2>
+                            <a href="/product/listing" class="text-blue-600 hover:underline">Continue Shopping</a>
+                        </div>
+                    `;
+    }
 
-    const cartItems = document.querySelectorAll('.cart-item');
+    //const cartItems = document.querySelectorAll('.cart-item');
     const subtotalEl = document.getElementById('subtotal');
-    const discountEl = document.getElementById('discount');
+    //const discountEl = document.getElementById('discount');
     const totalEl = document.getElementById('total');
     const itemCountEl = document.getElementById('item-count');
 
+
     // Initial calculation
+    document.querySelectorAll('.cart-item').forEach(item => {
+        updateRowTotal(item);
+    });
     updateCartTotals();
 
     // Event Delegation for Quantity Buttons and Remove Buttons
@@ -20,6 +32,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const row = e.target.closest('.cart-item');
             const cartId = row.dataset.cartId;
             await updateQuantity(cartId, 'increase', row);
+            updateCartTotals();
+            updateRowTotal(row)
         }
 
         // Decrease Quantity
@@ -30,24 +44,36 @@ document.addEventListener('DOMContentLoaded', function () {
             const cartId = row.dataset.cartId;
             if (val > 1) {
                 await updateQuantity(cartId, 'decrease', row);
+                updateCartTotals();
+                updateRowTotal(row)
             }
         }
 
         // Remove Item
         if (e.target.closest('.remove-btn')) {
             const row = e.target.closest('.cart-item');
-            row.remove();
-            updateCartTotals();
+            const cartId = row.dataset.cartId;
 
-            // Check if cart is empty
-            if (document.querySelectorAll('.cart-item').length === 0) {
-                document.querySelector('.cart-grid').innerHTML = `
-                    <div class="col-span-full text-center py-20">
-                        <h2 class="text-2xl font-bold mb-4">Your cart is empty</h2>
-                        <a href="auth/product/listing/" class="text-blue-600 hover:underline">Continue Shopping</a>
-                    </div>
-                `;
-            }
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Do you really want to remove this item from your cart?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, remove it!'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    await removeCart(cartId, row)
+                    updateCartTotals();
+                    updateRowTotal(row)
+                    Swal.fire(
+                        'Removed!',
+                        'Item has been removed from your cart.',
+                        'success'
+                    )
+                }
+            })
         }
     });
 
@@ -64,18 +90,23 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function updateRowTotal(row) {
-        // In a real app, you might update a per-row total display here.
-        // For this design, we just need to know the price * qty for the grand total.
+        const price = parseFloat(row.dataset.price);
+        const qty = parseInt(row.querySelector('.qty-input').value);
+        let rowTotal = price * qty;
+
+        const priceEl = row.querySelector('.item-price');
+        if (priceEl) priceEl.textContent = `₹${rowTotal.toFixed(2)}`;
     }
 
     function updateCartTotals() {
         let subtotal = 0;
-        let count = document.querySelectorAll('.cart-item').length;
+        let count = 0;
 
         document.querySelectorAll('.cart-item').forEach(item => {
             const price = parseFloat(item.dataset.price);
             const qty = parseInt(item.querySelector('.qty-input').value);
             subtotal += price * qty;
+            count += qty
         });
 
         // Dummy discount logic (e.g., 10% if subtotal > 1000)
@@ -102,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')  
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
                 body: JSON.stringify({
                     cart_id: cartId,
@@ -122,6 +153,45 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } catch (error) {
             input.value = originalValue;
+            console.error('AJAX error:', error);
+            alert('Network error. Please try again.');
+        }
+    }
+
+    async function removeCart(cartId, row) {
+        try {
+            const response = await fetch(`/cart/remove/${cartId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    cart_id: cartId,
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                row.remove();
+                // Check if cart is empty
+                if (document.querySelectorAll('.cart-item').length === 0) {
+                    document.querySelector('.cart-grid').innerHTML = `
+                        <div class="col-span-full text-center py-20">
+                            <h2 class="text-2xl font-bold mb-4">Your cart is empty</h2>
+                            <a href="/auth/product/listing/" class="text-blue-600 hover:underline">Continue Shopping</a>
+                        </div>
+                    `;
+                }
+            } else {
+                // Revert on error
+                input.value = originalValue;
+                alert(data.error || 'Failed to update quantity.');
+            }
+
+        }
+        catch (error) {
             console.error('AJAX error:', error);
             alert('Network error. Please try again.');
         }

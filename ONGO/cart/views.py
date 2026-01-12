@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import redirect
 from django.views.generic import ListView
 from .models import Cart
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -12,9 +12,18 @@ from django.views import View
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
+from django.contrib.auth.decorators import login_required
+
+from django.contrib import messages
+
 import json
+
+import logging
+
+
 # Create your views here.
 
+logger = logging.getLogger(__name__)
 
 @method_decorator(never_cache, name='dispatch')
 class CartView(LoginRequiredMixin, ListView):
@@ -98,3 +107,19 @@ class QtyAddView(LoginRequiredMixin, View):
             return JsonResponse({'error': 'Cart item not found.'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
+
+
+@login_required
+def DeleteCartView(request, pk):
+    if request.method == "POST":
+        try:
+            cart = Cart.objects.get(pk=pk, user=request.user)
+            cart.delete()
+            return JsonResponse({'success': True})
+        except Cart.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Cart item not found.'}, status=404)
+        except Exception as e:
+            logger.error(f"Error on deleting cart: {e}")
+            return JsonResponse({'success': False, 'error': 'An error occurred while deleting the cart.'}, status=500)
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=400)

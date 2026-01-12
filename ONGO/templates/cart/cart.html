@@ -8,6 +8,7 @@
     <title>Your Cart - ONGO</title>
     <script src="https://unpkg.com/tailwindcss-jit-cdn"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="{% static 'css/cart/cart.css' %}">
 </head>
 
@@ -21,7 +22,8 @@
             <h1 class="text-3xl font-bold text-gray-900">
                 Your Cart <span id="item-count" class="text-gray-500 text-xl font-normal">(3 items)</span>
             </h1>
-            <a href="{% url 'product_list' %}" class="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+            <a href="{% url 'product_list' %}"
+                class="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i> Continue Shopping
             </a>
         </div>
@@ -30,37 +32,37 @@
             <!-- Left Column: Cart Items -->
             <div class="cart-items">
                 {% for item in cart_items %}
-                
-                
-                    <!-- Cart Item 1 -->
-                    <div class="cart-item" data-price="{{item.price}}" data-cart-id = "{{item.id}}">
-                        <img src="{{item.image_url}}"
-                            alt="Sweatshirt" class="item-image">
 
-                        <div class="item-details">
-                            <div class="item-header">
-                                <div>
-                                    <h3 class="item-title">{{item.product_name}}</h3>
-                                    <p class="item-color">Color: {{item.color}}</p>
-                                    <p class="item-color">Size: {{item.size}}</p>
-                                </div>
-                                <span class="item-price">₹{{ item.price|floatformat:2 }}</span>
+
+                <!-- Cart Item 1 -->
+                <div class="cart-item" data-price="{{item.price}}" data-cart-id="{{item.id}}">
+                    <img src="{{item.image_url}}" alt="Sweatshirt" class="item-image">
+
+                    <div class="item-details">
+                        <div class="item-header">
+                            <div>
+                                <h3 class="item-title">{{item.product_name}}</h3>
+                                <p class="item-color">Color: {{item.color}}</p>
+                                <p class="item-color">Size: {{item.size}}</p>
+                            </div>
+                            <span id="item-price" class="item-price">₹{{ item.price|floatformat:2 }}</span>
+                        </div>
+
+                        <div class="flex justify-between items-end mt-4">
+                            <div class="quantity-controls">
+                                <button class="qty-btn minus">-</button>
+                                <input type="number" value="{{item.quantity}}" min="1" max='5' class="qty-input"
+                                    readonly>
+                                <button class="qty-btn plus">+</button>
                             </div>
 
-                            <div class="flex justify-between items-end mt-4">
-                                <div class="quantity-controls">
-                                    <button class="qty-btn minus" >-</button>
-                                    <input type="number" value="{{item.quantity}}" min="1" max='5' class="qty-input" readonly>
-                                    <button class="qty-btn plus" >+</button>
-                                </div>
-
-                                <button class="remove-btn">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                    Remove
-                                </button>
-                            </div>
+                            <button class="remove-btn">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                Remove
+                            </button>
                         </div>
                     </div>
+                </div>
 
                 {% endfor %}
             </div>
