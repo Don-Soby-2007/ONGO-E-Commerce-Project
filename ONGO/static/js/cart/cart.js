@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.querySelector('.cart-grid').innerHTML = `
                     <div class="col-span-full text-center py-20">
                         <h2 class="text-2xl font-bold mb-4">Your cart is empty</h2>
-                        <a href="#" class="text-blue-600 hover:underline">Continue Shopping</a>
+                        <a href="auth/product/listing/" class="text-blue-600 hover:underline">Continue Shopping</a>
                     </div>
                 `;
             }
@@ -74,26 +74,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateCartTotals() {
         let subtotal = 0;
-        let count = 0;
+        let count = document.querySelectorAll('.cart-item').length;
 
         document.querySelectorAll('.cart-item').forEach(item => {
             const price = parseFloat(item.dataset.price);
             const qty = parseInt(item.querySelector('.qty-input').value);
             subtotal += price * qty;
-            count += qty;
         });
 
         // Dummy discount logic (e.g., 10% if subtotal > 1000)
-        let discount = 0;
-        if (subtotal > 3000) {
-            discount = subtotal * 0.1;
-        }
+        // let discount = 0;
+        // if (subtotal > 3000) {
+        //     discount = subtotal * 0.1;
+        // }
 
-        let total = subtotal - discount;
+        let total = subtotal // - discount;
 
         // Update DOM
         if (subtotalEl) subtotalEl.textContent = `₹${subtotal.toFixed(2)}`;
-        if (discountEl) discountEl.textContent = `-₹${discount.toFixed(2)}`;
+        // if (discountEl) discountEl.textContent = `-₹${discount.toFixed(2)}`;
         if (totalEl) totalEl.textContent = `₹${total.toFixed(2)}`;
         if (itemCountEl) itemCountEl.textContent = `(${count} items)`;
     }
