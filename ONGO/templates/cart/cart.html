@@ -1,120 +1,109 @@
+{% extends 'common/base_header.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Cart - ONGO</title>
-    <script src="https://unpkg.com/tailwindcss-jit-cdn"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="{% static 'css/cart/cart.css' %}">
-</head>
+{% block title %}Your Cart - ONGO{% endblock %}
 
-<body class="bg-gray-50">
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cart/cart.css' %}">
+{% endblock %}
 
-    {% include 'includes/header.html' %}
+{% block content %}
+<main class="cart-container">
+    <!-- Page Title -->
+    <div class="flex justify-between items-end mb-8 border-b pb-4">
+        <h1 class="text-3xl font-bold text-gray-900">
+            Your Cart <span id="item-count" class="text-gray-500 text-xl font-normal">(3 items)</span>
+        </h1>
+        <a href="{% url 'product_list' %}"
+            class="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Continue Shopping
+        </a>
+    </div>
 
-    <main class="cart-container">
-        <!-- Page Title -->
-        <div class="flex justify-between items-end mb-8 border-b pb-4">
-            <h1 class="text-3xl font-bold text-gray-900">
-                Your Cart <span id="item-count" class="text-gray-500 text-xl font-normal">(3 items)</span>
-            </h1>
-            <a href="{% url 'product_list' %}"
-                class="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> Continue Shopping
-            </a>
+    <div class="cart-grid">
+        <!-- Left Column: Cart Items -->
+        <div class="cart-items">
+            {% for item in cart_items %}
+
+
+            <!-- Cart Item 1 -->
+            <div class="cart-item" data-price="{{item.price}}" data-cart-id="{{item.id}}">
+                <img src="{{item.image_url}}" alt="Sweatshirt" class="item-image">
+
+                <div class="item-details">
+                    <div class="item-header">
+                        <div>
+                            <h3 class="item-title">{{item.product_name}}</h3>
+                            <p class="item-color">Color: {{item.color}}</p>
+                            <p class="item-color">Size: {{item.size}}</p>
+                        </div>
+                        <span id="item-price" class="item-price">₹{{ item.price|floatformat:2 }}</span>
+                    </div>
+
+                    <div class="flex justify-between items-end mt-4">
+                        <div class="quantity-controls">
+                            <button class="qty-btn minus">-</button>
+                            <input type="number" value="{{item.quantity}}" min="1" max='5' class="qty-input" readonly>
+                            <button class="qty-btn plus">+</button>
+                        </div>
+
+                        <button class="remove-btn">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {% endfor %}
         </div>
 
-        <div class="cart-grid">
-            <!-- Left Column: Cart Items -->
-            <div class="cart-items">
-                {% for item in cart_items %}
+        <!-- Right Column: Order Summary -->
+        <div class="order-summary-container"> <!-- Wrapper for sticky logic if needed -->
+            <div class="order-summary">
+                <h2 class="summary-title">Order Summary</h2>
 
+                <div class="summary-row">
+                    <span>Delivery</span>
+                    <span class="text-green-600 font-medium">Free</span>
+                </div>
 
-                <!-- Cart Item 1 -->
-                <div class="cart-item" data-price="{{item.price}}" data-cart-id="{{item.id}}">
-                    <img src="{{item.image_url}}" alt="Sweatshirt" class="item-image">
-
-                    <div class="item-details">
-                        <div class="item-header">
-                            <div>
-                                <h3 class="item-title">{{item.product_name}}</h3>
-                                <p class="item-color">Color: {{item.color}}</p>
-                                <p class="item-color">Size: {{item.size}}</p>
-                            </div>
-                            <span id="item-price" class="item-price">₹{{ item.price|floatformat:2 }}</span>
-                        </div>
-
-                        <div class="flex justify-between items-end mt-4">
-                            <div class="quantity-controls">
-                                <button class="qty-btn minus">-</button>
-                                <input type="number" value="{{item.quantity}}" min="1" max='5' class="qty-input"
-                                    readonly>
-                                <button class="qty-btn plus">+</button>
-                            </div>
-
-                            <button class="remove-btn">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                Remove
-                            </button>
-                        </div>
+                <div class="coupon-section">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Coupon Code</label>
+                    <div class="coupon-input-group">
+                        <input type="text" placeholder="Enter code" class="coupon-input">
+                        <button class="apply-btn">Apply</button>
                     </div>
                 </div>
 
-                {% endfor %}
-            </div>
-
-            <!-- Right Column: Order Summary -->
-            <div class="order-summary-container"> <!-- Wrapper for sticky logic if needed -->
-                <div class="order-summary">
-                    <h2 class="summary-title">Order Summary</h2>
-
-                    <div class="summary-row">
-                        <span>Delivery</span>
-                        <span class="text-green-600 font-medium">Free</span>
-                    </div>
-
-                    <div class="coupon-section">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Coupon Code</label>
-                        <div class="coupon-input-group">
-                            <input type="text" placeholder="Enter code" class="coupon-input">
-                            <button class="apply-btn">Apply</button>
-                        </div>
-                    </div>
-
-                    <div class="summary-row">
-                        <span>Subtotal</span>
-                        <span id="subtotal">₹0.00</span>
-                    </div>
-
-                    <div class="summary-row">
-                        <span>Discount</span>
-                        <span id="discount" class="text-green-600">₹0.00</span>
-                    </div>
-
-                    <div class="summary-row total">
-                        <span>Total</span>
-                        <span id="total">₹0.00</span>
-                    </div>
-
-                    <button class="checkout-btn">
-                        Proceed to Checkout
-                    </button>
-
-                    <p class="text-xs text-center text-gray-500 mt-3">
-                        Estimated delivery directly to your doorstep in 3 - 5 business days
-                    </p>
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">₹0.00</span>
                 </div>
+
+                <div class="summary-row">
+                    <span>Discount</span>
+                    <span id="discount" class="text-green-600">₹0.00</span>
+                </div>
+
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span id="total">₹0.00</span>
+                </div>
+
+                <button class="checkout-btn">
+                    Proceed to Checkout
+                </button>
+
+                <p class="text-xs text-center text-gray-500 mt-3">
+                    Estimated delivery directly to your doorstep in 3 - 5 business days
+                </p>
             </div>
         </div>
-    </main>
+    </div>
+</main>
+{% endblock %}
 
-    {% include 'includes/footer.html' %}
-
-    <script src="{% static 'js/cart/cart.js' %}"></script>
-</body>
-
-</html>
+{% block extra_js %}
+<script src="{% static 'js/cart/cart.js' %}"></script>
+{% endblock %}

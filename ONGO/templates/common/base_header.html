@@ -1,0 +1,275 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ongo{% endblock %}</title>
+    <link href="https://fonts.cdnfonts.com/css/asgrike" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {% block extra_head %}{% endblock %}
+    <style>
+        /* Common animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="bg-gray-50 font-sans flex flex-col min-h-screen">
+
+    <!-- ✅ Fixed Navbar -->
+    <nav class="fixed-nav bg-white shadow-sm top-0 left-0 right-0 z-50">
+        <!-- Grey Section -->
+        <div class="bg-white-100 py-4">
+            <div class="container mx-auto px-4 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'landing' %}">
+                        <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg"
+                            alt="Logo" class="h-8">
+                    </a>
+                </div>
+                <div class="flex-1 mx-8">
+                    <div class="relative">
+                        <!-- Potential search bar location -->
+                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex gap-5 items-center space-x-4">
+                    <div class="relative inline-block group">
+                        <!-- User Icon -->
+                        <i data-lucide="user-round" class="w-6 h-6 cursor-pointer"></i>
+
+                        <!-- Dropdown -->
+                        <div class="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg 
+                                    opacity-0 invisible group-hover:opacity-100 group-hover:visible 
+                                    transition-all duration-200 z-50">
+                            <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">
+                                My Profile
+                            </a>
+                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-5 items-center space-x-4">
+                        <div class="flex items-center space-x-1">
+                            <i data-lucide="heart"></i>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <a href='{% url "cart" %}'>
+                                <i data-lucide="shopping-cart"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-100 py-2 border-t border-gray-200">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-center space-x-8 overflow-x-auto">
+                    <a href="#" class="text-gray-700 hover:text-red-500 font-medium">Women</a>
+                    <a href="#" class="text-gray-700 hover:text-red-500 font-medium">Men</a>
+                    <a href="#" class="text-gray-700 hover:text-red-500 font-medium">Kids</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-18"> <!-- Added pt-20 to account for fixed header -->
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white pt-12 pb-6 border-t border-gray-200 mt-auto">
+        <div class="container mx-auto px-4">
+            <!-- Footer Columns -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 mb-12">
+                <!-- Women Column -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Women</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Tops</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Dresses & Jumsuits</a>
+                        </li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sportswear</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Bottoms</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Winterwear</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Ethnicwear</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Lingerie</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sleepwear</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Accessories</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shoes</a></li>
+                    </ul>
+                </div>
+
+                <!-- Men Column -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Men</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Tops</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Bottoms</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sportswear</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Winterwear</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Accessories</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Ethnicwear</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shoes</a></li>
+                    </ul>
+                </div>
+
+                <!-- Kids Column -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Kids</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Tops</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shirts</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Jeans</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Leggings</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Skirts</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sweatshirts</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sports Shoes</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Ballerina</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Ethnicwear</a></li>
+                    </ul>
+                </div>
+
+                <!-- URB_N Column -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">URB_N</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">New Arrivals</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Tops</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Dresses</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shirts</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Trousers</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">T-shirts</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shorts & Skirts</a></li>
+                    </ul>
+                </div>
+
+                <!-- Explore Column -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Explore</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Offers</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Stores Nearby</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- About and Help Columns -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 mb-12">
+                <!-- About Column -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">About</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">About us</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Write to us</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Careers</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Take a Tour</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Blog</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Store Locator</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Landmark Cares</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Max Cares</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Max Elite</a></li>
+                    </ul>
+                </div>
+
+                <!-- Help Column -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Help</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Contact us</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shipping</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Returns Process</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Returns And Exchange
+                                Policy</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Help Centre</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Contact and Social Media -->
+            <div class="border-t border-gray-200 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
+                    <!-- Contact Info -->
+                    <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="phone" class="hover-icon text-gray-600"></i>
+                            <span class="text-gray-600">1800-123-1444</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="life-buoy" class="hover-icon text-gray-600"></i>
+                            <a href="#" class="hover-text text-gray-600 hover:text-orange-500">help.maxfashion.com</a>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="mail" class="hover-icon text-gray-600"></i>
+                            <span class="text-gray-600">help@maxfashion.in</span>
+                        </div>
+                    </div>
+
+                    <!-- Social Media Icons -->
+                    <div class="flex space-x-4">
+                        <a href="#" class="hover-icon text-gray-600">
+                            <i data-lucide="facebook"></i>
+                        </a>
+                        <a href="#" class="hover-icon text-gray-600">
+                            <i data-lucide="twitter"></i>
+                        </a>
+                        <a href="#" class="hover-icon text-gray-600">
+                            <i data-lucide="instagram"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Copyright -->
+                <div
+                    class="flex flex-col md:flex-row justify-between items-center mt-8 pt-8 border-t border-gray-200 text-gray-600 text-sm">
+                    <div class="flex items-center space-x-2">
+                        <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg"
+                            alt="Ongo Logo" class="h-6">
+                        <span>© 2025 Retail World Limited</span>
+                    </div>
+                    <div class="flex space-x-4">
+                        <a href="#" class="hover-text text-gray-600 hover:text-orange-500">Terms & Conditions</a>
+                        <span>-</span>
+                        <a href="#" class="hover-text text-gray-600 hover:text-orange-500">Privacy Policy</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

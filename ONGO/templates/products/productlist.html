@@ -1,429 +1,212 @@
+{% extends 'common/base_header.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shirts for Men</title>
-    <script src="https://unpkg.com/tailwindcss-jit-cdn"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        .fixed-nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 50;
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .fixed-sidebar {
-            position: fixed;
-            top: 72px;
-            left: 0;
-            width: 280px;
-            height: calc(100vh - 72px);
-            overflow-y: auto;
-            background-color: white;
-            z-index: 40;
-            box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-        }
-        .product-grid {
-            margin-left: 290px;
-            margin-top: 20px;
-        }
-        .product-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-        #price-error {
-            transition: opacity 0.2s ease;
-        }
-        #price-error.hidden {
-            opacity: 0;
-            height: 0;
-            margin: 0;
-            overflow: hidden;
-        }
-    </style>
-</head>
-<body class="bg-gray-50">
-    <!-- Fixed Navbar -->
-    <form methode="GET" action='{% url "product_list" %}'>
-    <nav class="fixed-nav">
-        <!-- Grey Section -->
-        <div class="bg-white-100 py-4">
-            <div class="container mx-auto px-4 flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="Logo" class="h-8">
+
+{% block title %}Shirts for Men{% endblock %}
+
+{% block extra_css %}
+<style>
+    .fixed-sidebar {
+        position: fixed;
+        top: 130px;
+        /* Adjusted for base header height */
+        left: 0;
+        width: 280px;
+        height: calc(100vh - 130px);
+        overflow-y: auto;
+        background-color: white;
+        z-index: 40;
+        box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-grid {
+        margin-left: 290px;
+        margin-top: 20px;
+    }
+
+    .product-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    #price-error {
+        transition: opacity 0.2s ease;
+    }
+
+    #price-error.hidden {
+        opacity: 0;
+        height: 0;
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="GET" action='{% url "product_list" %}'>
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex">
+            <!-- Fixed Filters Sidebar -->
+            <aside class="fixed-sidebar p-4">
+                <div>
+                    <br>
+                    <br>
                 </div>
-                <div class="flex-1 mx-8">
-                    <div class="relative">
-                        
-                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <path d="m21 21-4.35-4.35"></path>
-                            </svg>
-                        </button>
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold">FILTERS</h3>
+                    <a href="{% url 'product_list' %}" class="text-orange-500 text-sm">Clear all</a>
+                </div>
+
+                <!-- Price Filter -->
+                <div class="mb-6">
+                    <h4 class="font-semibold mb-3">Price</h4>
+                    <div class="flex items-center space-x-2">
+                        <input id="price-min" name="min" value="{{ request.GET.min|default:'' }}" type="number"
+                            placeholder="Min" min="0" class="w-20 px-2 py-1 border rounded" onchange="validatePrice()">
+                        <span>to</span>
+                        <input id="price-max" name="max" value="{{ request.GET.max|default:'' }}" type="number"
+                            placeholder="Max" min="1" class="w-20 px-2 py-1 border rounded" onchange="validatePrice()">
                     </div>
+                    <!-- ✅ Error message placeholder -->
+                    <span id="price-error" class="text-red-500 text-sm mt-1 hidden"></span>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <div class="relative inline-block group">
-                        <!-- User Icon -->
-                        <i data-lucide="user-round" class="w-6 h-6 cursor-pointer"></i>
 
-                        <!-- Dropdown -->
-                        <div class="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg 
-                                    opacity-0 invisible group-hover:opacity-100 group-hover:visible 
-                                    transition-all duration-200 z-50">
-                            <a href="{% url 'profile' %}"
-                            class="block px-4 py-2 text-sm hover:bg-gray-100">
-                                My Profile
-                            </a>
-                            <a href="{% url 'logout' %}"
-                            class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
-                                Logout
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center space-x-1">
-                            <i data-lucide="heart"></i>
-                            <span>Favourites</span>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <i data-lucide="shopping-cart"></i>
-                            <span>Basket</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Navigation Links -->
-        <div class="bg-gray-100 py-2 border-t border-gray-200">
-            <div class="container mx-auto px-4">
-                <div class="flex justify-center space-x-8 overflow-x-auto">
-                    <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">Women</a>
-                    <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">Men</a>
-                    <a href="#" class="text-gray-700 hover:text-red-500 whitespace-nowrap">Kids</a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content --> 
-    <main class="my-20 mx-20 overflow-hidden">
-        <div class="container mx-auto px-4 py-8">
-            <div class="flex">
-                <!-- Fixed Filters Sidebar -->
-                    <aside class="fixed-sidebar p-4">
-                        <div>
-                            <br>
-                            <br>
-                        </div>
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-bold">FILTERS</h3>
-                            <a href="{% url 'product_list' %}" class="text-orange-500 text-sm">Clear all</a>
-                        </div>
-
-                        <!-- Price Filter -->
-                        <div class="mb-6">
-                            <h4 class="font-semibold mb-3">Price</h4>
-                            <div class="flex items-center space-x-2">
-                                <input id="price-min" name="min" value="{{ request.GET.min|default:'' }}" type="number" placeholder="Min" min="0" class="w-20 px-2 py-1 border rounded" onchange="validatePrice()">
-                                <span>to</span>
-                                <input id="price-max" name="max" value="{{ request.GET.max|default:'' }}" type="number" placeholder="Max" min="1" class="w-20 px-2 py-1 border rounded" onchange="validatePrice()">
-                            </div>
-                            <!-- ✅ Error message placeholder -->
-                            <span id="price-error" class="text-red-500 text-sm mt-1 hidden"></span>
-                        </div>
-
-                        <!-- Category Filters -->
-                        <div class="mb-6">
-                            <h4 class="font-semibold mb-3">Shop For</h4>
-                            <div class="flex flex-wrap gap-2">
-                                {% for cat in categories %}
-                                <label class="px-3 py-1 border rounded-full text-sm cursor-pointer
-                                                bg-white hover:bg-gray-100 transition-colors
-                                                focus-within:ring-2 focus-within:ring-red-500">
-                                    <input 
-                                    type="checkbox" 
-                                    name="category" 
-                                    value="{{ cat.name }}"
-                                    class="sr-only peer" 
-                                    {% if cat.name in selected_categories %}checked{% endif %}>
-
-                                    <span class="peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500">
-                                    {{ cat.name }}
-                                    </span>
-                                </label>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Additional Filters -->
-                        <div class="space-y-4">
-                            
-                            <details class="group border-b border-gray-200 pb-4 open:border-orange-500">
-                                <summary class="flex justify-between items-center font-semibold text-gray-800 cursor-pointer list-none focus:outline-none">
-                                    Sort
-                                    <i data-lucide="chevron-down" class="w-5 h-5 transform group-open:rotate-180 transition-transform"></i>
-                                </summary>
-
-                                <!-- Styled native select -->
-                                <div class="relative mt-2">
-                                    <select id='sort' name="sort"
-                                    class="appearance-none bg-white border border-gray-300 rounded px-3 py-2 w-full 
-                                            focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500
-                                            cursor-pointer text-gray-700"
-                                            >
-                                    <option>Latest</option>
-                                    <option  value='oldest' {% if request.GET.sort == 'oldest' %}selected{% endif %}>Oldest</option>
-                                    <option value="l-h" {% if request.GET.sort == 'l-h' %}selected{% endif %}>Price: Low to High</option>
-                                    <option value='h-l' {% if request.GET.sort == 'h-l' %}selected{% endif %}>Price: High to Low</option>
-                                    <option value='a-z' {% if request.GET.sort == 'a-z' %}selected{% endif %}>Aa-Zz</option>
-                                    <option value='z-a' {% if request.GET.sort == 'z-a' %}selected{% endif %}>Zz-Aa</option>
-                                    </select>
-
-                                </div>
-                            </details>
-                            
-                        </div>
-                    </aside>
-                </form>
-
-                <!-- Product Grid -->
-                <div class="product-grid flex-1 p-4">
-
-                    <!-- Products -->
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        <!-- Product 1 -->
-                        {% for product in products %}
-                        
-                        <a href="{% url 'product_detail' product.id %}" class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
-                            <div class="relative">
-                                <img src="{{product.get_thumbnail_url}}" alt="URB_N Men Geometric Print Regular Fit Shirt" class="w-full h-80 object-cover">
-                                <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow">
-                                    <i data-lucide="heart" class="text-gray-500"></i>
-                                </button>
-                            </div>
-                            <div class="p-4">
-                                <h3 class="font-semibold text-gray-800">{{product.name}}</h3>
-                                <p class="text-gray-600 mt-2"> ₹{{product.get_display_price}}</p>
-                            </div>
-                        </a>
-
+                <!-- Category Filters -->
+                <div class="mb-6">
+                    <h4 class="font-semibold mb-3">Shop For</h4>
+                    <div class="flex flex-wrap gap-2">
+                        {% for cat in categories %}
+                        <label class="px-3 py-1 border rounded-full text-sm cursor-pointer
+                                            bg-white hover:bg-gray-100 transition-colors
+                                            focus-within:ring-2 focus-within:ring-red-500">
+                            <input type="checkbox" name="category" value="{{ cat.name }}" class="sr-only peer" {% if cat.name in selected_categories %} 
+                            checked {% endif %}>
+ 
+                            <span class="peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500">
+                                {{ cat.name }}
+                            </span>
+                        </label>
                         {% endfor %}
                     </div>
                 </div>
+
+                <!-- Additional Filters -->
+                <div class="space-y-4">
+
+                    <details class="group border-b border-gray-200 pb-4 open:border-orange-500">
+                        <summary
+                            class="flex justify-between items-center font-semibold text-gray-800 cursor-pointer list-none focus:outline-none">
+                            Sort
+                            <i data-lucide="chevron-down"
+                                class="w-5 h-5 transform group-open:rotate-180 transition-transform"></i>
+                        </summary>
+
+                        <!-- Styled native select -->
+                        <div class="relative mt-2">
+                            <select id='sort' name="sort" class="appearance-none bg-white border border-gray-300 rounded px-3 py-2 w-full 
+                                        focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500
+                                        cursor-pointer text-gray-700">
+                                <option>Latest</option>
+                                <option value='oldest' {% if request.GET.sort == 'oldest' %}selected{% endif %}>Oldest
+                                </option>
+                                <option value="l-h" {% if request.GET.sort == 'l-h' %}selected{% endif %}>Price: Low to
+                                    High</option>
+                                <option value='h-l' {% if request.GET.sort == 'h-l' %}selected{% endif %}>Price: High toLow</option>
+                                <option value='a-z' {% if request.GET.sort == 'a-z' %}selected{% endif %}>Aa-Zz</option>
+                                <option value='z-a' {% if request.GET.sort == 'z-a' %}selected{% endif %}>Zz-Aa</option>
+                            </select>
+
+                        </div>
+                    </details>
+
+                </div>
+            </aside>
+
+            <!-- Product Grid -->
+            <div class="product-grid flex-1 p-4">
+
+                <!-- Products -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <!-- Product 1 -->
+                    {% for product in products %}
+
+                    <a href="{% url 'product_detail' product.id %}"
+                        class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
+                        <div class="relative">
+                            <img src="{{product.get_thumbnail_url}}" alt="URB_N Men Geometric Print Regular Fit Shirt"
+                                class="w-full h-80 object-cover">
+                            <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow">
+                                <i data-lucide="heart" class="text-gray-500"></i>
+                            </button>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-gray-800">{{product.name}}</h3>
+                            <p class="text-gray-600 mt-2"> ₹{{product.get_display_price}}</p>
+                        </div>
+                    </a>
+
+                    {% endfor %}
+                </div>
             </div>
-            <div class="flex justify-center items-center mt-6 space-x-2">
-                <span class="step-links flex items-center">
-                    {% if page_obj.has_previous %}
-                        <a href="?page=1&search_query={{ search_query }}&min={{request.GET.min}}&max={{request.GET.max}}$category={{request.GET.category}}&sort={{request.GET.sort}}" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="First Page">
-                            <i data-lucide="chevron-left" class="w-5 h-5"></i>
-                            <i data-lucide="chevron-left" class="w-5 h-5"></i>
-                        </a>
-                        <a href="?page={{ page_obj.previous_page_number }}&search_query={{ search_query }}&min={{request.GET.min}}&max={{request.GET.max}}$category={{request.GET.category}}&sort={{request.GET.sort}}" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="Previous Page">
-                            <i data-lucide="chevron-left" class="w-5 h-5"></i>
-                        </a>
-                    {% endif %}
+        </div>
+        <div class="flex justify-center items-center mt-6 space-x-2">
+            <span class="step-links flex items-center">
+                {% if page_obj.has_previous %}
+                <a href="?page=1&search_query={{ search_query }}&min={{request.GET.min}}&max={{request.GET.max}}$category={{request.GET.category}}&sort={{request.GET.sort}}"
+                    class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center"
+                    title="First Page">
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}&search_query={{ search_query }}&min={{request.GET.min}}&max={{request.GET.max}}$category={{request.GET.category}}&sort={{request.GET.sort}}"
+                    class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center"
+                    title="Previous Page">
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                </a>
+                {% endif %}
 
-                    <span class="font-semibold text-sm mx-4">
-                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-                    </span>
-
-                    {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}&search_query={{ search_query }}&min={{request.GET.min}}&max={{request.GET.max}}$category={{request.GET.category}}&sort={{request.GET.sort}}" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="Next Page">
-                            <i data-lucide="chevron-right" class="w-5 h-5"></i>
-                        </a>
-                        <a href="?page={{ page_obj.paginator.num_pages }}&search_query={{ search_query }}&min={{request.GET.min}}&max={{request.GET.max}}$category={{request.GET.category}}&sort={{request.GET.sort}}" class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center" title="Last Page">
-                            <i data-lucide="chevron-right" class="w-5 h-5"></i>
-                            <i data-lucide="chevron-right" class="w-5 h-5"></i>
-                        </a>
-                    {% endif %}
+                <span class="font-semibold text-sm mx-4">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
                 </span>
-            </div>
+
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&search_query={{ search_query }}&min={{request.GET.min}}&max={{request.GET.max}}$category={{request.GET.category}}&sort={{request.GET.sort}}"
+                    class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center"
+                    title="Next Page">
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}&search_query={{ search_query }}&min={{request.GET.min}}&max={{request.GET.max}}$category={{request.GET.category}}&sort={{request.GET.sort}}"
+                    class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center"
+                    title="Last Page">
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </a>
+                {% endif %}
+            </span>
         </div>
-    </main>
-    <footer class="bg-white pt-12 pb-6">
-        <div class="container mx-auto px-4">
-            <!-- Footer Columns -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 mb-12">
-                <!-- Women Column -->
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Women</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Tops</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Dresses & Jumsuits</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sportswear</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Bottoms</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Winterwear</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Ethnicwear</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Lingerie</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sleepwear</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Accessories</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shoes</a></li>
-                    </ul>
-                </div>
-
-                <!-- Men Column -->
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Men</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Tops</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Bottoms</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sportswear</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Winterwear</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Accessories</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Ethnicwear</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shoes</a></li>
-                    </ul>
-                </div>
-
-                <!-- Kids Column -->
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Kids</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Tops</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shirts</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Jeans</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Leggings</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Skirts</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sweatshirts</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sports Shoes</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Ballerina</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Ethnicwear</a></li>
-                    </ul>
-                </div>
-
-                <!-- URB_N Column -->
-                <div>
-                    <h3 class="text-lg font-bold mb-4">URB_N</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">New Arrivals</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Tops</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Dresses</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shirts</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Trousers</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">T-shirts</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shorts & Skirts</a></li>
-                    </ul>
-                </div>
-
-                <!-- Explore Column -->
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Explore</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Offers</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Stores Nearby</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- About and Help Columns -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 mb-12">
-                <!-- About Column -->
-                <div>
-                    <h3 class="text-lg font-bold mb-4">About</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">About us</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Write to us</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Careers</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Take a Tour</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Blog</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Store Locator</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Landmark Cares</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Max Cares</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Max Elite</a></li>
-                    </ul>
-                </div>
-
-                <!-- Help Column -->
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Help</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Contact us</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shipping</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Returns Process</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Returns And Exchange Policy</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Help Centre</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Contact and Social Media -->
-            <div class="border-t border-gray-200 pt-8">
-                <div class="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
-                    <!-- Contact Info -->
-                    <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8">
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="phone" class="hover-icon text-gray-600"></i>
-                            <span class="text-gray-600">1800-123-1444</span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="life-buoy" class="hover-icon text-gray-600"></i>
-                            <a href="#" class="hover-text text-gray-600 hover:text-orange-500">help.maxfashion.com</a>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="mail" class="hover-icon text-gray-600"></i>
-                            <span class="text-gray-600">help@maxfashion.in</span>
-                        </div>
-                    </div>
-
-                    <!-- Social Media Icons -->
-                    <div class="flex space-x-4">
-                        <a href="#" class="hover-icon text-gray-600">
-                            <i data-lucide="facebook"></i>
-                        </a>
-                        <a href="#" class="hover-icon text-gray-600">
-                            <i data-lucide="twitter"></i>
-                        </a>
-                        <a href="#" class="hover-icon text-gray-600">
-                            <i data-lucide="instagram"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Copyright -->
-                <div class="flex flex-col md:flex-row justify-between items-center mt-8 pt-8 border-t border-gray-200 text-gray-600 text-sm">
-                    <div class="flex items-center space-x-2">
-                        <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="Ongo Logo" class="h-6">
-                        <span>© 2025 Retail World Limited</span>
-                    </div>
-                    <div class="flex space-x-4">
-                        <a href="#" class="hover-text text-gray-600 hover:text-orange-500">Terms & Conditions</a>
-                        <span>-</span>
-                        <a href="#" class="hover-text text-gray-600 hover:text-orange-500">Privacy Policy</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    </div>
 </form>
+{% endblock %}
 
-    <script>
-    lucide.createIcons();
-
+{% block extra_js %}
+<script>
     // Reusable: show/hide error
     function showError(message) {
         const el = document.getElementById('price-error');
         if (el) {
-        el.textContent = message;
-        el.classList.remove('hidden');
+            el.textContent = message;
+            el.classList.remove('hidden');
         }
     }
 
     function clearError() {
         const el = document.getElementById('price-error');
         if (el) {
-        el.classList.add('hidden');
-        el.textContent = '';
+            el.classList.add('hidden');
+            el.textContent = '';
         }
     }
 
@@ -431,7 +214,7 @@
     function validatePrice() {
         const minInput = document.getElementById('price-min');
         const maxInput = document.getElementById('price-max');
-        
+
         // Parse values — empty string → null
         const min = minInput.value ? parseFloat(minInput.value) : null;
         const max = maxInput.value ? parseFloat(maxInput.value) : null;
@@ -440,14 +223,14 @@
 
         // Only validate if both are present
         if (min !== null && max !== null) {
-        if (min > max) {
-            showError("Min price must be less than max price");
-            return false;
-        }
-        if (min < 0 || max < 0) {
-            showError("Price cannot be negative");
-            return false;
-        }
+            if (min > max) {
+                showError("Min price must be less than max price");
+                return false;
+            }
+            if (min < 0 || max < 0) {
+                showError("Price cannot be negative");
+                return false;
+            }
         }
 
         return true;
@@ -456,23 +239,22 @@
     // Attach handlers
     document.querySelectorAll('input[type="checkbox"][name="category"]')
         .forEach(el => el.addEventListener('change', e => {
-        if (validatePrice()) e.target.form.submit();
+            if (validatePrice()) e.target.form.submit();
         }));
 
     // Attach handlers
-    document.getElementById('sort').addEventListener('change', function(e) {
-        if(validatePrice()){
+    document.getElementById('sort').addEventListener('change', function (e) {
+        if (validatePrice()) {
             e.target.form.submit();
         }
     });
-        
+
     // Handle manual "Enter" or form submit
-    document.querySelector('form[method="GET"]').addEventListener('submit', function(e) {
+    document.querySelector('form[method="GET"]').addEventListener('submit', function (e) {
         if (!validatePrice()) {
             e.preventDefault(); //  Prevent submission
         }
     });
 
-    </script>
-</body>
-</html>
+</script>
+{% endblock %}

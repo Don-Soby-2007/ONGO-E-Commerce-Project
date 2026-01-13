@@ -1,209 +1,176 @@
+{% extends 'common/base_header.html' %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
+{% block title %}ONGO E-Commerce{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ONGO E-Commerce{% endblock %}</title>
-
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- Sweet Alert -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/accounts/profile_section.css' %}">
-
-    <!-- Tailwind Config for Custom Colors/Fonts -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            black: '#000000',
-                            red: '#ef4444', // Red-500
-                            darkRed: '#dc2626', // Red-600
-                        }
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/accounts/profile_section.css' %}">
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                },
+                colors: {
+                    brand: {
+                        black: '#000000',
+                        red: '#ef4444',
+                        darkRed: '#dc2626',
                     }
                 }
             }
         }
-    </script>
-    {% block extra_css %}{% endblock %}
-</head>
+    }
+</script>
+{% endblock %}
 
-<body class="bg-gray-50 text-gray-900 h-screen flex flex-col overflow-hidden">
+{% block content %}
+<div class="flex flex-1 min-h-[calc(100vh-80px)]">
 
-    <!-- Header -->
-    <header
-        class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 lg:px-10 shrink-0 z-40 shadow-sm relative">
-        <!-- Logo and Mobile Toggle -->
-        <div class="flex items-center min-w-[200px]">
-            <button id="mobile-menu-toggle" class="md:hidden mr-4 text-gray-600 hover:text-gray-900 focus:outline-none">
-                <i data-lucide="menu" class="w-6 h-6"></i>
+    <!-- Mobile Sidebar Toggle -->
+    <button id="mobile-menu-toggle"
+        class="md:hidden fixed bottom-4 right-4 z-50 bg-brand-red text-white p-3 rounded-full shadow-lg hover:bg-brand-darkRed focus:outline-none transition-colors">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+    </button>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar"
+        class="w-64 bg-white border-r border-gray-200 flex flex-col fixed inset-y-0 left-0 z-40 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out h-full overflow-y-auto custom-scrollbar md:h-auto md:min-h-full pt-20 md:pt-0">
+
+        <!-- Mobile Close Button -->
+        <div class="md:hidden p-4 flex justify-end">
+            <button id="close-sidebar" class="text-gray-500 hover:text-gray-800">
+                <i data-lucide="x" class="w-6 h-6"></i>
             </button>
-            <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="Logo" class="h-8">
         </div>
 
-        <!-- User Profile Quick View (Right Side) -->
-        <div class="flex items-center space-x-4 cursor-pointer hover:opacity-80 transition-opacity">
-            <div class="text-right hidden sm:block">
-                <p class="text-sm font-bold text-gray-900">{{ user.username}}</p>
-                <!-- Assuming user has a related profile or just static for now as requested -->
-                <p class="text-xs text-gray-500">Member</p>
-            </div>
-            <div class="h-10 w-10 rounded-full bg-gray-200 overflow-hidden border-2 border">
-                <img src="{{user.get_profile_picture_url}}"
-                    alt="Profile" class="h-full w-full object-cover">
-            </div>
+        <div class="p-6 md:p-6">
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Account Settings</h2>
+            <nav class="space-y-1">
+                <a href="{% url 'profile' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %} flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if request.resolver_match.url_name == 'profile' %}text-gray-700{% else %}text-gray-600{% endif %} hover:bg-gray-100 group">
+                    <i data-lucide="user"
+                        class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'profile' %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-brand-red"></i>
+                    My Account
+                </a>
+                <a href="#"
+                    class="nav-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 group">
+                    <i data-lucide="package" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-brand-red"></i>
+                    My Orders
+                </a>
+                <a href="#"
+                    class="nav-link {% if request.resolver_match.url_name == 'wishlist' %}active{% endif %} flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if request.resolver_match.url_name == 'wishlist' %}text-gray-700{% else %}text-gray-600{% endif %} hover:bg-gray-100 group">
+                    <i data-lucide="heart"
+                        class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'wishlist' %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-brand-red"></i>
+                    Wishlist
+                </a>
+                <a href="#"
+                    class="nav-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 group">
+                    <i data-lucide="wallet" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-brand-red"></i>
+                    Wallet
+                </a>
+            </nav>
+
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 mt-8">Preferences</h2>
+            <nav class="space-y-1">
+                <a href="{% url 'manage_address' %}"
+                    class="nav-link {% if 'address' in request.resolver_match.url_name %}active{% endif %} flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if 'address' in request.resolver_match.url_name %}text-gray-700{% else %}text-gray-600{% endif %} hover:bg-gray-100 group">
+                    <i data-lucide="map-pin"
+                        class="w-5 h-5 mr-3 {% if 'address' in request.resolver_match.url_name %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-brand-red"></i>
+                    Manage Address
+                </a>
+                <a href="{% url 'manage_password' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'manage_password' %}active{% endif %} flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if request.resolver_match.url_name == 'manage_password' %}text-gray-700{% else %}text-gray-600{% endif %} hover:bg-gray-100 group">
+                    <i data-lucide="lock"
+                        class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'manage_password' %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-brand-red"></i>
+                    Manage Password
+                </a>
+            </nav>
+
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 mt-8">Earn</h2>
+            <nav class="space-y-1">
+                <a href="#"
+                    class="nav-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 group">
+                    <i data-lucide="gift" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-brand-red"></i>
+                    My Referral
+                </a>
+            </nav>
         </div>
-    </header>
+    </aside>
 
-    <!-- Main Workspace -->
-    <div class="flex flex-1 overflow-hidden">
-
-        <!-- Sidebar Navigation -->
-        <aside id="sidebar"
-            class="w-64 bg-white border-r border-gray-200 flex flex-col fixed inset-y-0 left-0 z-30 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out h-full overflow-y-auto custom-scrollbar">
-            <div class="p-6 pt-20 md:p-6">
-                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Account Settings</h2>
-                <nav class="space-y-1">
-                    <a href="{% url 'profile' %}"
-                        class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %} flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if request.resolver_match.url_name == 'profile' %}text-gray-700{% else %}text-gray-600{% endif %} hover:bg-gray-100 group">
-                        <i data-lucide="user"
-                            class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'profile' %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-brand-red"></i>
-                        My Account
-                    </a>
-                    <a href="#"
-                        class="nav-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 group">
-                        <i data-lucide="package" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-brand-red"></i>
-                        My Orders
-                    </a>
-                    <a href="#"
-                        class="nav-link {% if request.resolver_match.url_name == 'wishlist' %}active{% endif %} flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if request.resolver_match.url_name == 'wishlist' %}text-gray-700{% else %}text-gray-600{% endif %} hover:bg-gray-100 group">
-                        <i data-lucide="heart"
-                            class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'wishlist' %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-brand-red"></i>
-                        Wishlist
-                    </a>
-                    <a href="#"
-                        class="nav-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 group">
-                        <i data-lucide="wallet" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-brand-red"></i>
-                        Wallet
-                    </a>
-                </nav>
-
-                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 mt-8">Preferences</h2>
-                <nav class="space-y-1">
-                    <a href="{% url 'manage_address' %}"
-                        class="nav-link {% if 'address' in request.resolver_match.url_name %}active{% endif %} flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if 'address' in request.resolver_match.url_name %}text-gray-700{% else %}text-gray-600{% endif %} hover:bg-gray-100 group">
-                        <i data-lucide="map-pin"
-                            class="w-5 h-5 mr-3 {% if 'address' in request.resolver_match.url_name %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-brand-red"></i>
-                        Manage Address
-                    </a>
-                    <a href="{% url 'manage_password' %}"
-                        class="nav-link {% if request.resolver_match.url_name == 'manage_password' %}active{% endif %} flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if request.resolver_match.url_name == 'manage_password' %}text-gray-700{% else %}text-gray-600{% endif %} hover:bg-gray-100 group">
-                        <i data-lucide="lock"
-                            class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'manage_password' %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-brand-red"></i>
-                        Manage Password
-                    </a>
-                </nav>
-
-                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 mt-8">Earn</h2>
-                <nav class="space-y-1">
-                    <a href="#"
-                        class="nav-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 group">
-                        <i data-lucide="gift" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-brand-red"></i>
-                        My Referral
-                    </a>
-                </nav>
-            </div>
-        </aside>
-
-        <!-- Main Content Area -->
-        {% block content %}
+    <!-- Main Content Area -->
+    <main class="flex-1 w-full md:w-auto">
+        {% block profile_content %}
         {% endblock %}
+    </main>
 
-    </div>
+</div>
+{% endblock %}
 
-    <!-- Base JS that handles sidebar toggle if common -->
-    <script>
-        // Copying the script from profile_section.html for the sidebar toggle
-        document.addEventListener('DOMContentLoaded', () => {
-            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.querySelector('main'); // Select main content
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const closeSidebar = document.getElementById('close-sidebar');
+        const sidebar = document.getElementById('sidebar');
 
-            if (mobileMenuToggle && sidebar) {
-                mobileMenuToggle.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent click from bubbling
-                    sidebar.classList.toggle('-translate-x-full');
-                });
-
-                // Close sidebar when clicking outside on mobile
-                document.addEventListener('click', (e) => {
-                    if (window.innerWidth < 768 &&
-                        !sidebar.contains(e.target) &&
-                        !mobileMenuToggle.contains(e.target) &&
-                        !sidebar.classList.contains('-translate-x-full')) {
-                        sidebar.classList.add('-translate-x-full');
-                    }
-                });
-            }
-
-            const messages = [
-                {% for message in messages %}
-                    {
-                        text: `{{ message|escapejs }}`,
-                        type: `{{ message.tags }}`
-                    }{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ];
-
-            messages.forEach(msg => {
-                let icon = 'info';
-                switch(msg.type) {
-                    case 'error': icon = 'error'; break;
-                    case 'warning': icon = 'warning'; break;
-                    case 'success': icon = 'success'; break;
-                    default: icon = 'info';
-                }
-
-                Swal.fire({
-                    toast: true,
-                    icon: icon,
-                    title: msg.text,
-                    position: 'top-right',
-                    showConfirmButton: false,
-                    timer: 3500,
-                    timerProgressBar: true,
-                    didOpen: (toast) => {
-                        toast.addEventListener('mouseenter', Swal.stopTimer);
-                        toast.addEventListener('mouseleave', Swal.resumeTimer);
-                    }
-                });
+        if (mobileMenuToggle && sidebar) {
+            mobileMenuToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('-translate-x-full');
             });
+        }
+
+        if (closeSidebar && sidebar) {
+            closeSidebar.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 768 && sidebar &&
+                !sidebar.contains(e.target) &&
+                !mobileMenuToggle.contains(e.target) &&
+                !sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.add('-translate-x-full');
+            }
         });
 
-        // Initialize Lucide icons
-        lucide.createIcons();
-    </script>
+        const messages = [
+            {% for message in messages %}
+                    {
+            text: `{{ message|escapejs }}`,
+            type: `{{ message.tags }}`
+        }{% if not forloop.last %}, {% endif %}
+    {% endfor %}
+            ];
 
-    {% block extra_js %}{% endblock %}
-</body>
+    messages.forEach(msg => {
+        let icon = 'info';
+        switch (msg.type) {
+            case 'error': icon = 'error'; break;
+            case 'warning': icon = 'warning'; break;
+            case 'success': icon = 'success'; break;
+            default: icon = 'info';
+        }
 
-</html>
+        Swal.fire({
+            toast: true,
+            icon: icon,
+            title: msg.text,
+            position: 'top-right',
+            showConfirmButton: false,
+            timer: 3500,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+    });
+        });
+
+    lucide.createIcons();
+</script>
+{% endblock %}
