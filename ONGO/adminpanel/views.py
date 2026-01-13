@@ -470,11 +470,6 @@ class AdminProductsView(ListView, LoginRequiredMixin):
         return context
 
 
-# def ProductCreateView(request):
-#     if request.user.is_authenticated:
-#         return render(request, "adminpanel/add_product.html")
-
-
 ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"]
 MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
 
