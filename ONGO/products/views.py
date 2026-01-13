@@ -197,7 +197,6 @@ class AddToCartView(LoginRequiredMixin, View):
 
             variant = ProductVariant.objects.get(id=variant_id, product__is_active=True)
 
-            # ✅ Critical: Re-check live stock
             if qty > variant.stock:
                 return JsonResponse({
                     'success': False,
@@ -210,14 +209,24 @@ class AddToCartView(LoginRequiredMixin, View):
                     'message': 'Quantity must be between 1 and 5.'
                 })
 
-            # Update or create cart item
-            cart_item, created = Cart.objects.update_or_create(
+            cart_item, created = Cart.objects.get_or_create(
                 user=request.user,
-                product_variant=variant,
-                defaults={'quantity': qty}
+                product_variant=variant
             )
 
-            return JsonResponse({'success': True, 'message': ''})
+            new_quantity = qty if created else cart_item.quantity + qty
+
+            if new_quantity > 5:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Maximum 5 items allowed per product in cart.'
+                })
+
+            cart_item.quantity = new_quantity
+            cart_item.save()
+
+            message = 'Product added to cart.' if created else f'{qty} more added to cart.'
+            return JsonResponse({'success': True, 'message': message})
 
         except ProductVariant.DoesNotExist:
             logger.error(request, f'User tries to use non-existent variant in add to cart : {request.user}')
