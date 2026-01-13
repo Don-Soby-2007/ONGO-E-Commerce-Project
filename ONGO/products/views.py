@@ -211,7 +211,7 @@ class AddToCartView(LoginRequiredMixin, View):
 
             cart_item, created = Cart.objects.get_or_create(
                 user=request.user,
-                product_variant=variant
+                product_variant=variant,
             )
 
             new_quantity = qty if created else cart_item.quantity + qty

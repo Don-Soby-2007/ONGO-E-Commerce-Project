@@ -2,6 +2,7 @@
 {% load static product_extras %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,25 +10,39 @@
     <link href="https://fonts.cdnfonts.com/css/asgrike  " rel="stylesheet">
     <script src="https://cdn.tailwindcss.com  "></script>
     <script src="https://unpkg.com/lucide@latest  "></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
 
         /* Size Option */
         .size-option {
             transition: all 0.2s ease;
             position: relative;
         }
+
         .size-option:hover:not(:disabled) {
             transform: scale(1.06);
             z-index: 10;
         }
+
         .size-option.selected,
         .size-option.selected:hover {
-            background-color: #f92516ff; /* orange-500 */
+            background-color: #f92516ff;
+            /* orange-500 */
             color: white;
             border-color: #f92516ff;
             box-shadow: 0 4px 6px -2px rgba(249, 115, 22, 0.3);
@@ -39,13 +54,14 @@
         /* Color Swatch */
         .color-swatch {
             transition: all 0.25s ease;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             cursor: pointer;
         }
+
         .color-swatch.selected {
             border-width: 3px;
             border-color: white;
-            box-shadow: 0 0 0 3px #f92516ff, 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 0 0 3px #f92516ff, 0 4px 8px rgba(0, 0, 0, 0.15);
             transform: scale(1.15);
         }
 
@@ -53,26 +69,31 @@
         .thumbnail {
             transition: all 0.2s ease;
         }
+
         .thumbnail:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
+
         .thumbnail.active,
         .thumbnail.active:hover {
             border-color: #ff5245ff;
             transform: scale(1.07);
-            box-shadow: 0 0 0 3px #46454540, 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 0 0 3px #46454540, 0 4px 8px rgba(0, 0, 0, 0.15);
         }
+
         #zoom-container img {
-        transition: transform 0.25s ease-out;
-        will-change: transform;
+            transition: transform 0.25s ease-out;
+            will-change: transform;
         }
 
         #zoom-container:hover img {
-            transform: scale(2); /* Adjust zoom level here */
+            transform: scale(2);
+            /* Adjust zoom level here */
         }
     </style>
 </head>
+
 <body class="bg-gray-50 font-sans">
 
     <!-- ✅ Reused Fixed Navbar (identical to listing page) -->
@@ -81,13 +102,16 @@
         <div class="bg-white-100 py-4">
             <div class="container mx-auto px-4 flex items-center justify-between">
                 <div class="flex items-center space-x-4">
-                    <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="Logo" class="h-8">
+                    <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg"
+                        alt="Logo" class="h-8">
                 </div>
                 <div class="flex-1 mx-8">
                     <div class="relative">
-                        
+
                         <button class="absolute right-3 top-1/2 transform -translate-y-1/2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <path d="m21 21-4.35-4.35"></path>
                             </svg>
@@ -103,12 +127,10 @@
                         <div class="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg 
                                     opacity-0 invisible group-hover:opacity-100 group-hover:visible 
                                     transition-all duration-200 z-50">
-                            <a href="{% url 'profile' %}"
-                            class="block px-4 py-2 text-sm hover:bg-gray-100">
+                            <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">
                                 My Profile
                             </a>
-                            <a href="{% url 'logout' %}"
-                            class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
                                 Logout
                             </a>
                         </div>
@@ -143,8 +165,8 @@
         <div class="max-w-7xl mx-auto">
             <!-- Breadcrumb -->
             <div class="text-sm text-gray-500 mb-6">
-                <a href="{% url 'landing' %}" class="hover:text-orange-500">Home</a> / 
-                <a href="{% url 'product_list' %}" class="hover:text-orange-500">{{product.category}}</a> / 
+                <a href="{% url 'landing' %}" class="hover:text-orange-500">Home</a> /
+                <a href="{% url 'product_list' %}" class="hover:text-orange-500">{{product.category}}</a> /
                 <span class="text-gray-800">{{product.name}}</span>
             </div>
 
@@ -158,10 +180,13 @@
                         </div>
 
                         <!-- Main Image Container -->
-                        <div class="relative overflow-hidden cursor-zoom-in z-10 w-full h-full flex items-center justify-center" id="zoom-container">
-                            <img id="main-image" src="" alt="{{ product.name }}" class="w-full h-full object-contain p-4">
+                        <div class="relative overflow-hidden cursor-zoom-in z-10 w-full h-full flex items-center justify-center"
+                            id="zoom-container">
+                            <img id="main-image" src="" alt="{{ product.name }}"
+                                class="w-full h-full object-contain p-4">
                             <!-- Wishlist button positioned above the image -->
-                            <button class="absolute top-8 right-8 p-2.5 bg-white/95 rounded-full shadow-lg hover:bg-white transition-colors z-20">
+                            <button
+                                class="absolute top-8 right-8 p-2.5 bg-white/95 rounded-full shadow-lg hover:bg-white transition-colors z-20">
                                 <i data-lucide="heart" class="text-gray-600 hover:text-red-500 w-5 h-5"></i>
                             </button>
                         </div>
@@ -171,7 +196,10 @@
                 <!-- 📄 Product Info -->
                 <div class="fade-in" style="animation-delay: 0.1s">
                     <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{{product.name}}</h1>
-                    <p><span id="current-price" class="text-orange-600 font-semibold text-lg" >₹{{ display_price|default:"0.00" }}</span> <span class="line-through text-gray-500 ml-2">₹1,999</span> <span class="ml-2 bg-red-100 text-red-700 px-2 py-0.5 rounded">35% OFF</span></p>
+                    <p><span id="current-price" class="text-orange-600 font-semibold text-lg">₹{{
+                            display_price|default:"0.00" }}</span> <span
+                            class="line-through text-gray-500 ml-2">₹1,999</span> <span
+                            class="ml-2 bg-red-100 text-red-700 px-2 py-0.5 rounded">35% OFF</span></p>
                     <div class="flex items-center mt-2">
                         <div class="flex text-amber-400">
                             <i data-lucide="star" class="fill-current w-5 h-5"></i>
@@ -200,8 +228,10 @@
                             <div class="flex justify-between items-center mb-3">
                                 <label class="font-semibold text-gray-800 text-lg">Size</label>
                                 <button class="text-orange-500 text-sm font-medium hover:underline flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     Size Guide
                                 </button>
@@ -216,39 +246,23 @@
                                 <span class="text-gray-500 text-sm">Select color and size to see availability</span>
                             </div>
                         </div>
-                        
+
                         <div class="pt-4 border-t">
                             <div class="flex flex-col sm:flex-row gap-4">
                                 <!-- Quantity Input Group -->
                                 <div class="flex items-center">
-                                    <button 
-                                        type="button"
-                                        id="decrement"
+                                    <button type="button" id="decrement"
                                         class="w-10 h-10 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-l-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        aria-label="Decrease quantity"
-                                        onclick="updateQuantity(-1)"
-                                        disabled
-                                    >
+                                        aria-label="Decrease quantity" onclick="updateQuantity(-1)" disabled>
                                         <span class="text-lg">−</span>
                                     </button>
-                                    
-                                    <input 
-                                        type="number" 
-                                        id="quantity-input"
-                                        min="1"
-                                        max="5"
-                                        value="1"
-                                        readonly
-                                        class="w-16 text-center border-y border-gray-300 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 [-moz-appearance:_textfield] [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none"
-                                    />
-                                    
-                                    <button 
-                                        type="button"
-                                        id="increment"
+
+                                    <input type="number" id="quantity-input" min="1" max="5" value="1" readonly
+                                        class="w-16 text-center border-y border-gray-300 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 [-moz-appearance:_textfield] [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none" />
+
+                                    <button type="button" id="increment"
                                         class="w-10 h-10 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-r-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        aria-label="Increase quantity"
-                                        onclick="updateQuantity(1)"
-                                    >
+                                        aria-label="Increase quantity" onclick="updateQuantity(1)">
                                         <span class="text-lg">+</span>
                                     </button>
                                 </div>
@@ -258,10 +272,12 @@
                         <!-- ✅ Actions -->
                         <div class="pt-4 border-t">
                             <div class="flex flex-col sm:flex-row gap-4">
-                                <button id="addCartBtn" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-4 rounded-lg font-semibold transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center">
+                                <button id="addCartBtn"
+                                    class="flex-1 bg-red-500 hover:bg-red-600 text-white py-4 rounded-lg font-semibold transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center">
                                     <i data-lucide="shopping-cart" class="mr-2"></i> Add to Cart
                                 </button>
-                                <button class="flex-1 bg-black hover:bg-gray-800 text-white py-4 rounded-lg font-semibold transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md">
+                                <button
+                                    class="flex-1 bg-black hover:bg-gray-800 text-white py-4 rounded-lg font-semibold transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md">
                                     <i data-lucide="zap" class="mr-2 inline"></i> Buy Now
                                 </button>
                             </div>
@@ -275,9 +291,11 @@
                     <!-- ✅ Accordion: Details, Care, Size -->
                     <div class="mt-10 space-y-4">
                         <details class="group border-b border-gray-200 pb-4 open:border-orange-500" open>
-                            <summary class="flex justify-between items-center font-semibold text-gray-800 cursor-pointer list-none">
+                            <summary
+                                class="flex justify-between items-center font-semibold text-gray-800 cursor-pointer list-none">
                                 Product Details
-                                <i data-lucide="chevron-down" class="w-5 h-5 transform group-open:rotate-180 transition-transform"></i>
+                                <i data-lucide="chevron-down"
+                                    class="w-5 h-5 transform group-open:rotate-180 transition-transform"></i>
                             </summary>
                             <div class="mt-3 text-gray-600 space-y-2 pl-1">
                                 {{product.description}}
@@ -285,9 +303,11 @@
                         </details>
 
                         <details class="group border-b border-gray-200 pb-4">
-                            <summary class="flex justify-between items-center font-semibold text-gray-800 cursor-pointer list-none">
+                            <summary
+                                class="flex justify-between items-center font-semibold text-gray-800 cursor-pointer list-none">
                                 Care Instructions
-                                <i data-lucide="chevron-down" class="w-5 h-5 transform group-open:rotate-180 transition-transform"></i>
+                                <i data-lucide="chevron-down"
+                                    class="w-5 h-5 transform group-open:rotate-180 transition-transform"></i>
                             </summary>
                             <div class="mt-3 text-gray-600 pl-1">
                                 <p>• Machine wash cold, gentle cycle</p>
@@ -348,7 +368,8 @@
                         <!-- Review 1 -->
                         <div class="bg-white p-5 rounded-xl shadow-sm border">
                             <div class="flex items-start">
-                                <div class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 flex-shrink-0"></div>
+                                <div class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 flex-shrink-0">
+                                </div>
                                 <div class="ml-4">
                                     <div class="flex justify-between">
                                         <h3 class="font-semibold text-gray-900">Rahul S.</h3>
@@ -362,7 +383,8 @@
                                     </div>
                                     <p class="text-gray-500 text-sm mt-0.5">3 days ago • Verified Purchase</p>
                                     <p class="mt-2 text-gray-700">
-                                        Love the fit and print! Fabric is super soft and doesn’t wrinkle easily. Got many compliments at the office.
+                                        Love the fit and print! Fabric is super soft and doesn’t wrinkle easily. Got
+                                        many compliments at the office.
                                     </p>
                                 </div>
                             </div>
@@ -371,7 +393,8 @@
                         <!-- Review 2 -->
                         <div class="bg-white p-5 rounded-xl shadow-sm border">
                             <div class="flex items-start">
-                                <div class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 flex-shrink-0"></div>
+                                <div class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 flex-shrink-0">
+                                </div>
                                 <div class="ml-4">
                                     <div class="flex justify-between">
                                         <h3 class="font-semibold text-gray-900">Priya M.</h3>
@@ -385,7 +408,8 @@
                                     </div>
                                     <p class="text-gray-500 text-sm mt-0.5">1 week ago • Verified Purchase</p>
                                     <p class="mt-2 text-gray-700">
-                                        Bought for my husband — he’s obsessed! Washed 3x, color still vibrant. Will buy in other colors.
+                                        Bought for my husband — he’s obsessed! Washed 3x, color still vibrant. Will buy
+                                        in other colors.
                                     </p>
                                 </div>
                             </div>
@@ -394,7 +418,8 @@
                         <!-- Review 3 -->
                         <div class="bg-white p-5 rounded-xl shadow-sm border">
                             <div class="flex items-start">
-                                <div class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 flex-shrink-0"></div>
+                                <div class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 flex-shrink-0">
+                                </div>
                                 <div class="ml-4">
                                     <div class="flex justify-between">
                                         <h3 class="font-semibold text-gray-900">Arjun K.</h3>
@@ -408,7 +433,8 @@
                                     </div>
                                     <p class="text-gray-500 text-sm mt-0.5">2 weeks ago • Verified Purchase</p>
                                     <p class="mt-2 text-gray-700">
-                                        Great shirt, but sleeves are slightly long for me (5'8"). Otherwise, quality is top-notch.
+                                        Great shirt, but sleeves are slightly long for me (5'8"). Otherwise, quality is
+                                        top-notch.
                                     </p>
                                 </div>
                             </div>
@@ -432,7 +458,8 @@
                     <h3 class="text-lg font-bold mb-4">Women</h3>
                     <ul class="space-y-2">
                         <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Tops</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Dresses & Jumsuits</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Dresses & Jumsuits</a>
+                        </li>
                         <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Sportswear</a></li>
                         <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Bottoms</a></li>
                         <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Winterwear</a></li>
@@ -523,7 +550,8 @@
                         <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Contact us</a></li>
                         <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shipping</a></li>
                         <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Returns Process</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Returns And Exchange Policy</a></li>
+                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Returns And Exchange
+                                Policy</a></li>
                         <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Help Centre</a></li>
                     </ul>
                 </div>
@@ -563,9 +591,11 @@
                 </div>
 
                 <!-- Copyright -->
-                <div class="flex flex-col md:flex-row justify-between items-center mt-8 pt-8 border-t border-gray-200 text-gray-600 text-sm">
+                <div
+                    class="flex flex-col md:flex-row justify-between items-center mt-8 pt-8 border-t border-gray-200 text-gray-600 text-sm">
                     <div class="flex items-center space-x-2">
-                        <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="Ongo Logo" class="h-6">
+                        <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg"
+                            alt="Ongo Logo" class="h-6">
                         <span>© 2025 Retail World Limited</span>
                     </div>
                     <div class="flex space-x-4">
@@ -579,381 +609,433 @@
     </footer>
 
     <script>
-    lucide.createIcons();
-    let selectedColor = null;
-    let selectedSize = null;
-    let selectedVariant = null;
-    const container = document.getElementById('zoom-container');
-    const img = document.getElementById('main-image');
+        lucide.createIcons();
+        let selectedColor = null;
+        let selectedSize = null;
+        let selectedVariant = null;
+        const container = document.getElementById('zoom-container');
+        const img = document.getElementById('main-image');
 
-    container.addEventListener('mousemove', (e) => {
-        // Get dimensions of the container
-        const { left, top, width, height } = container.getBoundingClientRect();
-        
-        // Calculate mouse position in percentage (0 to 100)
-        const x = ((e.pageX - left - window.scrollX) / width) * 100;
-        const y = ((e.pageY - top - window.scrollY) / height) * 100;
+        container.addEventListener('mousemove', (e) => {
+            // Get dimensions of the container
+            const { left, top, width, height } = container.getBoundingClientRect();
 
-        // Move the transform origin to the mouse position
-        img.style.transformOrigin = `${x}% ${y}%`;
-    });
+            // Calculate mouse position in percentage (0 to 100)
+            const x = ((e.pageX - left - window.scrollX) / width) * 100;
+            const y = ((e.pageY - top - window.scrollY) / height) * 100;
 
-    container.addEventListener('mouseleave', () => {
-        // Reset to center when mouse leaves
-        img.style.transformOrigin = 'center';
-    });
-
-    function updateQuantity(change) {
-        const input = document.getElementById('quantity-input');
-        if (!input) return;
-
-        // ✅ Safe guard: if no variant selected, do nothing (or reset)
-        if (!selectedVariant) {
-            input.value = 1;
-            const dec = document.getElementById('decrement');
-            const inc = document.getElementById('increment');
-            if (dec) dec.disabled = true;
-            if (inc) inc.disabled = false; // allow increment once variant is chosen
-            return;
-        }
-
-        let currentValue = parseInt(input.value) || 1;
-        const maxQty = Math.min(5, selectedVariant.stock); // Now safe!
-        const minQty = 1;
-
-        let newValue = currentValue + change;
-        newValue = Math.max(minQty, Math.min(maxQty, newValue));
-        input.value = newValue;
-
-        // Update buttons
-        const decrementBtn = document.getElementById('decrement');
-        const incrementBtn = document.getElementById('increment');
-        if (decrementBtn) decrementBtn.disabled = (newValue <= 1);
-        if (incrementBtn) incrementBtn.disabled = (newValue >= maxQty);
-
-        // Optional: refresh cart button
-        if (typeof updateAddToCartButton === 'function') {
-            updateAddToCartButton();
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        // Get raw data from backend
-        const variantsByColor = {{ variants_by_color_json|safe }};
-        const imagesByColor = {{ images_by_color_json|safe }};
-        const availableColors = {{ all_colors|safe }};
-
-        //Quantity checker
-        const qtyInput = document.getElementById('quantity-input');
-        const decBtn = document.getElementById('decrement');
-        const incBtn = document.getElementById('increment');
-
-        if (qtyInput) qtyInput.value = 1;
-        if (decBtn) decBtn.disabled = true;
-        if (incBtn) incBtn.disabled = false; 
-        
-        // DOM elements
-        const colorOptions = document.getElementById('color-options');
-        const sizeButtons = document.getElementById('size-buttons');
-        const thumbnailContainer = document.getElementById('thumbnail-container');
-        const mainImage = document.getElementById('main-image');
-        const selectedColorText = document.getElementById('selected-color-text');
-        const stockMessage = document.getElementById('stock-message');
-        const addCartBtn = document.getElementById('addCartBtn');
-        const currentPriceElement = document.getElementById('current-price');
-        
-        // Initialize color options
-        function initializeColors() {
-            colorOptions.innerHTML = '';
-            availableColors.forEach(color => {
-                const div = document.createElement('div');
-                div.className = 'relative w-10 h-10 rounded-full border-2 border-white shadow cursor-pointer color-swatch';
-                div.dataset.color = color;
-                div.dataset.images = JSON.stringify(imagesByColor[color]);
-                div.style.backgroundColor = color.toLowerCase();
-                div.title = color;
-                
-                div.addEventListener('click', () => {
-                    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-                    div.classList.add('selected');
-                    selectedColor = color;
-                    selectedColorText.textContent = color;
-                    
-                    updateThumbnails();
-                    updateSizes();
-                });
-                
-                colorOptions.appendChild(div);
-            });
-            
-            // Auto-select first color if available
-            if (availableColors.length > 0) {
-                const firstSwatch = colorOptions.querySelector('.color-swatch');
-                firstSwatch.classList.add('selected');
-                selectedColor = availableColors[0];
-                selectedColorText.textContent = availableColors[0];
-                
-                updateThumbnails();
-                updateSizes();
-            }
-        }
-        
-        // Update thumbnails based on selected color
-        function updateThumbnails() {
-            if (!selectedColor || !imagesByColor[selectedColor]) {
-                thumbnailContainer.innerHTML = '';
-                return;
-            }
-            
-            const images = imagesByColor[selectedColor];
-            thumbnailContainer.innerHTML = '';
-            
-            images.forEach((url, idx) => {
-                const div = document.createElement('div');
-                div.className = `thumbnail w-20 h-20 rounded-lg bg-gray-200 border-2 border-transparent cursor-pointer ${idx === 0 ? 'active' : ''}`;
-                div.dataset.index = idx;
-                div.style.backgroundImage = `url('${url}')`;
-                div.style.backgroundSize = 'cover';
-                div.style.backgroundPosition = 'center';
-                
-                div.addEventListener('click', () => {
-                    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-                    div.classList.add('active');
-                    mainImage.src = url;
-                });
-                
-                thumbnailContainer.appendChild(div);
-            });
-            
-            // Set first image as main
-            if (images.length > 0) {
-                mainImage.src = images[0];
-            }
-        }
-        
-        // Update size options based on selected color
-        function updateSizes() {
-            if (!selectedColor || !variantsByColor[selectedColor]) {
-                sizeButtons.innerHTML = '<div class="text-gray-500 italic">No sizes available</div>';
-                stockMessage.innerHTML = '<span class="text-gray-500 text-sm">No sizes available</span>';
-                return;
-            }
-            
-            const variants = variantsByColor[selectedColor];
-            sizeButtons.innerHTML = '';
-            
-            let firstInStock = null;
-            
-            variants.forEach(variant => {
-                const btn = document.createElement('button');
-                const maxAllowed = Math.min(5, variant.stock)
-                btn.dataset.maxQty = maxAllowed
-                
-                if (variant.stock > 0) {
-                    btn.className = 'size-option w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 border-gray-300 flex items-center justify-center font-bold text-gray-800 text-base transition-all duration-200 hover:scale-105 hover:shadow-md hover:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-opacity-50';
-                    btn.textContent = variant.size;
-                    btn.dataset.variantId = variant.id;
-                    btn.dataset.size = variant.size;
-                    
-                    btn.addEventListener('click', () => {
-                        document.querySelectorAll('.size-option').forEach(b => b.classList.remove('selected'));
-                        btn.classList.add('selected');
-                        selectedSize = variant.size;
-                        selectedVariant = variant;
-                        currentPriceElement.innerText = variant.price;
-                        updateAddToCartButton();
-                    });
-                    
-                    if (!firstInStock) {
-                        firstInStock = variant;
-                        btn.classList.add('selected');
-                        selectedSize = variant.size;
-                        selectedVariant = variant;
-                        currentPriceElement.innerText = variant.price;
-                    }
-                } else {
-                    btn.className = 'w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 border-gray-200 bg-gray-50 flex items-center justify-center font-bold text-gray-400 text-base cursor-not-allowed opacity-80';
-                    btn.textContent = variant.size;
-                    btn.disabled = true;
-                    btn.title = "Out of stock";
-                    
-                    const badge = document.createElement('span');
-                    badge.className = 'absolute -top-2 -right-2 bg-gray-200 text-gray-600 text-[10px] font-medium px-1.5 py-0.5 rounded-full';
-                    badge.textContent = 'OOS';
-                    btn.appendChild(badge);
-                }
-                
-                sizeButtons.appendChild(btn);
-            });
-            
-            updateStockMessage();
-            updateAddToCartButton();
-        }
-        
-        // Update stock message
-        function updateStockMessage() {
-            if (!selectedColor) {
-                stockMessage.innerHTML = '<span class="text-gray-500 text-sm">Select a color first</span>';
-                return;
-            }
-            
-            const variants = variantsByColor[selectedColor] || [];
-            const inStock = variants.filter(v => v.stock > 0);
-            const outOfStock = variants.filter(v => v.stock <= 0);
-            
-            if (inStock.length > 0) {
-                const inStockSizes = inStock.map(v => v.size).join(', ');
-                stockMessage.innerHTML = `
-                    <span class="flex items-center text-green-600 font-medium">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        In stock • Ships in 24h (${inStockSizes})
-                    </span>
-                `;
-            } else if (outOfStock.length > 0) {
-                stockMessage.innerHTML = `
-                    <span class="flex items-center text-red-500 font-medium">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        Temporarily out of stock
-                    </span>
-                    <button class="ml-3 text-sm text-orange-500 underline hover:no-underline">
-                        Notify when available
-                    </button>
-                `;
-            } else {
-                stockMessage.innerHTML = '<span class="text-gray-500 text-sm">No sizes available</span>';
-            }
-        }
-        
-        // Update Add to Cart button
-        function updateAddToCartButton() {
-            if (!selectedVariant) {
-                addCartBtn.disabled = true;
-                addCartBtn.textContent = 'Select Size';
-                addCartBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                addCartBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
-                return;
-            }
-            
-            if (selectedVariant.stock <= 0) {
-                addCartBtn.disabled = true;
-                addCartBtn.textContent = 'Out of Stock';
-                addCartBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                addCartBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
-                return;
-            }
-            
-            addCartBtn.disabled = false;
-            addCartBtn.innerHTML = '<i data-lucide="shopping-cart" class="mr-2"></i> Add to Cart';
-            addCartBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            addCartBtn.classList.add('bg-red-500', 'hover:bg-red-600');
-            lucide.createIcons();
-        }
-        
-        // Add to Cart handler
-        addCartBtn.addEventListener('click', async function() {
-            if (!selectedVariant) {
-                alert('Please select a size.');
-                return;
-            }
-
-            const quantity = parseInt(document.getElementById('quantity-input').value);
-
-            // ✅ Final server-side validation
-            try {
-                const response = await fetch("{% url 'add_to_cart' %}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({
-                        product_variant_id: selectedVariant.id,
-                        quantity: quantity
-                    })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    const original = this.innerHTML;
-                    this.innerHTML = '<i data-lucide="check" class="mr-2"></i> Added!';
-                    this.classList.replace('bg-red-500', 'bg-green-500');
-                    lucide.createIcons();
-
-                    setTimeout(() => {
-                        this.innerHTML = original;
-                        this.classList.replace('bg-green-500', 'bg-red-500');
-                        lucide.createIcons();
-                    }, 1500);
-                    
-                } else {
-                    // Handle out-of-stock or other errors
-                    alert(data.message || 'Failed to add to cart');
-                    // Optionally refresh stock UI if needed
-                }
-            } catch (error) {
-                console.error('Add to cart failed:', error);
-                alert('Network error. Please try again.');
-            }
+            // Move the transform origin to the mouse position
+            img.style.transformOrigin = `${x}% ${y}%`;
         });
-        
-        // Initialize the page
-        initializeColors();
 
-        function updateQuantityControls() {
+        container.addEventListener('mouseleave', () => {
+            // Reset to center when mouse leaves
+            img.style.transformOrigin = 'center';
+        });
+
+        function updateQuantity(change) {
             const input = document.getElementById('quantity-input');
+            if (!input) return;
+
+            // ✅ Safe guard: if no variant selected, do nothing (or reset)
+            if (!selectedVariant) {
+                input.value = 1;
+                const dec = document.getElementById('decrement');
+                const inc = document.getElementById('increment');
+                if (dec) dec.disabled = true;
+                if (inc) inc.disabled = false; // allow increment once variant is chosen
+                return;
+            }
+
+            let currentValue = parseInt(input.value) || 1;
+            const maxQty = Math.min(5, selectedVariant.stock); // Now safe!
+            const minQty = 1;
+
+            let newValue = currentValue + change;
+            newValue = Math.max(minQty, Math.min(maxQty, newValue));
+            input.value = newValue;
+
+            // Update buttons
             const decrementBtn = document.getElementById('decrement');
             const incrementBtn = document.getElementById('increment');
-            
-            if (!selectedVariant) {
-                decrementBtn.disabled = true;
-                incrementBtn.disabled = true;
-                return;
+            if (decrementBtn) decrementBtn.disabled = (newValue <= 1);
+            if (incrementBtn) incrementBtn.disabled = (newValue >= maxQty);
+
+            // Optional: refresh cart button
+            if (typeof updateAddToCartButton === 'function') {
+                updateAddToCartButton();
             }
-            
-            const currentQty = parseInt(input.value) || 1;
-            const maxQty = Math.min(5, selectedVariant.stock); // Critical: use variant-specific limit
-            
-            // Enforce current value within bounds
-            if (currentQty > maxQty) {
-                input.value = maxQty;
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Get raw data from backend
+            const variantsByColor = {{ variants_by_color_json| safe}};
+            const imagesByColor = {{ images_by_color_json| safe }};
+            const availableColors = {{ all_colors| safe }};
+
+            //Quantity checker
+            const qtyInput = document.getElementById('quantity-input');
+            const decBtn = document.getElementById('decrement');
+            const incBtn = document.getElementById('increment');
+
+            if (qtyInput) qtyInput.value = 1;
+            if (decBtn) decBtn.disabled = true;
+            if (incBtn) incBtn.disabled = false;
+
+            // DOM elements
+            const colorOptions = document.getElementById('color-options');
+            const sizeButtons = document.getElementById('size-buttons');
+            const thumbnailContainer = document.getElementById('thumbnail-container');
+            const mainImage = document.getElementById('main-image');
+            const selectedColorText = document.getElementById('selected-color-text');
+            const stockMessage = document.getElementById('stock-message');
+            const addCartBtn = document.getElementById('addCartBtn');
+            const currentPriceElement = document.getElementById('current-price');
+
+            // Initialize color options
+            function initializeColors() {
+                colorOptions.innerHTML = '';
+                availableColors.forEach(color => {
+                    const div = document.createElement('div');
+                    div.className = 'relative w-10 h-10 rounded-full border-2 border-white shadow cursor-pointer color-swatch';
+                    div.dataset.color = color;
+                    div.dataset.images = JSON.stringify(imagesByColor[color]);
+                    div.style.backgroundColor = color.toLowerCase();
+                    div.title = color;
+
+                    div.addEventListener('click', () => {
+                        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                        div.classList.add('selected');
+                        selectedColor = color;
+                        selectedColorText.textContent = color;
+
+                        updateThumbnails();
+                        updateSizes();
+                    });
+
+                    colorOptions.appendChild(div);
+                });
+
+                // Auto-select first color if available
+                if (availableColors.length > 0) {
+                    const firstSwatch = colorOptions.querySelector('.color-swatch');
+                    firstSwatch.classList.add('selected');
+                    selectedColor = availableColors[0];
+                    selectedColorText.textContent = availableColors[0];
+
+                    updateThumbnails();
+                    updateSizes();
+                }
             }
-            
-            // Update button states
-            decrementBtn.disabled = (input.value <= 1);
-            incrementBtn.disabled = (input.value >= maxQty);
-            
-            // Optional: Show stock message
-            const stockMsg = document.getElementById('stock-message');
-            if (stockMsg) {
-                if (maxQty <= 0) {
-                    stockMsg.textContent = 'Out of stock';
-                } else if (maxQty < 5) {
-                    stockMsg.textContent = `${maxQty} left in stock`;
+
+            // Update thumbnails based on selected color
+            function updateThumbnails() {
+                if (!selectedColor || !imagesByColor[selectedColor]) {
+                    thumbnailContainer.innerHTML = '';
+                    return;
+                }
+
+                const images = imagesByColor[selectedColor];
+                thumbnailContainer.innerHTML = '';
+
+                images.forEach((url, idx) => {
+                    const div = document.createElement('div');
+                    div.className = `thumbnail w-20 h-20 rounded-lg bg-gray-200 border-2 border-transparent cursor-pointer ${idx === 0 ? 'active' : ''}`;
+                    div.dataset.index = idx;
+                    div.style.backgroundImage = `url('${url}')`;
+                    div.style.backgroundSize = 'cover';
+                    div.style.backgroundPosition = 'center';
+
+                    div.addEventListener('click', () => {
+                        document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+                        div.classList.add('active');
+                        mainImage.src = url;
+                    });
+
+                    thumbnailContainer.appendChild(div);
+                });
+
+                // Set first image as main
+                if (images.length > 0) {
+                    mainImage.src = images[0];
+                }
+            }
+
+            // Update size options based on selected color
+            function updateSizes() {
+                if (!selectedColor || !variantsByColor[selectedColor]) {
+                    sizeButtons.innerHTML = '<div class="text-gray-500 italic">No sizes available</div>';
+                    stockMessage.innerHTML = '<span class="text-gray-500 text-sm">No sizes available</span>';
+                    return;
+                }
+
+                const variants = variantsByColor[selectedColor];
+                sizeButtons.innerHTML = '';
+
+                let firstInStock = null;
+
+                variants.forEach(variant => {
+                    const btn = document.createElement('button');
+                    const maxAllowed = Math.min(5, variant.stock)
+                    btn.dataset.maxQty = maxAllowed
+
+                    if (variant.stock > 0) {
+                        btn.className = 'size-option w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 border-gray-300 flex items-center justify-center font-bold text-gray-800 text-base transition-all duration-200 hover:scale-105 hover:shadow-md hover:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-opacity-50';
+                        btn.textContent = variant.size;
+                        btn.dataset.variantId = variant.id;
+                        btn.dataset.size = variant.size;
+
+                        btn.addEventListener('click', () => {
+                            document.querySelectorAll('.size-option').forEach(b => b.classList.remove('selected'));
+                            btn.classList.add('selected');
+                            selectedSize = variant.size;
+                            selectedVariant = variant;
+                            currentPriceElement.innerText = variant.price;
+                            updateAddToCartButton();
+                        });
+
+                        if (!firstInStock) {
+                            firstInStock = variant;
+                            btn.classList.add('selected');
+                            selectedSize = variant.size;
+                            selectedVariant = variant;
+                            currentPriceElement.innerText = variant.price;
+                        }
+                    } else {
+                        btn.className = 'w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 border-gray-200 bg-gray-50 flex items-center justify-center font-bold text-gray-400 text-base cursor-not-allowed opacity-80';
+                        btn.textContent = variant.size;
+                        btn.disabled = true;
+                        btn.title = "Out of stock";
+
+                        const badge = document.createElement('span');
+                        badge.className = 'absolute -top-2 -right-2 bg-gray-200 text-gray-600 text-[10px] font-medium px-1.5 py-0.5 rounded-full';
+                        badge.textContent = 'OOS';
+                        btn.appendChild(badge);
+                    }
+
+                    sizeButtons.appendChild(btn);
+                });
+
+                updateStockMessage();
+                updateAddToCartButton();
+            }
+
+            // Update stock message
+            function updateStockMessage() {
+                if (!selectedColor) {
+                    stockMessage.innerHTML = '<span class="text-gray-500 text-sm">Select a color first</span>';
+                    return;
+                }
+
+                const variants = variantsByColor[selectedColor] || [];
+                const inStock = variants.filter(v => v.stock > 0);
+                const outOfStock = variants.filter(v => v.stock <= 0);
+
+                if (inStock.length > 0) {
+                    const inStockSizes = inStock.map(v => v.size).join(', ');
+                    stockMessage.innerHTML = `
+                        <span class="flex items-center text-green-600 font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            In stock • Ships in 24h (${inStockSizes})
+                        </span>
+                    `;
+                } else if (outOfStock.length > 0) {
+                    stockMessage.innerHTML = `
+                        <span class="flex items-center text-red-500 font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Temporarily out of stock
+                        </span>
+                        <button class="ml-3 text-sm text-orange-500 underline hover:no-underline">
+                            Notify when available
+                        </button>
+                    `;
                 } else {
-                    stockMsg.textContent = 'In stock';
+                    stockMessage.innerHTML = '<span class="text-gray-500 text-sm">No sizes available</span>';
                 }
             }
-        }
-    });
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
+
+            // Update Add to Cart button
+            function updateAddToCartButton() {
+                if (!selectedVariant) {
+                    addCartBtn.disabled = true;
+                    addCartBtn.textContent = 'Select Size';
+                    addCartBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    addCartBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                    return;
+                }
+
+                if (selectedVariant.stock <= 0) {
+                    addCartBtn.disabled = true;
+                    addCartBtn.textContent = 'Out of Stock';
+                    addCartBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    addCartBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                    return;
+                }
+
+                addCartBtn.disabled = false;
+                addCartBtn.innerHTML = '<i data-lucide="shopping-cart" class="mr-2"></i> Add to Cart';
+                addCartBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                addCartBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+                lucide.createIcons();
+            }
+
+            // Add to Cart handler
+
+            addCartBtn.addEventListener('click', async function () {
+                if (!selectedVariant) {
+                    Swal.fire({
+                        toast: true,
+                        icon: 'warning',
+                        title: 'Please select a size.',
+                        position: 'top-right',
+                        showConfirmButton: false,
+                        timer: 3500,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer);
+                            toast.addEventListener('mouseleave', Swal.resumeTimer);
+                        }
+                    });
+                    return;
+                }
+
+                const quantity = parseInt(document.getElementById('quantity-input').value);
+
+                // ✅ Final server-side validation
+                try {
+                    const response = await fetch("{% url 'add_to_cart' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            product_variant_id: selectedVariant.id,
+                            quantity: quantity
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        const original = this.innerHTML;
+                        this.innerHTML = '<i data-lucide="check" class="mr-2"></i> Added!';
+                        this.classList.replace('bg-red-500', 'bg-green-500');
+                        lucide.createIcons();
+
+                        Swal.fire({
+                            toast: true,
+                            icon: 'success',
+                            title: data.message || 'Added to cart successfully!',
+                            position: 'top-right',
+                            showConfirmButton: false,
+                            timer: 3500,
+                            timerProgressBar: true,
+                            didOpen: (toast) => {
+                                toast.addEventListener('mouseenter', Swal.stopTimer);
+                                toast.addEventListener('mouseleave', Swal.resumeTimer);
+                            }
+                        });
+
+                        setTimeout(() => {
+                            this.innerHTML = original;
+                            this.classList.replace('bg-green-500', 'bg-red-500');
+                            lucide.createIcons();
+                        }, 1500);
+
+                    } else {
+                        // Handle out-of-stock or other errors
+                        Swal.fire({
+                            toast: true,
+                            icon: 'error',
+                            title: data.message || 'Failed to add to cart',
+                            position: 'top-right',
+                            showConfirmButton: false,
+                            timer: 3500,
+                            timerProgressBar: true,
+                            didOpen: (toast) => {
+                                toast.addEventListener('mouseenter', Swal.stopTimer);
+                                toast.addEventListener('mouseleave', Swal.resumeTimer);
+                            }
+                        });
+                        // Optionally refresh stock UI if needed
+                    }
+                } catch (error) {
+                    console.error('Add to cart failed:', error);
+                    Swal.fire({
+                        toast: true,
+                        icon: 'error',
+                        title: 'Network error. Please try again.',
+                        position: 'top-right',
+                        showConfirmButton: false,
+                        timer: 3500,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer);
+                            toast.addEventListener('mouseleave', Swal.resumeTimer);
+                        }
+                    });
+                }
+            });
+
+            // Initialize the page
+            initializeColors();
+
+            function updateQuantityControls() {
+                const input = document.getElementById('quantity-input');
+                const decrementBtn = document.getElementById('decrement');
+                const incrementBtn = document.getElementById('increment');
+
+                if (!selectedVariant) {
+                    decrementBtn.disabled = true;
+                    incrementBtn.disabled = true;
+                    return;
+                }
+
+                const currentQty = parseInt(input.value) || 1;
+                const maxQty = Math.min(5, selectedVariant.stock); // Critical: use variant-specific limit
+
+                // Enforce current value within bounds
+                if (currentQty > maxQty) {
+                    input.value = maxQty;
+                }
+
+                // Update button states
+                decrementBtn.disabled = (input.value <= 1);
+                incrementBtn.disabled = (input.value >= maxQty);
+
+                // Optional: Show stock message
+                const stockMsg = document.getElementById('stock-message');
+                if (stockMsg) {
+                    if (maxQty <= 0) {
+                        stockMsg.textContent = 'Out of stock';
+                    } else if (maxQty < 5) {
+                        stockMsg.textContent = `${maxQty} left in stock`;
+                    } else {
+                        stockMsg.textContent = 'In stock';
+                    }
                 }
             }
+        });
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
         }
-        return cookieValue;
-    }
-    </script>       
+    </script>
 </body>
+
 </html>
