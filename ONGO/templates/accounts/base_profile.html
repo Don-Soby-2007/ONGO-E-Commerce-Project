@@ -5,24 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/accounts/profile_section.css' %}">
-<script>
-    tailwind.config = {
-        theme: {
-            extend: {
-                fontFamily: {
-                    sans: ['Inter', 'sans-serif'],
-                },
-                colors: {
-                    brand: {
-                        black: '#000000',
-                        red: '#ef4444',
-                        darkRed: '#dc2626',
-                    }
-                }
-            }
-        }
-    }
-</script>
+
 {% endblock %}
 
 {% block content %}
@@ -30,7 +13,7 @@
 
     <!-- Mobile Sidebar Toggle -->
     <button id="mobile-menu-toggle"
-        class="md:hidden fixed bottom-4 right-4 z-50 bg-brand-red text-white p-3 rounded-full shadow-lg hover:bg-brand-darkRed focus:outline-none transition-colors">
+        class="md:hidden fixed bottom-4 right-4 z-50 bg-red-500 text-white p-3 rounded-full shadow-lg hover:bg-red-600 focus:outline-none transition-colors">
         <i data-lucide="menu" class="w-6 h-6"></i>
     </button>
 
@@ -51,23 +34,23 @@
                 <a href="{% url 'profile' %}"
                     class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %} flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if request.resolver_match.url_name == 'profile' %}text-gray-700{% else %}text-gray-600{% endif %} hover:bg-gray-100 group">
                     <i data-lucide="user"
-                        class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'profile' %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-brand-red"></i>
+                        class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'profile' %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-red-500"></i>
                     My Account
                 </a>
                 <a href="#"
                     class="nav-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 group">
-                    <i data-lucide="package" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-brand-red"></i>
+                    <i data-lucide="package" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-red-500"></i>
                     My Orders
                 </a>
                 <a href="#"
                     class="nav-link {% if request.resolver_match.url_name == 'wishlist' %}active{% endif %} flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if request.resolver_match.url_name == 'wishlist' %}text-gray-700{% else %}text-gray-600{% endif %} hover:bg-gray-100 group">
                     <i data-lucide="heart"
-                        class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'wishlist' %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-brand-red"></i>
+                        class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'wishlist' %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-red-500"></i>
                     Wishlist
                 </a>
                 <a href="#"
                     class="nav-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 group">
-                    <i data-lucide="wallet" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-brand-red"></i>
+                    <i data-lucide="wallet" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-red-500"></i>
                     Wallet
                 </a>
             </nav>
@@ -77,13 +60,13 @@
                 <a href="{% url 'manage_address' %}"
                     class="nav-link {% if 'address' in request.resolver_match.url_name %}active{% endif %} flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if 'address' in request.resolver_match.url_name %}text-gray-700{% else %}text-gray-600{% endif %} hover:bg-gray-100 group">
                     <i data-lucide="map-pin"
-                        class="w-5 h-5 mr-3 {% if 'address' in request.resolver_match.url_name %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-brand-red"></i>
+                        class="w-5 h-5 mr-3 {% if 'address' in request.resolver_match.url_name %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-red-500"></i>
                     Manage Address
                 </a>
                 <a href="{% url 'manage_password' %}"
                     class="nav-link {% if request.resolver_match.url_name == 'manage_password' %}active{% endif %} flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if request.resolver_match.url_name == 'manage_password' %}text-gray-700{% else %}text-gray-600{% endif %} hover:bg-gray-100 group">
                     <i data-lucide="lock"
-                        class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'manage_password' %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-brand-red"></i>
+                        class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'manage_password' %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-red-500"></i>
                     Manage Password
                 </a>
             </nav>
@@ -92,7 +75,7 @@
             <nav class="space-y-1">
                 <a href="#"
                     class="nav-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 group">
-                    <i data-lucide="gift" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-brand-red"></i>
+                    <i data-lucide="gift" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-red-500"></i>
                     My Referral
                 </a>
             </nav>
