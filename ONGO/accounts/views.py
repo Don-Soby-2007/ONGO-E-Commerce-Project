@@ -503,7 +503,7 @@ class AddressView(ListView):
     context_object_name = 'addresses'
 
     def get_queryset(self):
-        return Address.objects.all().order_by('-is_default')
+        return Address.objects.filter(user=self.request.user).order_by('-is_default')
 
 
 @method_decorator(login_required, name='dispatch')
