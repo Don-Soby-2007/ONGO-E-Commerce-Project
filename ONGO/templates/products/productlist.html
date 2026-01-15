@@ -6,21 +6,21 @@
 {% block extra_css %}
 <style>
     .fixed-sidebar {
-        position: fixed;
+        position: sticky;
         top: 130px;
         /* Adjusted for base header height */
-        left: 0;
         width: 280px;
-        height: calc(100vh - 130px);
+        min-width: 280px;
+        max-height: calc(100vh - 140px);
         overflow-y: auto;
         background-color: white;
         z-index: 40;
-        box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+        border-right: 1px solid #f3f4f6;
     }
 
     .product-grid {
-        margin-left: 290px;
-        margin-top: 20px;
+        /* Flex-1 handles width */
+        margin-top: 0;
     }
 
     .product-card {
@@ -49,12 +49,8 @@
 <form method="GET" action='{% url "product_list" %}'>
     <div class="container mx-auto px-4 py-8">
         <div class="flex">
-            <!-- Fixed Filters Sidebar -->
-            <aside class="fixed-sidebar p-4">
-                <div>
-                    <br>
-                    <br>
-                </div>
+            <!-- Sticky Filters Sidebar -->
+            <aside class="fixed-sidebar p-4 h-full">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-lg font-bold">FILTERS</h3>
                     <a href="{% url 'product_list' %}" class="text-orange-500 text-sm">Clear all</a>
@@ -82,9 +78,8 @@
                         <label class="px-3 py-1 border rounded-full text-sm cursor-pointer
                                             bg-white hover:bg-gray-100 transition-colors
                                             focus-within:ring-2 focus-within:ring-red-500">
-                            <input type="checkbox" name="category" value="{{ cat.name }}" class="sr-only peer" {% if cat.name in selected_categories %} 
-                            checked {% endif %}>
- 
+                            <input type="checkbox" name="category" value="{{ cat.name }}" class="sr-only peer" {% if cat.name in selected_categories %} checked {% endif %}>
+
                             <span class="peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500">
                                 {{ cat.name }}
                             </span>
@@ -114,7 +109,8 @@
                                 </option>
                                 <option value="l-h" {% if request.GET.sort == 'l-h' %}selected{% endif %}>Price: Low to
                                     High</option>
-                                <option value='h-l' {% if request.GET.sort == 'h-l' %}selected{% endif %}>Price: High toLow</option>
+                                <option value='h-l' {% if request.GET.sort == 'h-l' %}selected{% endif %}>Price: High
+                                    toLow</option>
                                 <option value='a-z' {% if request.GET.sort == 'a-z' %}selected{% endif %}>Aa-Zz</option>
                                 <option value='z-a' {% if request.GET.sort == 'z-a' %}selected{% endif %}>Zz-Aa</option>
                             </select>
