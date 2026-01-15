@@ -75,9 +75,9 @@
 
 {% block content %}
 <!-- ✅ Product Detail Section -->
-<div class="max-w-7xl mx-auto px-4 md:px-8 lg:px-16 pt-8 pb-16">
+<div class="max-w-7xl mx-auto px-4 md:px-8 lg:px-16 pt-8 pb-16 mt-20">
     <!-- Breadcrumb -->
-    <div class="text-sm text-gray-500 mb-6">
+    <div class="text-sm text-gray-500 mb-6 mt-10">
         <a href="{% url 'landing' %}" class="hover:text-orange-500">Home</a> /
         <a href="{% url 'product_list' %}" class="hover:text-orange-500">{{product.category}}</a> /
         <span class="text-gray-800">{{product.name}}</span>
