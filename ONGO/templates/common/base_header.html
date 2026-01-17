@@ -46,41 +46,47 @@
                     </a>
                 </div>
                 <div class="flex-1 mx-8">
-                    <div class="relative">
-                        <!-- Potential search bar location -->
-                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <path d="m21 21-4.35-4.35"></path>
-                            </svg>
+                    <form method="GET" action="{% url 'product_list' %}" class="relative">
+                        {% for key, values in request.GET.lists %}
+                            {% if key != 'q' and key != 'page' %}
+                                {% for value in values %}
+                                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                                {% endfor %}                                
+                            {% endif %}
+                        {% endfor %}
+                        <input type="text" name="q" value="{{ request.GET.q|default:'' }}"
+                            placeholder="Search for products..."
+                            class="w-full pl-4 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all">
+                        <button type="submit"
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-500">
+                            <i data-lucide="search" class="w-5 h-5"></i>
                         </button>
-                    </div>
+                    </form>
                 </div>
-                <div class="flex gap-5 items-center space-x-4">
+                <div class="flex gap-5 items-center space-x-4 mx-8">
                     <div class="relative inline-block group">
                         {% if request.user.is_authenticated %}
-                            <!-- User Icon -->
-                            <i data-lucide="user-round" class="w-6 h-6 cursor-pointer"></i>
+                        <!-- User Icon -->
+                        <i data-lucide="user-round" class="w-6 h-6 cursor-pointer"></i>
 
-                            <!-- Dropdown -->
-                            <div class="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg 
+                        <!-- Dropdown -->
+                        <div class="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg 
                                         opacity-0 invisible group-hover:opacity-100 group-hover:visible 
                                         transition-all duration-200 z-50">
-                                <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">
-                                    My Profile
-                                </a>
-                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
-                                    Logout
-                                </a>
-                            </div>
-                        {% else %}
-                            <a href="{% url 'login' %}" class="px-6 py-2.5 bg-red-500 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-red-600 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-red-800">
-                                Login
+                            <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">
+                                My Profile
                             </a>
+                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                Logout
+                            </a>
+                        </div>
+                        {% else %}
+                        <a href="{% url 'login' %}"
+                            class="px-6 py-2.5 bg-red-500 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-red-600 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-red-800">
+                            Login
+                        </a>
                         {% endif %}
-                        
+
                     </div>
 
                     <div class="flex gap-5 items-center space-x-4">
@@ -99,9 +105,9 @@
         <div class="bg-gray-100 py-2 border-t border-gray-200">
             <div class="container mx-auto px-4">
                 <div class="flex justify-center space-x-8 overflow-x-auto">
-                    <a href="#" class="text-gray-700 hover:text-red-500 font-medium">Women</a>
-                    <a href="#" class="text-gray-700 hover:text-red-500 font-medium">Men</a>
-                    <a href="#" class="text-gray-700 hover:text-red-500 font-medium">Kids</a>
+                    <a href="{% url 'home' %}" class="text-gray-700 hover:text-red-500 font-medium">Home</a>
+                    <a href="{% url 'product_list' %}" class="text-gray-700 hover:text-red-500 font-medium">Products</a>
+                    <a href="#" class="text-gray-700 hover:text-red-500 font-medium">About</a>
                 </div>
             </div>
         </div>

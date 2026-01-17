@@ -47,6 +47,7 @@
 
 {% block content %}
 <form method="GET" class="mt-20" action='{% url "product_list" %}'>
+    <input type="hidden" name="q" value="{{ request.GET.q|default:'' }}">
     <div class="container mx-auto px-4 py-8">
         <div class="flex mt-10">
             <!-- Sticky Filters Sidebar -->
@@ -151,13 +152,12 @@
         <div class="flex justify-center items-center mt-6 space-x-2">
             <span class="step-links flex items-center">
                 {% if page_obj.has_previous %}
-                <a href="?page=1&search_query={{ search_query }}&min={{request.GET.min}}&max={{request.GET.max}}$category={{request.GET.category}}&sort={{request.GET.sort}}"
+                <a href="?page=1&{{ filter_params }}"
                     class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center"
                     title="First Page">
-                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
-                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                    <i data-lucide="chevrons-left" class="w-5 h-5"></i>
                 </a>
-                <a href="?page={{ page_obj.previous_page_number }}&search_query={{ search_query }}&min={{request.GET.min}}&max={{request.GET.max}}$category={{request.GET.category}}&sort={{request.GET.sort}}"
+                <a href="?page={{ page_obj.previous_page_number }}&{{ filter_params }}"
                     class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center"
                     title="Previous Page">
                     <i data-lucide="chevron-left" class="w-5 h-5"></i>
@@ -169,16 +169,15 @@
                 </span>
 
                 {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}&search_query={{ search_query }}&min={{request.GET.min}}&max={{request.GET.max}}$category={{request.GET.category}}&sort={{request.GET.sort}}"
+                <a href="?page={{ page_obj.next_page_number }}&{{ filter_params }}"
                     class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center"
                     title="Next Page">
                     <i data-lucide="chevron-right" class="w-5 h-5"></i>
                 </a>
-                <a href="?page={{ page_obj.paginator.num_pages }}&search_query={{ search_query }}&min={{request.GET.min}}&max={{request.GET.max}}$category={{request.GET.category}}&sort={{request.GET.sort}}"
+                <a href="?page={{ page_obj.paginator.num_pages }}&{{ filter_params }}"
                     class="p-2 text-gray-400 hover:text-gray-700 transition duration-150 flex items-center"
                     title="Last Page">
-                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
-                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                    <i data-lucide="chevrons-right" class="w-5 h-5"></i>
                 </a>
                 {% endif %}
             </span>
