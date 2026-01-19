@@ -197,10 +197,17 @@ class AddToCartView(LoginRequiredMixin, View):
 
             variant = ProductVariant.objects.get(id=variant_id, product__is_active=True)
 
-            if qty > variant.stock:
+            cart_item, created = Cart.objects.get_or_create(
+                user=request.user,
+                product_variant=variant,
+            )
+
+            new_quantity = qty if created else cart_item.quantity + qty
+
+            if new_quantity > variant.stock:
                 return JsonResponse({
                     'success': False,
-                    'message': f'Only {variant.stock} items left in stock.'
+                    'message': 'This product is now out of stock'
                 })
 
             if qty < 1 or qty > 5:
@@ -208,13 +215,6 @@ class AddToCartView(LoginRequiredMixin, View):
                     'success': False,
                     'message': 'Quantity must be between 1 and 5.'
                 })
-
-            cart_item, created = Cart.objects.get_or_create(
-                user=request.user,
-                product_variant=variant,
-            )
-
-            new_quantity = qty if created else cart_item.quantity + qty
 
             if new_quantity > 5:
                 return JsonResponse({
