@@ -1,0 +1,54 @@
+<div class="mb-8">
+    <div class="flex items-center justify-center space-x-4 sm:space-x-10 w-full max-w-3xl mx-auto">
+        <!-- Step 1: Information -->
+        <div class="flex items-center">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 
+                {% if active_step == 'information' or active_step == 'payment' or active_step == 'confirmation' %}
+                    bg-black border-black text-white
+                {% else %}
+                    border-gray-300 text-gray-500
+                {% endif %} font-bold text-sm">
+                1
+            </div>
+            <span
+                class="ml-2 font-medium {% if active_step == 'information' %}text-black{% else %}text-gray-500{% endif %}">Information</span>
+        </div>
+
+        <!-- Connector -->
+        <div
+            class="w-12 sm:w-24 h-0.5 {% if active_step == 'payment' or active_step == 'confirmation' %}bg-black{% else %}bg-gray-300{% endif %}">
+        </div>
+
+        <!-- Step 2: Payment -->
+        <div class="flex items-center">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 
+                {% if active_step == 'payment' or active_step == 'confirmation' %}
+                    bg-black border-black text-white
+                {% else %}
+                    border-gray-300 text-gray-500
+                {% endif %} font-bold text-sm">
+                2
+            </div>
+            <span
+                class="ml-2 font-medium {% if active_step == 'payment' %}text-black{% else %}text-gray-500{% endif %}">Payment</span>
+        </div>
+
+        <!-- Connector -->
+        <div class="w-12 sm:w-24 h-0.5 {% if active_step == 'confirmation' %}bg-black{% else %}bg-gray-300{% endif %}">
+        </div>
+
+        <!-- Step 3: Confirmation -->
+        <div class="flex items-center">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 
+                {% if active_step == 'confirmation' %}
+                    bg-black border-black text-white
+                {% else %}
+                    border-gray-300 text-gray-500
+                {% endif %} font-bold text-sm">
+                3
+            </div>
+            <span
+                class="ml-2 font-medium {% if active_step == 'confirmation' %}text-black{% else %}text-gray-500{% endif %}">Confirmation</span>
+        </div>
+    </div>
+</div>

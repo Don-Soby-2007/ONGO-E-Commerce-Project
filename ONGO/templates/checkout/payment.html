@@ -1,0 +1,166 @@
+{% extends 'checkout/base_checkout.html' %}
+{% load static %}
+
+{% block title %}Checkout - Payment | Ongo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/checkout/payment.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Step Indicator -->
+{% include 'includes/checkout_steps.html' with active_step='payment' %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- LEFT COLUMN: Payment Methods -->
+    <div class="lg:col-span-2 space-y-8">
+
+        <!-- Readonly Address Summary -->
+        <div
+            class="bg-gray-50 p-6 rounded-lg border border-gray-200 text-sm text-gray-600 flex justify-between items-start">
+            <div>
+                <h3 class="font-semibold text-gray-900 mb-1">Ship to:</h3>
+                <p>John Doe, 123 Market Street, Downtown, Suite 400, New York, NY 10001</p>
+            </div>
+            <a href="information.html" class="text-red-500 hover:text-red-600 font-medium">Change</a>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h2 class="text-lg font-semibold mb-6 flex items-center">
+                <i data-lucide="credit-card" class="w-5 h-5 mr-2 text-red-500"></i> Payment Method
+            </h2>
+
+            <div class="space-y-4" id="payment-methods">
+                <!-- Cash on Delivery -->
+                <label
+                    class="block relative border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-red-300 transition-all payment-card">
+                    <input type="radio" name="payment_method" value="cod"
+                        class="absolute top-4 right-4 text-red-600 focus:ring-red-500">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
+                            <i data-lucide="banknote" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-900">Cash on Delivery</p>
+                            <p class="text-sm text-gray-600">Pay conveniently at your doorstep.</p>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Online Payment (UPI / Wallets) -->
+                <label
+                    class="block relative border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-red-300 transition-all payment-card">
+                    <input type="radio" name="payment_method" value="online"
+                        class="absolute top-4 right-4 text-red-600 focus:ring-red-500">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
+                            <i data-lucide="zap" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-900">Online Payment</p>
+                            <p class="text-sm text-gray-600">UPI, Wallets, and Net Banking.</p>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Card Payment -->
+                <label
+                    class="block relative border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-red-300 transition-all payment-card">
+                    <input type="radio" name="payment_method" value="card"
+                        class="absolute top-4 right-4 text-red-600 focus:ring-red-500">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
+                            <i data-lucide="credit-card" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-900">Credit / Debit Card</p>
+                        </div>
+                    </div>
+
+                    <!-- Card Form (Initially Hidden) -->
+                    <div class="mt-4 pt-4 border-t border-gray-100 hidden card-details">
+                        <div class="grid grid-cols-1 gap-4">
+                            <input type="text" placeholder="Card Number"
+                                class="w-full border-gray-300 rounded-lg text-sm bg-gray-50 focus:bg-white transition-colors">
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" placeholder="MM / YY"
+                                    class="w-full border-gray-300 rounded-lg text-sm bg-gray-50 focus:bg-white transition-colors">
+                                <input type="text" placeholder="CVV"
+                                    class="w-full border-gray-300 rounded-lg text-sm bg-gray-50 focus:bg-white transition-colors">
+                            </div>
+                            <input type="text" placeholder="Card Holder Name"
+                                class="w-full border-gray-300 rounded-lg text-sm bg-gray-50 focus:bg-white transition-colors">
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Navigation Button (Desktop) -->
+        <div class="hidden lg:flex justify-between items-center">
+            <a href="information.html"
+                class="text-gray-500 hover:text-black font-medium flex items-center transition-colors">
+                <i data-lucide="arrow-left" class="mr-2 w-5 h-5"></i> Return to Information
+            </a>
+            <a href="confirmation.html"
+                class="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold shadow-md transition-colors flex items-center">
+                Review Order <i data-lucide="arrow-right" class="ml-2 w-5 h-5"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Order Summary -->
+    <div class="lg:col-span-1">
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 sticky top-24">
+            <h3 class="text-lg font-semibold mb-4 border-b border-gray-100 pb-2">Order Summary</h3>
+
+            <!-- Product List (Brief) -->
+            <div class="space-y-4 max-h-40 overflow-y-auto mb-4 pr-2 custom-scrollbar">
+                <div class="flex gap-3 text-sm">
+                    <div class="w-12 h-12 bg-gray-100 rounded-md flex-shrink-0">
+                        <img src="https://via.placeholder.com/64" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-medium text-gray-900 truncate">Premium Cotton T-shirt...</p>
+                        <p class="text-xs text-gray-500">Qty: 2</p>
+                    </div>
+                    <div class="font-semibold text-gray-900">$49.98</div>
+                </div>
+            </div>
+
+            <!-- Totals -->
+            <div class="space-y-2 border-t border-gray-100 pt-4 text-sm text-gray-600">
+                <div class="flex justify-between">
+                    <span>Subtotal</span>
+                    <span>$129.97</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Shipping</span>
+                    <span class="text-green-600">Free</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Tax</span>
+                    <span>$12.00</span>
+                </div>
+                <div class="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-100 mt-2">
+                    <span>Total</span>
+                    <span>$141.97</span>
+                </div>
+            </div>
+
+            <!-- Mobile Button -->
+            <div class="mt-6 lg:hidden">
+                <a href="confirmation.html"
+                    class="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold shadow-md transition-colors flex justify-center items-center">
+                    Review Order <i data-lucide="arrow-right" class="ml-2 w-5 h-5"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/checkout/payment.js' %}"></script>
+{% endblock %}

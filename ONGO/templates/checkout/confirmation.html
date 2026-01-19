@@ -1,0 +1,136 @@
+{% extends 'checkout/base_checkout.html' %}
+{% load static %}
+
+{% block title %}Checkout - Confirmation | Ongo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/checkout/confirmation.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Step Indicator -->
+{% include 'includes/checkout_steps.html' with active_step='confirmation' %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- LEFT COLUMN: Final Review -->
+    <div class="lg:col-span-2 space-y-6">
+
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Review Your Order</h1>
+        <p class="text-gray-600 mb-6">Please check your details before placing the order.</p>
+
+        <!-- Delivery Address Review -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 relative">
+            <a href="information.html"
+                class="absolute top-6 right-6 text-red-500 hover:text-red-600 text-sm font-medium">Edit</a>
+            <h2 class="text-lg font-semibold mb-4 text-gray-900">Shipping Address</h2>
+            <div class="text-gray-600 space-y-1">
+                <p class="font-medium text-gray-900">John Doe</p>
+                <p>123 Market Street, Downtown, Suite 400</p>
+                <p>New York, NY 10001, USA</p>
+                <p>Phone: +1 234 567 890</p>
+            </div>
+        </div>
+
+        <!-- Payment Method Review -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 relative">
+            <a href="payment.html"
+                class="absolute top-6 right-6 text-red-500 hover:text-red-600 text-sm font-medium">Edit</a>
+            <h2 class="text-lg font-semibold mb-4 text-gray-900">Payment Method</h2>
+            <div class="flex items-center gap-3 text-gray-900">
+                <i data-lucide="credit-card" class="w-5 h-5 text-gray-500"></i>
+                <span class="font-medium">Credit / Debit Card</span>
+                <span class="text-gray-500 text-sm">ending in 4242</span>
+            </div>
+        </div>
+
+        <!-- Items Review -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h2 class="text-lg font-semibold mb-4 text-gray-900">Items (3)</h2>
+            <div class="space-y-6">
+                <!-- Item 1 -->
+                <div class="flex gap-4 border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                    <div class="w-20 h-20 bg-gray-100 rounded-md flex-shrink-0 overflow-hidden">
+                        <img src="https://via.placeholder.com/80" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-medium text-gray-900">Premium Cotton T-shirt - Black</h3>
+                                <p class="text-sm text-gray-500 mt-1">Size: M | Color: Black</p>
+                            </div>
+                            <p class="font-semibold text-gray-900">$49.98</p>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Qty: 2</p>
+                    </div>
+                </div>
+                <!-- Item 2 -->
+                <div class="flex gap-4 border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                    <div class="w-20 h-20 bg-gray-100 rounded-md flex-shrink-0 overflow-hidden">
+                        <img src="https://via.placeholder.com/80" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-medium text-gray-900">Slim Fit Denim Jeans - Blue</h3>
+                                <p class="text-sm text-gray-500 mt-1">Size: 32 | Color: Blue</p>
+                            </div>
+                            <p class="font-semibold text-gray-900">$79.99</p>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Qty: 1</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Box for Desktop -->
+        <div class="hidden lg:flex justify-between items-center pt-4">
+            <a href="payment.html"
+                class="text-gray-500 hover:text-black font-medium flex items-center transition-colors">
+                <i data-lucide="arrow-left" class="mr-2 w-5 h-5"></i> Back to Payment
+            </a>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Price Breakdown -->
+    <div class="lg:col-span-1">
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 sticky top-24">
+            <h3 class="text-lg font-semibold mb-4 border-b border-gray-100 pb-2">Order Total</h3>
+
+            <div class="space-y-3 text-sm text-gray-600">
+                <div class="flex justify-between">
+                    <span>Subtotal</span>
+                    <span>$129.97</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Shipping</span>
+                    <span class="text-green-600">Free</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Tax</span>
+                    <span>$12.00</span>
+                </div>
+                <div class="flex justify-between text-green-600 font-medium">
+                    <span>Coupon (WELCOME10)</span>
+                    <span>-$10.00</span>
+                </div>
+                <div class="flex justify-between text-lg font-bold text-gray-900 pt-4 border-t border-gray-100 mt-2">
+                    <span>Total Amount</span>
+                    <span>$131.97</span>
+                </div>
+            </div>
+
+            <button id="place-order-btn"
+                class="w-full mt-6 bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded-lg font-bold shadow-md transition-all transform hover:scale-[1.02] flex justify-center items-center">
+                Place Order
+            </button>
+
+            <p class="text-xs text-center text-gray-400 mt-4">By placing your order, you agree to our <a href="#"
+                    class="underline hover:text-gray-600">Terms of Service</a>.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/checkout/confirmation.js' %}"></script>
+{% endblock %}

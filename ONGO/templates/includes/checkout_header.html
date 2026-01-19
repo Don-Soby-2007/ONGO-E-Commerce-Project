@@ -1,0 +1,31 @@
+<nav class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50">
+    <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+        <!-- Left: Logo -->
+        <a href="{% url 'landing' %}" class="flex items-center">
+            <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg"
+                alt="Ongo Logo" class="h-8">
+        </a>
+
+        <!-- Center: Links -->
+        <div class="hidden md:flex space-x-8">
+            <a href="{% url 'home' %}" class="text-gray-600 hover:text-red-500 font-medium transition-colors">Home</a>
+            <a href="{% url 'product_list' %}"
+                class="text-gray-600 hover:text-red-500 font-medium transition-colors">Products</a>
+            <a href="#" class="text-gray-600 hover:text-red-500 font-medium transition-colors">About</a>
+        </div>
+
+        <!-- Right: Icons -->
+        <div class="flex items-center space-x-6">
+            <a href="{% url 'profile' %}" class="text-gray-600 hover:text-red-500 transition-colors" title="Profile">
+                <i data-lucide="user" class="w-6 h-6"></i>
+            </a>
+            <a href="#" class="text-gray-600 hover:text-red-500 transition-colors" title="Wishlist">
+                <i data-lucide="heart" class="w-6 h-6"></i>
+            </a>
+            <a href="{% url 'cart' %}" class="text-gray-600 hover:text-red-500 transition-colors relative" title="Cart">
+                <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                <!-- Optional bagde could go here -->
+            </a>
+        </div>
+    </div>
+</nav>

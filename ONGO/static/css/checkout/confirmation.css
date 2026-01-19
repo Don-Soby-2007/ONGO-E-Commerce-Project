@@ -1,0 +1,16 @@
+/* Animation for Place Order Button */
+@keyframes pulse-subtle {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.9;
+    }
+}
+
+#place-order-btn:hover {
+    animation: pulse-subtle 2s infinite;
+}
