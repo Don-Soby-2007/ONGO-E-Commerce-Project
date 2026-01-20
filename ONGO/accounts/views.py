@@ -5,6 +5,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 
+from .utils import create_address_from_request
+
 
 from django.views import View
 from django.views.generic import ListView
@@ -517,70 +519,12 @@ class AddAddressView(View):
 
     def post(self, request):
 
-        full_name = request.POST.get('fullName', '').strip()
-        street_address = request.POST.get('streetAddress', '').strip()
-        phone_number = request.POST.get('phoneNumber', '').strip()
-        city = request.POST.get('city', '').strip()
-        state = request.POST.get('state', '').strip()
-        postal_code = request.POST.get('postalCode', '').strip()
-        country = request.POST.get('country', '').strip()
-        is_default = request.POST.get('defaultAddress') == 'on'
-
-        user = request.user
-
-        if not re.match(r'^[a-zA-Z\s]{3,}$', full_name):
-            messages.error(request, "Name must contain only letters and spaces (min 3 chars).")
-            return render(request, self.template_name)
-
-        if not re.match(r'^[a-zA-Z0-9\s,.\-/#]{5,}$', street_address):
-            messages.error(request, "Address seems invalid. Use letters, numbers, and common symbols.")
-            return render(request, self.template_name)
-
-        if not re.match(r'^\+?[0-9]{10,15}$', phone_number):
-            messages.error(request, "Enter a valid phone number (10-15 digits).")
-            return render(request, self.template_name)
-
-        if not re.match(r'^[a-zA-Z\s]+$', city):
-            messages.error(request, "City must contain only letters.")
-            return render(request, self.template_name)
-
-        if not re.match(r'^[a-zA-Z\s]+$', state):
-            messages.error(request, "State must contain only letters.")
-            return render(request, self.template_name)
-
-        if not re.match(r'^[0-9]{5,6}$', postal_code):
-            messages.error(request, "Postal code must be 5-6 digits.")
-            return render(request, self.template_name)
-
-        if not country:
-            messages.error(request, "Please select a country.")
-            return render(request, self.template_name)
-
-        try:
-            if is_default:
-                Address.objects.filter(user=user, is_default=True).update(is_default=False)
-
-            if not Address.objects.filter(user=user).exists():
-                is_default = True
-
-            Address.objects.create(
-                user=user,
-                name=full_name,
-                street_address=street_address,
-                phone=phone_number,
-                city=city,
-                state=state,
-                country=country,
-                postal_code=postal_code,
-                is_default=is_default
-            )
-
-            messages.success(request, "Address added successfully!")
-            return redirect('manage_address')
-
-        except Exception as e:
-            logger.error(f"Error saving address for user {user.id}: {e}")
-            messages.error(request, "Something went wrong while saving the address.")
+        success, message, redirect_url = create_address_from_request(request)
+        if success:
+            messages.success(request, message)
+            return redirect(redirect_url)
+        else:
+            messages.error(request, message)
             return render(request, self.template_name)
 
 
