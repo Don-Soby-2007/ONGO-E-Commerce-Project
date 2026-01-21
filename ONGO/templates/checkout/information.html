@@ -40,7 +40,8 @@
                 <h2 class="text-xl font-semibold flex items-center">
                     <i data-lucide="map-pin" class="w-5 h-5 mr-2 text-red-500"></i> Shipping Address
                 </h2>
-                <button class="text-base text-red-600 hover:text-red-700 font-medium">+ Add New Address</button>
+                <button id="open-address-modal" class="text-base text-red-600 hover:text-red-700 font-medium">+ Add New
+                    Address</button>
             </div>
 
             <!-- Address List -->
@@ -49,15 +50,17 @@
                 {% for address in addresses %}
                 <label
                     class="block relative border-2 border-red-500 rounded-lg p-4 cursor-pointer bg-red-50 transition-all address-card">
-                    <input type="radio" name="shipping_address"
-                        class="absolute top-4 right-4 text-red-600 focus:ring-red-500" checked>
+                    <input type="radio" name="shipping_address" value="{{ address.id }}"
+                        class="absolute top-4 right-4 text-red-600 focus:ring-red-500" {% if address.is_default%}checked{% endif %}>
                     <div class="pr-8">
-                        <p class="font-bold text-gray-900 text-lg">{{address.name}} 
+                        <p class="font-bold text-gray-900 text-lg">{{address.name}}
                             {% if address.is_default %}
                             <span class="text-sm font-normal text-gray-500 ml-2">(Default)</span>
-                            {% endif %}</p>
+                            {% endif %}
+                        </p>
                         <p class="text-base text-gray-600 mt-1">{{address.street_address}}</p>
-                        <p class="text-base text-gray-600">{{address.city}}, {{address.state}} {{address.postal_code}}, {{address.country}}</p>
+                        <p class="text-base text-gray-600">{{address.city}}, {{address.state}} {{address.postal_code}},
+                            {{address.country}}</p>
                         <p class="text-base text-gray-600 mt-1">Phone: {{address.phone}}</p>
                     </div>
                 </label>
@@ -157,6 +160,127 @@
                     <span>100% Secure Payment</span>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+<!-- Modal Container (Hidden by default) -->
+<div id="address-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+    aria-modal="true">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" id="modal-backdrop">
+    </div>
+
+    <!-- Modal Panel -->
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <div
+            class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+
+            <!-- Header -->
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b border-gray-100">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Add New Address</h3>
+                    <button type="button" id="close-modal-btn"
+                        class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none">
+                        <span class="sr-only">Close</span>
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Error Message Container (Hidden by default) -->
+            <div id="modal-error-message"
+                class="hidden mx-6 mt-4 p-3 bg-red-50 text-red-700 text-sm rounded-md border border-red-200"></div>
+
+            <!-- Form -->
+            <form id="add-address-form" method="POST" action="{% url 'add_address_in_checkout' %}"
+                class="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                {% csrf_token %}
+                <div class="space-y-4">
+
+                    <!-- Full Name -->
+                    <div>
+                        <label for="fullName" class="block text-sm font-medium text-gray-700">Full Name</label>
+                        <input type="text" name="fullName" id="fullName" required
+                            class="mt-1 focus:ring-black focus:border-black block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                    </div>
+
+                    <!-- Phone -->
+                    <div>
+                        <label for="phoneNumber" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                        <input type="tel" name="phoneNumber" id="phoneNumber" required
+                            class="mt-1 focus:ring-black focus:border-black block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                    </div>
+
+                    <!-- Street Address -->
+                    <div>
+                        <label for="streetAddress" class="block text-sm font-medium text-gray-700">Street
+                            Address</label>
+                        <input type="text" name="streetAddress" id="streetAddress" required
+                            class="mt-1 focus:ring-black focus:border-black block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                    </div>
+
+                    <!-- City & State -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="city" class="block text-sm font-medium text-gray-700">City</label>
+                            <input type="text" name="city" id="city" required
+                                class="mt-1 focus:ring-black focus:border-black block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label for="state" class="block text-sm font-medium text-gray-700">State</label>
+                            <input type="text" name="state" id="state" required
+                                class="mt-1 focus:ring-black focus:border-black block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+
+                    <!-- Zip & Country -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="postalCode" class="block text-sm font-medium text-gray-700">Postal Code</label>
+                            <input type="text" name="postalCode" id="postalCode" required
+                                class="mt-1 focus:ring-black focus:border-black block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label for="country" class="block text-sm font-medium text-gray-700">Country</label>
+                            <select id="country" name="country" required
+                                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm">
+                                <option value="" disabled selected>Select Country</option>
+                                <option value="india">India</option>
+                                <option value="usa">United States</option>
+                                <option value="uk">United Kingdom</option>
+                                <option value="canada">Canada</option>
+                                <option value="australia">Australia</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Default Checkbox -->
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input id="defaultAddress" name="defaultAddress" type="checkbox"
+                                class="focus:ring-black h-4 w-4 text-black border-gray-300 rounded">
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="defaultAddress" class="font-medium text-gray-700">Make this my default shipping
+                                address</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Buttons -->
+                <div class="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                    <button type="submit"
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black sm:col-start-2 sm:text-sm">
+                        Save Address
+                    </button>
+                    <button type="button" id="cancel-modal-btn"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

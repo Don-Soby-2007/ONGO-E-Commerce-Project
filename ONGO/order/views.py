@@ -10,7 +10,7 @@ from django.utils.decorators import method_decorator
 
 from django.views import View
 
-# from django.http import JsonResponse
+from django.http import JsonResponse
 # from django.views.decorators.csrf import csrf_exempt
 
 from django.contrib.auth.decorators import login_required
@@ -82,8 +82,23 @@ def add_address_in_checkout(request):
     if request.method == 'POST':
         success, message, _ = create_address_from_request(request)
         if success:
-            messages.success(request, message)
-            return redirect('checkout_information')
+            # Fetch the newly created address to return it
+            new_address = Address.objects.filter(user=request.user).order_by('-id').first()
+            return JsonResponse({
+                'success': True,
+                'message': message,
+                'address': {
+                    'id': new_address.id,
+                    'name': new_address.name,
+                    'street_address': new_address.street_address,
+                    'city': new_address.city,
+                    'state': new_address.state,
+                    'postal_code': new_address.postal_code,
+                    'country': new_address.country,
+                    'phone': new_address.phone,
+                    'is_default': new_address.is_default
+                }
+            })
         else:
-            messages.error(request, message)
-    return render(request, 'accounts/partials/add_address_form.html')
+            return JsonResponse({'success': False, 'message': message})
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
