@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-# from django.contrib import messages
+from django.contrib import messages
 # from django.views.generic import ListView
 from cart.models import Cart
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -19,6 +19,8 @@ from accounts.utils import create_address_from_request
 
 # import json
 
+import re
+
 from accounts.models import Address
 
 import logging
@@ -30,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 @method_decorator(never_cache, name='dispatch')
-class OrderInformation(LoginRequiredMixin, View):
+class CheckoutInformation(LoginRequiredMixin, View):
     template_name = 'checkout/information.html'
 
     def get(self, request):
@@ -66,6 +68,35 @@ class OrderInformation(LoginRequiredMixin, View):
             })
 
         return render(request, self.template_name, {'addresses': address, 'cart_items': cart_items})
+
+    def post(self, request):
+
+        email = request.POST.get('email').strip()
+        phone = request.POST.get('phone').strip()
+        address = request.POST.get('shipping_address')
+
+        if email is None or not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            messages.error('The email is not valid')
+            return render(request, self.template_name)
+
+        if phone is None or len(phone) != 10 or len(set(int(phone))) < 3:
+            messages.error('Enter a valid phone number')
+            return render(request, self.template_name)
+
+        if address is None or Address.objects.filter(id=id).exists():
+            messages.error('Please select a valid address')
+            return render(request, self.template_name)
+
+        request.session["checkout_information"] = {
+            "email": email,
+            "phone": phone,
+            "address_id": address,
+        }
+
+        request.session["checkout_step"] = "information"
+        request.session.modified = True
+
+        return redirect('payment_methode')
 
 
 @login_required
