@@ -58,6 +58,7 @@ function setupModal() {
     const closeModal = () => {
         modal.classList.add('hidden');
         form.reset();
+        clearAllErrors();
         errorContainer.classList.add('hidden');
         errorContainer.textContent = '';
     };
@@ -65,9 +66,119 @@ function setupModal() {
     closeBtn.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
 
+    // Validation Logic
+    form.setAttribute('novalidate', true);
+
+    const rules = {
+        fullName: {
+            test: (value) => /^[a-zA-Z\s]{3,}$/.test(value.trim()),
+            message: 'Please enter a valid name (letters only, min 3 chars)'
+        },
+        phoneNumber: {
+            test: (value) => /^\d{10}$/.test(value.trim()),
+            message: 'Enter a valid 10-digit phone number'
+        },
+        streetAddress: {
+            test: (value) => /[a-zA-Z]/.test(value) && value.trim().length > 5,
+            message: 'Address must contain letters and be descriptive'
+        },
+        city: {
+            test: (value) => /^[a-zA-Z\s]+$/.test(value.trim()),
+            message: 'City must contain only letters'
+        },
+        state: {
+            test: (value) => /^[a-zA-Z\s]+$/.test(value.trim()),
+            message: 'State must contain only letters'
+        },
+        postalCode: {
+            test: (value) => /^\d{5,8}$/.test(value.trim()),
+            message: 'Enter a valid pincode (5-8 digits)'
+        },
+        country: {
+            test: (value) => value.trim() !== '',
+            message: 'Please select a country'
+        }
+    };
+
+    const validateField = (input) => {
+        const name = input.name;
+        const rule = rules[name];
+        if (!rule) return true;
+
+        const isValid = rule.test(input.value);
+        if (!isValid) {
+            showError(input, rule.message);
+        } else {
+            clearError(input);
+        }
+        return isValid;
+    };
+
+    const showError = (input, msg) => {
+        // Remove existing error if any
+        clearError(input);
+
+        // Style input
+        input.classList.add('border-red-500', 'focus:ring-red-500');
+        input.classList.remove('border-gray-300', 'focus:ring-black');
+
+        // Create error message
+        const errorDiv = document.createElement('p');
+        errorDiv.className = 'text-red-500 text-xs mt-1 ml-1 field-error';
+        errorDiv.textContent = msg;
+        input.parentNode.appendChild(errorDiv);
+    };
+
+    const clearError = (input) => {
+        input.classList.remove('border-red-500', 'focus:ring-red-500');
+        input.classList.add('border-gray-300', 'focus:ring-black');
+        const error = input.parentNode.querySelector('.field-error');
+        if (error) {
+            error.remove();
+        }
+    };
+
+    const clearAllErrors = () => {
+        form.querySelectorAll('.field-error').forEach(e => e.remove());
+        form.querySelectorAll('input, select').forEach(input => {
+            input.classList.remove('border-red-500', 'focus:ring-red-500');
+            input.classList.add('border-gray-300', 'focus:ring-black');
+        });
+    };
+
+    // Real-time validation
+    form.querySelectorAll('input, select').forEach(input => {
+        input.addEventListener('input', () => {
+            
+            validateField(input);
+        });
+
+        input.addEventListener('blur', () => {
+            validateField(input);
+        });
+    });
+
     // Form Submit
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // Validate all
+        let isFormValid = true;
+        let firstInvalidInput = null;
+
+        form.querySelectorAll('input, select').forEach(input => {
+            if (rules[input.name]) {
+                if (!validateField(input)) {
+                    isFormValid = false;
+                    if (!firstInvalidInput) firstInvalidInput = input;
+                }
+            }
+        });
+
+        if (!isFormValid) {
+            if (firstInvalidInput) firstInvalidInput.focus();
+            return;
+        }
 
         const formData = new FormData(form);
         const url = form.getAttribute('action');
@@ -85,9 +196,23 @@ function setupModal() {
 
             if (data.success) {
                 closeModal();
+                Swal.fire({
+                    toast: true,
+                    animation: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Saved successfully!',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
+                    }
+                })
                 window.location.reload()
             } else {
-                // Error
+                // Backend Error
                 errorContainer.textContent = data.message || 'An error occurred. Please try again.';
                 errorContainer.classList.remove('hidden');
             }
