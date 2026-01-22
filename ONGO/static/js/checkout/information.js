@@ -84,9 +84,8 @@ function setupModal() {
             const data = await response.json();
 
             if (data.success) {
-                // Success
-                addNewAddressToDOM(data.address);
                 closeModal();
+                window.location.reload()
             } else {
                 // Error
                 errorContainer.textContent = data.message || 'An error occurred. Please try again.';
@@ -98,38 +97,6 @@ function setupModal() {
             errorContainer.classList.remove('hidden');
         }
     });
-}
-
-function addNewAddressToDOM(address) {
-    const addressList = document.getElementById('address-list');
-
-    // Create the HTML structure
-    const label = document.createElement('label');
-    label.className = 'block relative border-2 border-red-500 rounded-lg p-4 cursor-pointer bg-red-50 transition-all address-card';
-
-    label.innerHTML = `
-        <input type="radio" name="shipping_address" value="${address.id}"
-            class="absolute top-4 right-4 text-red-600 focus:ring-red-500" checked>
-        <div class="pr-8">
-            <p class="font-bold text-gray-900 text-lg">${address.name}
-                ${address.is_default ? '<span class="text-sm font-normal text-gray-500 ml-2">(Default)</span>' : ''}
-            </p>
-            <p class="text-base text-gray-600 mt-1">${address.street_address}</p>
-            <p class="text-base text-gray-600">${address.city}, ${address.state} ${address.postal_code}, ${address.country}</p>
-            <p class="text-base text-gray-600 mt-1">Phone: ${address.phone}</p>
-        </div>
-    `;
-
-    // Deselect all existing cards visually
-    document.querySelectorAll('.address-card').forEach(c => {
-        c.classList.remove('border-red-500', 'bg-red-50');
-        c.classList.add('border-gray-200');
-        const r = c.querySelector('input[type="radio"]');
-        if (r) r.checked = false;
-    });
-
-    // Add new card to the top
-    addressList.insertBefore(label, addressList.firstChild);
 }
 
 function calculateOrderTotals() {

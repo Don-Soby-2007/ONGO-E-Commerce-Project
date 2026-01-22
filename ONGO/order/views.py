@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib import messages
+# from django.contrib import messages
 # from django.views.generic import ListView
 from cart.models import Cart
 from django.contrib.auth.mixins import LoginRequiredMixin
