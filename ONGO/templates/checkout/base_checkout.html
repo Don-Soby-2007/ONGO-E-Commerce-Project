@@ -28,9 +28,27 @@
 
     <!-- Checkout Footer -->
     {% include 'includes/checkout_footer.html' %}
+    
 
     <script>
         lucide.createIcons();
+        {% if messages %}
+        {% for message in messages %}
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                animation: true,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                icon: '{{ message.tags|default:"info" }}',
+                title: '{{ message|escapejs }}',
+                customClass: {
+                popup: 'swal2-toast'
+                }
+            });
+        {% endfor %}
+        {% endif %}
     </script>
     {% block extra_js %}{% endblock %}
 </body>

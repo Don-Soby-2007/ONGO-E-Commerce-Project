@@ -84,7 +84,6 @@ class PaymentMethode(LoginRequiredMixin, View):
 
         user = request.user
         checkout_information = request.session.get('checkout_information')
-        print(checkout_information)
 
         if checkout_information is None:
             return redirect('checkout_information')
