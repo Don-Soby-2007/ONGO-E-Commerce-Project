@@ -3,7 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
     calculateOrderTotals();
     setupAddressSelection();
     setupModal();
+    setupCheckoutValidation();
 });
+
+// Expose these for potential cross-function usage if needed, or keep scoped.
+// Using a shared validation checker function.
+let checkCheckoutFormValidity = () => { };
 
 function setupAddressSelection() {
     const addressList = document.getElementById('address-list');
@@ -25,7 +30,11 @@ function setupAddressSelection() {
 
         // Check the radio input
         const radio = card.querySelector('input[type="radio"]');
-        if (radio) radio.checked = true;
+        if (radio) {
+            radio.checked = true;
+            // Trigger validation check on selection change
+            checkCheckoutFormValidity();
+        }
     });
 
     // Initial visual state for checked inputs
@@ -36,6 +45,152 @@ function setupAddressSelection() {
             card.classList.add('border-red-500', 'bg-red-50');
         }
     });
+}
+
+function setupCheckoutValidation() {
+    const emailInput = document.getElementById('email');
+    const phoneInput = document.getElementById('phone');
+    const continueButtons = document.querySelectorAll('.continue-payment-trigger');
+    const emailError = document.getElementById('email-error');
+    const phoneError = document.getElementById('phone-error');
+
+    // Validation Rules
+    const isValidEmail = (email) => {
+        // Simple but effective email regex: something@something.domain
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    };
+
+    const isValidPhone = (phone) => {
+        // Numbers only, exactly 10 digits
+        return /^\d{10}$/.test(phone);
+    };
+
+    const isAddressSelected = () => {
+        return document.querySelector('input[name="shipping_address"]:checked') !== null;
+    };
+
+    // UI Helpers
+    const showFieldError = (input, errorEl, msg) => {
+        input.classList.add('border-red-500', 'focus:ring-red-500');
+        input.classList.remove('border-gray-300');
+        if (errorEl) {
+            errorEl.textContent = msg;
+            errorEl.classList.remove('hidden');
+        }
+    };
+
+    const clearFieldError = (input, errorEl) => {
+        input.classList.remove('border-red-500', 'focus:ring-red-500');
+        input.classList.add('border-gray-300');
+        if (errorEl) {
+            errorEl.classList.add('hidden');
+            errorEl.textContent = '';
+        }
+    };
+
+    // Update Button State
+    checkCheckoutFormValidity = () => {
+        // Get current values
+        const emailVal = emailInput ? emailInput.value.trim() : '';
+        const phoneVal = phoneInput ? phoneInput.value.trim() : '';
+
+        const emailValid = isValidEmail(emailVal);
+        const phoneValid = isValidPhone(phoneVal);
+        const addressSelected = isAddressSelected();
+
+        const isFormValid = emailValid && phoneValid && addressSelected;
+
+        continueButtons.forEach(btn => {
+            if (isFormValid) {
+                // Enable
+                btn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                btn.classList.add('hover:bg-red-700'); // Restore hover
+            } else {
+                // Disable
+                btn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                btn.classList.remove('hover:bg-red-700');
+            }
+        });
+
+        return isFormValid;
+    };
+
+    // Event Listeners for Real-time Validation
+    if (emailInput) {
+        emailInput.addEventListener('input', () => {
+            const val = emailInput.value.trim();
+            if (val && !isValidEmail(val)) {
+                checkCheckoutFormValidity();
+            } else {
+                clearFieldError(emailInput, emailError);
+                checkCheckoutFormValidity();
+            }
+        });
+
+        emailInput.addEventListener('input', () => {
+            const val = emailInput.value.trim();
+            if (!val) {
+                showFieldError(emailInput, emailError, "Email is required");
+            } else if (!isValidEmail(val)) {
+                showFieldError(emailInput, emailError, "Enter a valid email address");
+            } else {
+                clearFieldError(emailInput, emailError);
+            }
+            checkCheckoutFormValidity();
+        });
+    }
+
+    if (phoneInput) {
+        // Block non-numeric input for phone
+        phoneInput.addEventListener('keypress', (e) => {
+            if (!/\d/.test(e.key)) {
+                e.preventDefault();
+            }
+        });
+
+        phoneInput.addEventListener('input', () => {
+            checkCheckoutFormValidity();
+        });
+
+        phoneInput.addEventListener('input', () => {
+            const val = phoneInput.value.trim();
+            if (!val) {
+                showFieldError(phoneInput, phoneError, "Phone number is required");
+            } else if (!isValidPhone(val)) {
+                showFieldError(phoneInput, phoneError, "Enter a valid 10-digit phone number");
+            } else {
+                clearFieldError(phoneInput, phoneError);
+            }
+            checkCheckoutFormValidity();
+        });
+    }
+
+    // Button Click Interception (Extra safety, though pointer-events-none handles most)
+    continueButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            if (!checkCheckoutFormValidity()) {
+                e.preventDefault();
+                // Trigger all validations to show errors
+                if (emailInput) emailInput.dispatchEvent(new Event('blur'));
+                if (phoneInput) phoneInput.dispatchEvent(new Event('blur'));
+
+                // Address error?
+                if (!isAddressSelected()) {
+                    
+                    if (!isValidEmail(emailInput.value.trim())) emailInput.focus();
+                    else if (!isValidPhone(phoneInput.value.trim())) phoneInput.focus();
+                    else {
+                        // Address missing
+                        const list = document.getElementById('address-list');
+                        list.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            }
+        });
+    });
+
+    // Initial check
+    checkCheckoutFormValidity();
 }
 
 function setupModal() {
@@ -149,7 +304,7 @@ function setupModal() {
     // Real-time validation
     form.querySelectorAll('input, select').forEach(input => {
         input.addEventListener('input', () => {
-            
+
             validateField(input);
         });
 
@@ -195,22 +350,26 @@ function setupModal() {
             const data = await response.json();
 
             if (data.success) {
+                
                 closeModal();
-                Swal.fire({
-                    toast: true,
-                    animation: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: 'Saved successfully!',
-                    showConfirmButton: false,
-                    timer: 2000,
-                    timerProgressBar: true,
-                    didOpen: (toast) => {
-                        toast.addEventListener('mouseenter', Swal.stopTimer);
-                        toast.addEventListener('mouseleave', Swal.resumeTimer);
-                    }
-                })
-                window.location.reload()
+                window.location.reload();
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        toast: true,
+                        animation: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Saved successfully!',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer);
+                            toast.addEventListener('mouseleave', Swal.resumeTimer);
+                        }
+                    });
+                }
             } else {
                 // Backend Error
                 errorContainer.textContent = data.message || 'An error occurred. Please try again.';
