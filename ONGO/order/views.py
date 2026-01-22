@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 # from django.views.generic import ListView
-from cart.models import Cart
+from .utils import get_cart_items_for_user
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from django.views.decorators.cache import never_cache
@@ -41,31 +41,7 @@ class CheckoutInformation(LoginRequiredMixin, View):
 
         address = Address.objects.filter(user=user)
 
-        cart_items = []
-        cart = Cart.objects.filter(user=user).select_related(
-            'product_variant',
-            'product_variant__product'
-        ).prefetch_related(
-            'product_variant__images'
-        )
-
-        for item in cart:
-            variant = item.product_variant
-            product = variant.product
-
-            image_obj = variant.images.filter(is_primary=True).first()
-            if not image_obj:
-                image_obj = variant.images.first()
-            image_url = image_obj.image_url if image_obj else "https://via.placeholder.com/150?text=No+Image"
-
-            cart_items.append({
-                'id': item.id,
-                'product_name': product.name,
-                'price': float(variant.final_price),
-                'quantity': item.quantity,
-                'image_url': image_url,
-                'in_stock': variant.is_in_stock,
-            })
+        cart_items = get_cart_items_for_user(user)
 
         return render(request, self.template_name, {'addresses': address, 'cart_items': cart_items})
 
@@ -76,21 +52,21 @@ class CheckoutInformation(LoginRequiredMixin, View):
         address = request.POST.get('shipping_address')
 
         if email is None or not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
-            messages.error('The email is not valid')
+            messages.error(request, 'The email is not valid')
             return render(request, self.template_name)
 
-        if phone is None or len(phone) != 10 or len(set(int(phone))) < 3:
-            messages.error('Enter a valid phone number')
+        if phone is None or len(phone) != 10 or len(set(phone)) < 3:
+            messages.error(request, 'Enter a valid phone number')
             return render(request, self.template_name)
 
-        if address is None or Address.objects.filter(id=id).exists():
-            messages.error('Please select a valid address')
+        if address is None or not Address.objects.filter(id=address).exists():
+            messages.error(request, 'Please select a valid address')
             return render(request, self.template_name)
 
         request.session["checkout_information"] = {
             "email": email,
             "phone": phone,
-            "address_id": address,
+            "address_id": int(address),
         }
 
         request.session["checkout_step"] = "information"
@@ -99,13 +75,27 @@ class CheckoutInformation(LoginRequiredMixin, View):
         return redirect('payment_methode')
 
 
-@login_required
-def paymentMethode(request):
+@method_decorator(never_cache, name='dispatch')
+class PaymentMethode(LoginRequiredMixin, View):
 
-    if not request.user.is_authenticated:
-        return redirect('login')
+    template_name = 'checkout/payment.html'
 
-    return render(request, 'checkout/payment.html')
+    def get(self, request):
+
+        user = request.user
+        checkout_information = request.session.get('checkout_information')
+        print(checkout_information)
+
+        if checkout_information is None:
+            return redirect('checkout_information')
+
+        address_id = checkout_information.get('address_id')
+
+        address = Address.objects.filter(user=user, id=address_id)
+
+        cart_items = cart_items = get_cart_items_for_user(user)
+
+        return render(request, self.template_name, {'address': address, 'cart_items': cart_items})
 
 
 @login_required
