@@ -18,6 +18,8 @@ def get_cart_items_for_user(user):
             'price': float(variant.final_price),
             'quantity': item.quantity,
             'image_url': image_url,
+            'size': variant.size,
+            'color': variant.color,
             'in_stock': variant.is_in_stock,
         })
     return cart_items

@@ -20,65 +20,83 @@
 
         <!-- Delivery Address Review -->
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 relative">
-            <a href="information.html"
+            <a href='{% url "checkout_information" %}'
                 class="absolute top-6 right-6 text-red-500 hover:text-red-600 text-sm font-medium">Edit</a>
             <h2 class="text-lg font-semibold mb-4 text-gray-900">Shipping Address</h2>
             <div class="text-gray-600 space-y-1">
-                <p class="font-medium text-gray-900">John Doe</p>
-                <p>123 Market Street, Downtown, Suite 400</p>
-                <p>New York, NY 10001, USA</p>
-                <p>Phone: +1 234 567 890</p>
+                <p class="font-medium text-gray-900">{{address.name}}</p>
+                <p>{{address.street_address}}</p>
+                <p>{{address.city}}, {{address.postal_code}}, {{address.country}}</p>
+                <p>Phone: {{address.postal_code}}</p>
             </div>
         </div>
 
         <!-- Payment Method Review -->
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 relative">
-            <a href="payment.html"
+            <a href='{% url "payment_methode" %}'
                 class="absolute top-6 right-6 text-red-500 hover:text-red-600 text-sm font-medium">Edit</a>
             <h2 class="text-lg font-semibold mb-4 text-gray-900">Payment Method</h2>
+            {% if payment_methode == 'cod' %}
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
+                    <i data-lucide="banknote" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="font-bold text-gray-900">Cash on Delivery</p>
+                    <p class="text-sm text-gray-600">Pay conveniently at your doorstep.</p>
+                </div>
+            </div>
+            {% elif payment_methode == 'online' %}
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
+                    <i data-lucide="zap" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="font-bold text-gray-900">Online Payment</p>
+                    <p class="text-sm text-gray-600">UPI and Net Banking.</p>
+                </div>
+            </div>
+            {% elif payment_methode == 'card'%}
             <div class="flex items-center gap-3 text-gray-900">
                 <i data-lucide="credit-card" class="w-5 h-5 text-gray-500"></i>
                 <span class="font-medium">Credit / Debit Card</span>
                 <span class="text-gray-500 text-sm">ending in 4242</span>
             </div>
+            {% else %}
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
+                    <i data-lucide="wallet" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="font-bold text-gray-900">ONGO Wallet</p>
+                    <p class="text-sm text-gray-600">From you wallet credits</p>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Items Review -->
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
             <h2 class="text-lg font-semibold mb-4 text-gray-900">Items (3)</h2>
             <div class="space-y-6">
-                <!-- Item 1 -->
-                <div class="flex gap-4 border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                {% for item in cart_items %}
+                <!-- Item -->
+                <div class="cart-items flex gap-4 border-b border-gray-100 pb-4 last:border-0 last:pb-0" data-price='{{item.price}}' data-quantity='{{item.quantity}}'>
                     <div class="w-20 h-20 bg-gray-100 rounded-md flex-shrink-0 overflow-hidden">
-                        <img src="https://via.placeholder.com/80" class="w-full h-full object-cover">
+                        <img src="{{item.image_url}}" class="w-full h-full object-cover">
                     </div>
                     <div class="flex-1">
                         <div class="flex justify-between items-start">
                             <div>
-                                <h3 class="font-medium text-gray-900">Premium Cotton T-shirt - Black</h3>
-                                <p class="text-sm text-gray-500 mt-1">Size: M | Color: Black</p>
+                                <h3 class="font-medium text-gray-900">{{item.product_name}}</h3>
+                                <p class="text-sm text-gray-500 mt-1">Size: {{item.size}} | Color: {{item.color}}</p>
                             </div>
-                            <p class="font-semibold text-gray-900">$49.98</p>
+                            <p class="font-semibold text-gray-900">₹{{item.price}}</p>
                         </div>
-                        <p class="text-sm text-gray-500 mt-2">Qty: 2</p>
+                        <p class="text-sm text-gray-500 mt-2">Qty: {{item.quantity}}</p>
                     </div>
                 </div>
-                <!-- Item 2 -->
-                <div class="flex gap-4 border-b border-gray-100 pb-4 last:border-0 last:pb-0">
-                    <div class="w-20 h-20 bg-gray-100 rounded-md flex-shrink-0 overflow-hidden">
-                        <img src="https://via.placeholder.com/80" class="w-full h-full object-cover">
-                    </div>
-                    <div class="flex-1">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="font-medium text-gray-900">Slim Fit Denim Jeans - Blue</h3>
-                                <p class="text-sm text-gray-500 mt-1">Size: 32 | Color: Blue</p>
-                            </div>
-                            <p class="font-semibold text-gray-900">$79.99</p>
-                        </div>
-                        <p class="text-sm text-gray-500 mt-2">Qty: 1</p>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
         </div>
 
@@ -99,7 +117,7 @@
             <div class="space-y-3 text-sm text-gray-600">
                 <div class="flex justify-between">
                     <span>Subtotal</span>
-                    <span>$129.97</span>
+                    <span id='subtotal'>₹0.00</span>
                 </div>
                 <div class="flex justify-between">
                     <span>Shipping</span>
@@ -107,15 +125,15 @@
                 </div>
                 <div class="flex justify-between">
                     <span>Tax</span>
-                    <span>$12.00</span>
+                    <span id='tax'>₹0.00</span>
                 </div>
-                <div class="flex justify-between text-green-600 font-medium">
+                {% comment %} <div class="flex justify-between text-green-600 font-medium">
                     <span>Coupon (WELCOME10)</span>
-                    <span>-$10.00</span>
-                </div>
+                    <span>-₹0.00</span>
+                </div> {% endcomment %}
                 <div class="flex justify-between text-lg font-bold text-gray-900 pt-4 border-t border-gray-100 mt-2">
                     <span>Total Amount</span>
-                    <span>$131.97</span>
+                    <span id='total'>₹0.00</span>
                 </div>
             </div>
 
