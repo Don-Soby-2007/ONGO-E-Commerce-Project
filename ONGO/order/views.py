@@ -75,28 +75,7 @@ class CheckoutInformation(LoginRequiredMixin, View):
         return redirect('payment_methode')
 
 
-@method_decorator(never_cache, name='dispatch')
-class PaymentMethode(LoginRequiredMixin, View):
-
-    template_name = 'checkout/payment.html'
-
-    def get(self, request):
-
-        user = request.user
-        checkout_information = request.session.get('checkout_information')
-
-        if checkout_information is None:
-            return redirect('checkout_information')
-
-        address_id = checkout_information.get('address_id')
-
-        address = Address.objects.filter(user=user, id=address_id)
-
-        cart_items = cart_items = get_cart_items_for_user(user)
-
-        return render(request, self.template_name, {'address': address, 'cart_items': cart_items})
-
-
+@never_cache
 @login_required
 def add_address_in_checkout(request):
     if request.method == 'POST':
@@ -122,3 +101,68 @@ def add_address_in_checkout(request):
         else:
             return JsonResponse({'success': False, 'message': message})
     return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+
+@method_decorator(never_cache, name='dispatch')
+class PaymentMethode(LoginRequiredMixin, View):
+
+    template_name = 'checkout/payment.html'
+
+    def get(self, request):
+
+        user = request.user
+        checkout_information = request.session.get('checkout_information')
+
+        if checkout_information is None:
+            return redirect('checkout_information')
+
+        address_id = checkout_information.get('address_id')
+
+        address = Address.objects.get(user=user, id=address_id)
+
+        cart_items = get_cart_items_for_user(user)
+
+        return render(request, self.template_name, {'address': address, 'cart_items': cart_items})
+
+    def post(self, request):
+        payment_methode = request.POST.get('payment_method').strip()
+
+        payment_methodes = ['cod', 'online', 'card', 'wallet']
+
+        if payment_methode not in payment_methodes:
+            messages.error(request, 'Select correct Payment methode')
+            return render(request, self.template_name)
+
+        checkout_information = request.session.get('checkout_information')
+
+        checkout_information["payment_methode"] = payment_methode
+
+        request.session["checkout_step"] = "payment_methode"
+        request.session.modified = True
+
+        return redirect('order_confirmation')
+
+
+@method_decorator(never_cache, name='dispatch')
+class OrderConfirmation(LoginRequiredMixin, View):
+
+    template_name = 'checkout/confirmation.html'
+
+    def get(self, request):
+
+        user = request.user
+        checkout_information = request.session.get('checkout_information')
+
+        if checkout_information is None:
+            return redirect('checkout_information')
+
+        address_id = checkout_information.get('address_id')
+        payment_methode = checkout_information.get('payment_methode')
+
+        address = Address.objects.get(user=user, id=address_id)
+
+        cart_items = get_cart_items_for_user(user)
+
+        return render(request, self.template_name, {'address': address,
+                                                    'cart_items': cart_items,
+                                                    'payment_methode': payment_methode})

@@ -13,16 +13,16 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- LEFT COLUMN: Payment Methods -->
-    <div class="lg:col-span-2 space-y-8">
-
+    <form method='post' action='{% url "payment_methode" %}' class="lg:col-span-2 space-y-8">
+        {% csrf_token %}
         <!-- Readonly Address Summary -->
         <div
             class="bg-gray-50 p-6 rounded-lg border border-gray-200 text-sm text-gray-600 flex justify-between items-start">
             <div>
                 <h3 class="font-semibold text-gray-900 mb-1">Ship to:</h3>
-                <p>John Doe, 123 Market Street, Downtown, Suite 400, New York, NY 10001</p>
+                <p>{{address.name}}, {{address.street_address}}, {{address.city}}, {{address.country}}, {{address.postal_code}}</p>
             </div>
-            <a href="information.html" class="text-red-500 hover:text-red-600 font-medium">Change</a>
+            <a href="{% url 'checkout_information' %}" class="text-red-500 hover:text-red-600 font-medium">Change</a>
         </div>
 
         <!-- Payment Methods -->
@@ -115,41 +115,44 @@
 
         <!-- Navigation Button (Desktop) -->
         <div class="hidden lg:flex justify-between items-center">
-            <a href="information.html"
+            <a href="{% url 'checkout_information' %}"
                 class="text-gray-500 hover:text-black font-medium flex items-center transition-colors">
                 <i data-lucide="arrow-left" class="mr-2 w-5 h-5"></i> Return to Information
             </a>
-            <a href="confirmation.html"
-                class="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold shadow-md transition-colors flex items-center">
+            <button type="submit" id="review-order-btn"
+                class="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-lg font-semibold shadow-md transition-colors flex items-center opacity-50 cursor-not-allowed"
+                disabled>
                 Review Order <i data-lucide="arrow-right" class="ml-2 w-5 h-5"></i>
-            </a>
+            </button>
         </div>
-    </div>
+    </form>
 
     <!-- RIGHT COLUMN: Order Summary -->
     <div class="lg:col-span-1">
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 sticky top-24">
             <h3 class="text-lg font-semibold mb-4 border-b border-gray-100 pb-2">Order Summary</h3>
 
-            <!-- Product List (Brief) -->
-            <div class="space-y-4 max-h-40 overflow-y-auto mb-4 pr-2 custom-scrollbar">
+            {% for item in cart_items %}
+            <div class="cart-items space-y-4 max-h-40 overflow-y-auto mb-4 pr-2 custom-scrollbar" data-price='{{item.price}}' data-quantity='{{item.quantity}}'>
                 <div class="flex gap-3 text-sm">
                     <div class="w-12 h-12 bg-gray-100 rounded-md flex-shrink-0">
-                        <img src="https://via.placeholder.com/64" class="w-full h-full object-cover">
+                        <img src="{{item.image_url}}" class="w-full h-full object-cover">
                     </div>
                     <div class="flex-1">
-                        <p class="font-medium text-gray-900 truncate">Premium Cotton T-shirt...</p>
-                        <p class="text-xs text-gray-500">Qty: 2</p>
+                        <p class="font-medium text-gray-900 truncate">{{item.product_name}}.</p>
+                        <p class="text-xs text-gray-500">Qty: {{item.quantity}}</p>
                     </div>
-                    <div class="font-semibold text-gray-900">$49.98</div>
+                    <div class="font-semibold text-gray-900">₹{{item.price}}</div>
                 </div>
             </div>
+            {% endfor %}
+            
 
             <!-- Totals -->
             <div class="space-y-2 border-t border-gray-100 pt-4 text-sm text-gray-600">
                 <div class="flex justify-between">
                     <span>Subtotal</span>
-                    <span>$129.97</span>
+                    <span id='subtotal'>₹0.00</span>
                 </div>
                 <div class="flex justify-between">
                     <span>Shipping</span>
@@ -157,11 +160,11 @@
                 </div>
                 <div class="flex justify-between">
                     <span>Tax</span>
-                    <span>$12.00</span>
+                    <span id='tax'>₹0.00</span>
                 </div>
                 <div class="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-100 mt-2">
                     <span>Total</span>
-                    <span>$141.97</span>
+                    <span id='total'>₹0.00</span>
                 </div>
             </div>
 

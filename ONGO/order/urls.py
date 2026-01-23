@@ -6,4 +6,6 @@ urlpatterns = [
     path('add-address/', views.add_address_in_checkout, name='add_address_in_checkout'),
 
     path('payment-methode/', views.PaymentMethode.as_view(), name='payment_methode'),
+
+    path('order-confiramtion', views.OrderConfirmation.as_view(), name='order_confirmation')
 ]
