@@ -7,5 +7,7 @@ urlpatterns = [
 
     path('payment-methode/', views.PaymentMethode.as_view(), name='payment_methode'),
 
-    path('order-confiramtion', views.OrderConfirmation.as_view(), name='order_confirmation')
+    path('order-confiramtion', views.OrderConfirmation.as_view(), name='order_confirmation'),
+
+    path('place-order', views.PlaceOrder.as_view(), name='place_order')
 ]

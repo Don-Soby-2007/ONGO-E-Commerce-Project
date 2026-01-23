@@ -1,28 +1,84 @@
 document.addEventListener('DOMContentLoaded', () => {
     const placeOrderBtn = document.getElementById('place-order-btn');
-    calculateOrderTotals()
+    calculateOrderTotals();
+
     if (placeOrderBtn) {
-        placeOrderBtn.addEventListener('click', () => {
-            // Simulate order processing
+        placeOrderBtn.addEventListener('click', async () => {
             placeOrderBtn.innerHTML = '<i class="animate-spin mr-2" data-lucide="loader-2"></i> Processing...';
             placeOrderBtn.disabled = true;
             placeOrderBtn.classList.add('opacity-75', 'cursor-not-allowed');
             lucide.createIcons();
 
-            setTimeout(() => {
-                Swal.fire({
-                    title: 'Order Placed!',
-                    text: 'Thank you for your purchase. Your order #12345 has been confirmed.',
-                    icon: 'success',
-                    confirmButtonColor: '#DC2626',
-                    confirmButtonText: 'Continue Shopping'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = '/products';
-                    }
+            try {
+                const response = await fetch('/checkout/place-order/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({}) // No payload needed — all in session
                 });
-            }, 2000);
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.initiate_razorpay) {
+                        // 🚧 Phase 1: Just show alert (replace later with Razorpay SDK)
+                        Swal.fire({
+                            title: 'Payment Required',
+                            text: `Please complete payment of ₹${data.amount.toFixed(2)} via Razorpay.`,
+                            icon: 'info',
+                            confirmButtonColor: '#3b82f6',
+                            confirmButtonText: 'Proceed to Payment'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // In future: open Razorpay checkout here
+                                alert('Razorpay integration placeholder. Redirecting...');
+                                window.location.href = '/checkout/success/'; // temporary
+                            }
+                        });
+                    } else if (data.success) {
+                        Swal.fire({
+                            title: 'Order Placed!',
+                            text: 'Thank you for your purchase!',
+                            icon: 'success',
+                            confirmButtonColor: '#DC2626',
+                            confirmButtonText: 'Continue Shopping'
+                        }).then(() => {
+                            window.location.href = data.redirect_url || '/products/';
+                        });
+                    }
+                } else {
+                    Swal.fire('Error', data.error || 'Failed to process order.', 'error');
+                    resetButton();
+                }
+            } catch (error) {
+                console.error('Order error:', error);
+                Swal.fire('Network Error', 'Please try again.', 'error');
+                resetButton();
+            }
         });
+    }
+
+    function resetButton() {
+        placeOrderBtn.innerHTML = 'Place Order';
+        placeOrderBtn.disabled = false;
+        placeOrderBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 });
 

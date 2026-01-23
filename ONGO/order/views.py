@@ -153,3 +153,9 @@ class OrderConfirmation(LoginRequiredMixin, View):
         return render(request, self.template_name, {'address': address,
                                                     'cart_items': cart_items,
                                                     'payment_methode': payment_methode})
+
+
+class PlaceOrder(LoginRequiredMixin, View):
+
+    def post(self, request):
+        pass
