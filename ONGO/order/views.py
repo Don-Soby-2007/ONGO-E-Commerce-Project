@@ -19,7 +19,6 @@ from accounts.utils import create_address_from_request
 
 # import json
 
-import re
 
 from accounts.models import Address
 
@@ -47,25 +46,13 @@ class CheckoutInformation(LoginRequiredMixin, View):
 
     def post(self, request):
 
-        email = request.POST.get('email').strip()
-        phone = request.POST.get('phone').strip()
         address = request.POST.get('shipping_address')
-
-        if email is None or not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
-            messages.error(request, 'The email is not valid')
-            return render(request, self.template_name)
-
-        if phone is None or len(phone) != 10 or len(set(phone)) < 3:
-            messages.error(request, 'Enter a valid phone number')
-            return render(request, self.template_name)
 
         if address is None or not Address.objects.filter(id=address).exists():
             messages.error(request, 'Please select a valid address')
             return render(request, self.template_name)
 
         request.session["checkout_information"] = {
-            "email": email,
-            "phone": phone,
             "address_id": int(address),
         }
 

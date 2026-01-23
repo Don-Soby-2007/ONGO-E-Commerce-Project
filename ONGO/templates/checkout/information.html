@@ -16,27 +16,6 @@
         <!-- LEFT COLUMN: Contact & Address -->
         <div class="lg:col-span-2 space-y-8">
 
-            <!-- Contact Info -->
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <h2 class="text-xl font-semibold mb-4 flex items-center">
-                    <i data-lucide="user" class="w-5 h-5 mr-2 text-red-500"></i> Contact Information
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-base font-medium text-gray-700 mb-1">Email</label>
-                        <input type="text" name="email" id="email" value="{{ request.user.email }}"
-                            class="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                        <p id="email-error" class="text-red-500 text-xs mt-1 hidden"></p>
-                    </div>
-                    <div>
-                        <label class="block text-base font-medium text-gray-700 mb-1">Phone</label>
-                        <input type="text" name="phone" id="phone" value="{{ request.user.phone_number }}"
-                            class="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                        <p id="phone-error" class="text-red-500 text-xs mt-1 hidden"></p>
-                    </div>
-                </div>
-            </div>
-
             <!-- Address Selection -->
             <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                 <div class="flex justify-between items-center mb-4">

@@ -48,22 +48,7 @@ function setupAddressSelection() {
 }
 
 function setupCheckoutValidation() {
-    const emailInput = document.getElementById('email');
-    const phoneInput = document.getElementById('phone');
     const continueButtons = document.querySelectorAll('.continue-payment-trigger');
-    const emailError = document.getElementById('email-error');
-    const phoneError = document.getElementById('phone-error');
-
-    // Validation Rules
-    const isValidEmail = (email) => {
-        // Simple but effective email regex: something@something.domain
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    };
-
-    const isValidPhone = (phone) => {
-        // Numbers only, exactly 10 digits
-        return /^\d{10}$/.test(phone);
-    };
 
     const isAddressSelected = () => {
         return document.querySelector('input[name="shipping_address"]:checked') !== null;
@@ -90,15 +75,9 @@ function setupCheckoutValidation() {
 
     // Update Button State
     checkCheckoutFormValidity = () => {
-        // Get current values
-        const emailVal = emailInput ? emailInput.value.trim() : '';
-        const phoneVal = phoneInput ? phoneInput.value.trim() : '';
-
-        const emailValid = isValidEmail(emailVal);
-        const phoneValid = isValidPhone(phoneVal);
         const addressSelected = isAddressSelected();
 
-        const isFormValid = emailValid && phoneValid && addressSelected;
+        const isFormValid = addressSelected;
 
         continueButtons.forEach(btn => {
             if (isFormValid) {
@@ -115,75 +94,17 @@ function setupCheckoutValidation() {
         return isFormValid;
     };
 
-    // Event Listeners for Real-time Validation
-    if (emailInput) {
-        emailInput.addEventListener('input', () => {
-            const val = emailInput.value.trim();
-            if (val && !isValidEmail(val)) {
-                checkCheckoutFormValidity();
-            } else {
-                clearFieldError(emailInput, emailError);
-                checkCheckoutFormValidity();
-            }
-        });
-
-        emailInput.addEventListener('input', () => {
-            const val = emailInput.value.trim();
-            if (!val) {
-                showFieldError(emailInput, emailError, "Email is required");
-            } else if (!isValidEmail(val)) {
-                showFieldError(emailInput, emailError, "Enter a valid email address");
-            } else {
-                clearFieldError(emailInput, emailError);
-            }
-            checkCheckoutFormValidity();
-        });
-    }
-
-    if (phoneInput) {
-        // Block non-numeric input for phone
-        phoneInput.addEventListener('keypress', (e) => {
-            if (!/\d/.test(e.key)) {
-                e.preventDefault();
-            }
-        });
-
-        phoneInput.addEventListener('input', () => {
-            checkCheckoutFormValidity();
-        });
-
-        phoneInput.addEventListener('input', () => {
-            const val = phoneInput.value.trim();
-            if (!val) {
-                showFieldError(phoneInput, phoneError, "Phone number is required");
-            } else if (!isValidPhone(val)) {
-                showFieldError(phoneInput, phoneError, "Enter a valid 10-digit phone number");
-            } else {
-                clearFieldError(phoneInput, phoneError);
-            }
-            checkCheckoutFormValidity();
-        });
-    }
 
     // Button Click Interception (Extra safety, though pointer-events-none handles most)
     continueButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
             if (!checkCheckoutFormValidity()) {
                 e.preventDefault();
-                // Trigger all validations to show errors
-                if (emailInput) emailInput.dispatchEvent(new Event('blur'));
-                if (phoneInput) phoneInput.dispatchEvent(new Event('blur'));
 
                 // Address error?
                 if (!isAddressSelected()) {
-                    
-                    if (!isValidEmail(emailInput.value.trim())) emailInput.focus();
-                    else if (!isValidPhone(phoneInput.value.trim())) phoneInput.focus();
-                    else {
-                        // Address missing
-                        const list = document.getElementById('address-list');
-                        list.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
+                    const list = document.getElementById('address-list');
+                    list.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             }
         });
