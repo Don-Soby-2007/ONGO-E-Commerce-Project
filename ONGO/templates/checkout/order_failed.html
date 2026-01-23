@@ -1,0 +1,96 @@
+{% extends 'checkout/base_checkout.html' %}
+{% load static %}
+
+{% block title %}Order Failed - Ongo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/checkout/order_status.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto pt-10 pb-20">
+
+    <!-- Failure Hero Section -->
+    <div class="text-center mb-8 status-card">
+        <div class="failure-icon-wrapper flex justify-center mb-6">
+            <div class="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center relative failure-icon-shake">
+                <svg class="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </div>
+        </div>
+
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-3">Payment Failed</h1>
+        <p class="text-gray-500 text-lg">Don't worry. Your money is safe.</p>
+
+        <div class="mt-6 p-4 bg-red-50 rounded-xl border border-red-100 inline-block text-left w-full">
+            <div class="flex">
+                <i data-lucide="alert-circle" class="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0"></i>
+                <div>
+                    <h3 class="text-sm font-medium text-red-800">Why did this happen?</h3>
+                    <ul class="list-disc list-inside text-sm text-red-700 mt-1 space-y-1">
+                        <li>Payment process was cancelled</li>
+                        <li>Temporary bank server issue</li>
+                        <li>Insufficient balance or limit exceeded</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Explanation & Reassurance -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8 status-card"
+        style="animation-delay: 0.1s;">
+        <h2 class="text-base font-semibold text-gray-900 mb-3">What happens next?</h2>
+        <div class="space-y-3">
+            <div class="flex items-start">
+                <i data-lucide="x-circle" class="w-5 h-5 text-gray-400 mr-3 mt-0.5"></i>
+                <p class="text-sm text-gray-600">Your order has <span class="font-medium text-gray-900">not been
+                        confirmed</span>.</p>
+            </div>
+            <div class="flex items-start">
+                <i data-lucide="shield-check" class="w-5 h-5 text-gray-400 mr-3 mt-0.5"></i>
+                <p class="text-sm text-gray-600">If any amount was deducted, it will be refunded automatically within
+                    <span class="font-medium text-gray-900">3–5 business days</span>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="space-y-3 status-card" style="animation-delay: 0.2s;">
+        <a href="{% url 'payment_methode' %}"
+            class="w-full flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-xl text-white bg-black hover:bg-gray-800 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all">
+            Retry Payment
+            <i data-lucide="refresh-cw" class="w-4 h-4 ml-2"></i>
+        </a>
+
+        <a href="{% url 'payment_methode' %}"
+            class="w-full flex items-center justify-center px-6 py-4 border border-gray-200 text-base font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+            Choose Another Payment Method
+        </a>
+
+        <div class="pt-4 text-center">
+            <a href="/"
+                class="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors inline-flex items-center">
+                Return to Cart
+            </a>
+        </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="mt-12 text-center border-t border-gray-100 pt-8">
+        <p class="text-sm text-gray-500 mb-2">Need help with this transaction?</p>
+        <a href="#" class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800">
+            Contact Support <i data-lucide="external-link" class="w-3 h-3 ml-1"></i>
+        </a>
+        <p class="text-xs text-gray-400 mt-4">Transaction Ref: REF-{{ request.session.session_key|slice:":8"|upper }}
+        </p>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/checkout/order_status.js' %}"></script>
+{% endblock %}
