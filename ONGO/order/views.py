@@ -230,7 +230,7 @@ class PlaceOrder(LoginRequiredMixin, View):
             pass
 
         elif payment_methode == 'card':
-            pass 
+            pass
 
         else:
             self._create_order_and_deduct_stock(
@@ -288,3 +288,28 @@ class PlaceOrder(LoginRequiredMixin, View):
         OrderItem.objects.bulk_create(order_items)
 
         cart_items.delete()
+
+
+@method_decorator(never_cache, name='dispatch')
+class OrderSuccess(LoginRequiredMixin, View):
+    template_name = 'checkout/order_success.html'
+
+    def get(self, request):
+
+        user = request.user
+
+        order = Order.objects.filter(user=user).order_by('-created_at').first()
+
+        if not order:
+            return redirect('order-failed')
+
+        address = order.address
+
+        order_items = order.items.all()
+
+        return render(request, self.template_name, {'address': address, 'order': order, 'order_items': order_items})
+
+
+def orderFailed(request):
+
+    return render(request, 'checkout/order_failed.html')

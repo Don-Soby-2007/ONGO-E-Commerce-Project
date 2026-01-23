@@ -45,12 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             confirmButtonColor: '#DC2626',
                             confirmButtonText: 'Continue Shopping'
                         }).then(() => {
-                            window.location.href = data.redirect_url || '/products/';
+                            window.location.href = data.redirect_url || '/checkout/order-success';
                         });
                     }
                 } else {
-                    Swal.fire('Error', data.error || 'Failed to process order.', 'error');
-                    resetButton();
+                    window.location.href = '/checkout/order-failed'
                 }
             } catch (error) {
                 console.error('Order error:', error);
