@@ -162,10 +162,12 @@
                             {% endif %}
                         </span>
                     </div>
-                    {% comment %} <div class="flex justify-between">
+                    {% if order.payment_method != 'cod' %}
+                    <div class="flex justify-between">
                         <span class="text-gray-500">Payment Status</span>
                         <span class="text-green-600 font-semibold">PAID</span>
-                    </div> {% endcomment %}
+                    </div> 
+                    {% endif %}
 
                     <div class="border-t border-gray-100 my-4 pt-4 space-y-2">
                         <div class="flex justify-between text-gray-600">
