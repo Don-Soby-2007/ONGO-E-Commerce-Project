@@ -40,15 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         });
                     } else if (data.success) {
-                        Swal.fire({
-                            title: 'Order Placed!',
-                            text: 'Thank you for your purchase!',
-                            icon: 'success',
-                            confirmButtonColor: '#DC2626',
-                            confirmButtonText: 'Continue Shopping'
-                        }).then(() => {
-                            window.location.href = data.redirect_url || '/checkout/order-success/';
-                        });
+                        
+                        window.location.href = data.redirect_url || '/checkout/order-success/';
+
                     }
                 } else {
                     window.location.href = '/checkout/order-failed'
