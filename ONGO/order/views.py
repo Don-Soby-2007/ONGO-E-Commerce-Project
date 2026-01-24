@@ -176,7 +176,7 @@ class PlaceOrder(LoginRequiredMixin, View):
 
         checkout_step = request.session.get('checkout_step')
 
-        if not all[address_id, payment_methode, checkout_step == 'confirmation']:
+        if not address_id or not payment_methode or not checkout_step == 'confirmation':
             return JsonResponse({
                 'error': 'Incomplete checkout. Please go through all steps'
             }, status=400)
@@ -243,7 +243,7 @@ class PlaceOrder(LoginRequiredMixin, View):
             return JsonResponse({
                 'success': True,
                 'order_placed': True,
-                'redirect_url': 'checkout/order-success/'
+                'redirect_url': '/checkout/order-success/'
             })
 
     def _create_order_and_deduct_stock(self, user, address, cart_items, locked_variants, sub_total, payment_method):
@@ -280,7 +280,7 @@ class PlaceOrder(LoginRequiredMixin, View):
                     product_name=variant.product.name,
                     variant_options={'size': variant.size, 'color': variant.color},
                     image_url=image_url,
-                    price_at_time_order=variant.final_price,
+                    price_at_time_of_order=variant.final_price,
                     quantity=item.quantity,
                     total_price=variant.final_price*item.quantity
                 )

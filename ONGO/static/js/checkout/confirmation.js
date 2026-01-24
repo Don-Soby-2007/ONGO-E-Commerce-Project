@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await response.json();
 
+                console.log(data)
+
                 if (response.ok) {
                     if (data.initiate_razorpay) {
                         // 🚧 Phase 1: Just show alert (replace later with Razorpay SDK)
@@ -45,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             confirmButtonColor: '#DC2626',
                             confirmButtonText: 'Continue Shopping'
                         }).then(() => {
-                            window.location.href = data.redirect_url || '/checkout/order-success';
+                            window.location.href = data.redirect_url || '/checkout/order-success/';
                         });
                     }
                 } else {
