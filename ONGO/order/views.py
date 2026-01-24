@@ -234,7 +234,7 @@ class PlaceOrder(LoginRequiredMixin, View):
 
         else:
             self._create_order_and_deduct_stock(
-                user, address, cart_items, locked_variants, subtotal
+                user, address, cart_items, locked_variants, subtotal, payment_methode
             )
 
             request.session.pop('checkout_information')
@@ -246,7 +246,7 @@ class PlaceOrder(LoginRequiredMixin, View):
                 'redirect_url': 'checkout/order-success/'
             })
 
-    def _create_order_and_deduct_stock(self, user, address, cart_items, locked_variants, sub_total):
+    def _create_order_and_deduct_stock(self, user, address, cart_items, locked_variants, sub_total, payment_method):
 
         for item in cart_items:
             variant = locked_variants[item.product_variant_id]
@@ -258,7 +258,8 @@ class PlaceOrder(LoginRequiredMixin, View):
             address=address,
             sub_total=sub_total,
             total_amount=sub_total,
-            status='confirmed' if sub_total > 0 else 'pending'
+            status='confirmed' if sub_total > 0 else 'pending',
+            payment_method=payment_method
         )
 
         order_items = []
