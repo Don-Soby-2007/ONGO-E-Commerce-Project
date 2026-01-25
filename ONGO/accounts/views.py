@@ -10,6 +10,7 @@ from .utils import create_address_from_request
 
 from django.views import View
 from django.views.generic import ListView
+from django.views.generic import DetailView
 from django.views.decorators.cache import never_cache
 
 from django.core.mail import send_mail
@@ -20,7 +21,10 @@ from django.db import DatabaseError
 
 from django.http import JsonResponse
 
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 from .models import User, Address
+from order.models import Order
 
 import re
 import logging
@@ -282,12 +286,15 @@ def userLogoutView(request):
     return redirect('login')
 
 
+@login_required
 def ProfileView(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
     return render(request, 'accounts/profile_section.html',)
 
 
-@method_decorator(login_required, name='dispatch')
-class EditProfileView(View):
+@method_decorator(never_cache, name='dispatch')
+class EditProfileView(LoginRequiredMixin, View):
     template_name = 'accounts/edit_profile_section.html'
     otp_verification_template = 'accounts/otp_verification_profile.html'
 
@@ -365,9 +372,8 @@ class EditProfileView(View):
             return render(request, self.template_name)
 
 
-@method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name='dispatch')
-class UpdateProfilePhotoView(View):
+class UpdateProfilePhotoView(LoginRequiredMixin, View):
 
     def post(self, request):
 
@@ -401,9 +407,8 @@ class UpdateProfilePhotoView(View):
         return redirect('profile')
 
 
-@method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name='dispatch')
-class EmailChangeOtpVerificationView(View):
+class EmailChangeOtpVerificationView(LoginRequiredMixin, View):
 
     template_name = 'accounts/otp_verification_profile.html'
 
@@ -455,6 +460,7 @@ class EmailChangeOtpVerificationView(View):
             messages.error(request, "Failed to update profile. Please try again.")
 
 
+@login_required
 def cancel_email_change(request):
     if request.method == 'POST':
         request.session.pop('temp_email_change', None)
@@ -462,6 +468,7 @@ def cancel_email_change(request):
     return redirect('profile')
 
 
+@login_required
 def resend_email_change_otp(request):
     if request.method != 'POST':
         return redirect('edit-profile')
@@ -497,9 +504,8 @@ def resend_email_change_otp(request):
         return JsonResponse({'success': False, 'message': "Failed to send OTP"})
 
 
-@method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name='dispatch')
-class AddressView(ListView):
+class AddressView(LoginRequiredMixin, ListView):
     template_name = 'accounts/manage_address.html'
     model = Address
     context_object_name = 'addresses'
@@ -508,9 +514,8 @@ class AddressView(ListView):
         return Address.objects.filter(user=self.request.user).order_by('-is_default')
 
 
-@method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name='dispatch')
-class AddAddressView(View):
+class AddAddressView(LoginRequiredMixin, View):
 
     template_name = 'accounts/add_address.html'
 
@@ -528,9 +533,8 @@ class AddAddressView(View):
             return render(request, self.template_name)
 
 
-@method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name='dispatch')
-class EditAddressView(View):
+class EditAddressView(LoginRequiredMixin, View):
     template_name = 'accounts/edit_address.html'
 
     def get(self, request, address_id):
@@ -605,6 +609,7 @@ class EditAddressView(View):
             return render(request, self.template_name)
 
 
+@login_required
 def DeleteAddressView(request, pk):
 
     if request.method != "POST":
@@ -637,9 +642,8 @@ def DeleteAddressView(request, pk):
     return redirect('manage_address')
 
 
-@method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name='dispatch')
-class PasswordView(View):
+class PasswordView(LoginRequiredMixin, View):
 
     template_name = 'accounts/manage_password.html'
 
@@ -694,3 +698,54 @@ class PasswordView(View):
             messages.error(request, "Something went wrong while updating your password.")
             logger.error(f"Unexpected error occurred when updating password for user {user}: {e}")
             return render(request, self.template_name)
+
+
+class OrderListView(LoginRequiredMixin, ListView):
+
+    model = Order
+    template_name = 'accounts/order_list.html'
+    context_object_name = 'orders'
+    paginate_by = 8
+
+    def get_queryset(self):
+
+        queryset = Order.objects.filter(user=self.request.user)
+
+        q = self.request.GET.get('q')
+
+        if q:
+            queryset = queryset.filter(order_id__icontains=q)
+
+        status = self.request.GET.get('status')
+
+        if status:
+            queryset = queryset.filter(status=status)
+
+        sort = self.request.GET.get('sort')
+
+        if sort == 'oldest':
+            queryset = queryset.filter('created_at')
+        else:
+            queryset = queryset.filter('-created_at')
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        return context
+
+
+@method_decorator(never_cache, name='dispatch')
+class OrderDetailView(LoginRequiredMixin, DetailView):
+
+    model = Order
+    template_name = 'accounts/order_detail.html'
+    context_object_name = 'order'
+    slug_field = 'order_id'
+    slug_url_kwarg = 'order_id'
+
+    def get_queryset(self):
+        queryset = Order.objects.filter(user=self.request.user).select_related('address').prefetch_related('items')
+        return queryset
