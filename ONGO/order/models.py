@@ -53,6 +53,17 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
+
+    ITEM_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+        ('returned', 'Returned'),
+        ('refunded', 'Refunded'),
+    ]
+
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product_variant = models.ForeignKey(ProductVariant, on_delete=models.PROTECT)
 
@@ -62,6 +73,15 @@ class OrderItem(models.Model):
     price_at_time_of_order = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     total_price = models.DecimalField(max_digits=12, decimal_places=2)
+
+    status = models.CharField(
+        max_length=20,
+        choices=ITEM_STATUS_CHOICES,
+        default='pending'
+    )
+
+    cancel_reason = models.TextField(blank=True, null=True)
+    cancelled_at = models.DateTimeField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
         self.total_price = self.quantity * self.price_at_time_of_order

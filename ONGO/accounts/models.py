@@ -138,14 +138,14 @@ class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
 
     name = models.CharField(max_length=150)
-    street_address = models.CharField("Street Address", max_length=500)
+    street_address = models.TextField(help_text="Street Address")
 
     city = models.CharField(max_length=150)
     state = models.CharField(max_length=150)
     country = models.CharField(max_length=150)
     postal_code = models.CharField(max_length=20)
 
-    phone = models.CharField(max_length=15, blank=False, null=True)
+    phone = models.CharField(max_length=15)
 
     is_default = models.BooleanField(default=False)
 
