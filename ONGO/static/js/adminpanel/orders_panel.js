@@ -50,7 +50,7 @@ async function handleStatusChange(selectEl) {
 }
 
 async function updateOrderStatus(orderId, status) {
-    var url = '/admin/orders/' + orderId + '/';
+    var url = '/admin/orders/status/' + orderId + '/';
     return await sendRequest(url, status);
 }
 

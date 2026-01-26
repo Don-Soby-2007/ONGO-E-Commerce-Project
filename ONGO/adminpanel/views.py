@@ -1085,6 +1085,15 @@ class ToggleOrderItemStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
         if item.status == 'delivered' and new_status == 'pending':
             return JsonResponse({'error': 'Cannot revert delivered item'}, status=400)
 
+        if new_status == 'cancelled':
+            variant = item.product_variant
+            variant.stock += item.quantity
+            variant.save(update_fields=['stock'])
+
+            order.sub_total -= item.total_price
+            order.total_amount -= item.total_price
+            order.save(update_fields=['sub_total', 'total_amount'])
+
         item.status = new_status
         item.save(update_fields=['status'])
 
