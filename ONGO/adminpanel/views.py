@@ -6,11 +6,13 @@ from django.contrib import messages
 from django.views import View
 from django.db.models import Q, Count
 from django.views.generic import ListView
+from django.views.generic import DetailView
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from accounts.models import User
 from products.models import Category, Product, ProductVariant, ProductImage
+from order.models import Order, OrderItem
 
 from django.http import JsonResponse
 
@@ -960,3 +962,138 @@ class ProductEditView(View):
             messages.error(request, "Something went wrong while updating product")
             logger.error(f"Unexpected error during Product update: {e}", exc_info=True)
             return redirect("edit_product", pk=pk)
+
+
+@method_decorator(never_cache, name='dispatch')
+class AdminOrderListView(LoginRequiredMixin, ListView):
+
+    model = Order
+    template_name = 'adminpanel/orders_panel.html'
+    context_object_name = 'orders'
+    paginate_by = 3
+
+    def get_queryset(self):
+
+        queryset = Order.objects.all()
+
+        q = self.request.GET.get('q')
+
+        if q:
+            queryset = queryset.filter(order_id__icontains=q)
+
+        status = self.request.GET.get('status')
+
+        if status:
+            queryset = queryset.filter(status=status)
+
+        sort = self.request.GET.get('sort')
+
+        if sort == 'oldest':
+            queryset = queryset.order_by('created_at')
+        else:
+            queryset = queryset.order_by('-created_at')
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        return context
+
+
+@method_decorator(never_cache, name='dispatch')
+class AdminOrderDetailView(LoginRequiredMixin, DetailView):
+
+    model = Order
+    template_name = 'accounts/admin_order_detail.html'
+    context_object_name = 'order'
+    slug_field = 'order_id'
+    slug_url_kwarg = 'order_id'
+
+    def get_queryset(self):
+        queryset = Order.objects.all().select_related('address').prefetch_related('items')
+        return queryset
+
+
+@method_decorator(never_cache, name='dispatch')
+class ToggleOrderStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def post(self, request, order_id):
+        order = get_object_or_404(Order, order_id=order_id)
+        new_status = request.POST.get('status')
+
+        allowed_statuses = dict(Order.ORDER_STATUS_CHOICES).keys()
+        if new_status not in allowed_statuses:
+            return JsonResponse({'error': 'Invalid status'}, status=400)
+
+        if not self._is_valid_transition(order.status, new_status):
+            return JsonResponse({'error': 'Invalid status transition'}, status=400)
+
+        order.status = new_status
+        order.save(update_fields=['status', 'updated_at'])
+        return JsonResponse({'success': True, 'new_status': new_status})
+
+    def _is_valid_transition(self, old, new):
+        ALLOWED_TRANSITIONS = {
+            'pending':      ['confirmed', 'cancelled'],
+            'confirmed':    ['shipped', 'cancelled'],
+            'shipped':      ['delivered'],
+            'delivered':    [],  # Terminal state
+            'cancelled':    [],  # Terminal state
+        }
+
+        return new in ALLOWED_TRANSITIONS.get(old, [])
+
+
+@method_decorator(never_cache, name='dispatch')
+class ToggleOrderItemStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def post(self, request, order_id, item_id):
+        order = get_object_or_404(Order, order_id=order_id)
+        item = get_object_or_404(OrderItem, id=item_id, order=order)
+
+        new_status = request.POST.get('status')
+        allowed_statuses = dict(OrderItem.ITEM_STATUS_CHOICES).keys()
+
+        if new_status not in allowed_statuses:
+            return JsonResponse({'error': 'Invalid item status'}, status=400)
+
+        if not self._is_valid_transition(item.status, new_status):
+            return JsonResponse({'error': 'Invalid status transition'}, status=400)
+
+        if item.status == 'delivered' and new_status == 'pending':
+            return JsonResponse({'error': 'Cannot revert delivered item'}, status=400)
+
+        item.status = new_status
+        item.save(update_fields=['status'])
+
+        self._update_order_status_if_needed(order)
+
+        return JsonResponse({'success': True, 'new_status': new_status})
+
+    def _update_order_status_if_needed(self, order):
+        item_statuses = set(order.items.values_list('status', flat=True))
+        if item_statuses == {'delivered'}:
+            order.status = 'delivered'
+        elif 'cancelled' in item_statuses and not item_statuses - {'cancelled'}:
+            order.status = 'cancelled'
+        else:
+            return  # Keep manual control
+        order.save(update_fields=['status'])
+
+    def _is_valid_transition(self, old, new):
+        ALLOWED_TRANSITIONS = {
+            'pending':      ['confirmed', 'cancelled'],
+            'confirmed':    ['shipped', 'cancelled'],
+            'shipped':      ['delivered'],
+            'delivered':    [],
+            'cancelled':    [],
+        }
+
+        return new in ALLOWED_TRANSITIONS.get(old, [])

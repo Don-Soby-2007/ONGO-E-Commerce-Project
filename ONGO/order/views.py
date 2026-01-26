@@ -282,7 +282,8 @@ class PlaceOrder(LoginRequiredMixin, View):
                     image_url=image_url,
                     price_at_time_of_order=variant.final_price,
                     quantity=item.quantity,
-                    total_price=variant.final_price*item.quantity
+                    total_price=variant.final_price*item.quantity,
+                    status='confirmed'
                 )
             )
 
