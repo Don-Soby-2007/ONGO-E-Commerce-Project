@@ -1,115 +1,209 @@
 @page {
     size: A4;
-    margin: 2cm;
+    margin: 1.5cm;
+
+    @bottom-center {
+        content: element(footer);
+    }
 }
 
 body {
     font-family: 'Helvetica', 'Arial', sans-serif;
     font-size: 10pt;
-    line-height: 1.5;
-    color: #333;
-}
-
-.invoice-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 2cm;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 1cm;
-}
-
-.company-details h1 {
-    color: #e53935;
-    /* ONGO Red */
+    line-height: 1.4;
+    color: #111;
     margin: 0;
-    font-size: 24pt;
+    padding: 0;
 }
 
-.company-details p {
-    margin: 0;
-    color: #666;
-}
-
-.invoice-title {
-    text-align: right;
-}
-
-.invoice-title h2 {
-    margin: 0;
-    font-size: 20pt;
-    color: #333;
-}
-
-.customer-details {
-    margin-bottom: 1cm;
-    display: flex;
-    justify-content: space-between;
-}
-
-.bill-to,
-.ship-to {
-    width: 48%;
-}
-
-.bill-to h3,
-.ship-to h3 {
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 5px;
-    margin-bottom: 10px;
-    font-size: 12pt;
-}
-
-table {
+/* Base Layout Tables */
+.layout-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 1cm;
+    margin-bottom: 20px;
+    border: none;
 }
 
-th {
-    background-color: #f8f8f8;
-    color: #333;
-    font-weight: bold;
+.layout-table td {
+    padding: 0;
+    vertical-align: top;
+    border: none;
+}
+
+/* Header */
+.header-row td {
+    border-bottom: 2px solid #f1f1f1;
+    padding-bottom: 20px;
+}
+
+.logo-cell {
+    width: 60%;
     text-align: left;
-    padding: 8px;
-    border-bottom: 1px solid #ddd;
+    vertical-align: middle;
 }
 
-td {
-    padding: 8px;
+.logo-img {
+    width: 120px;
+    height: auto;
+    display: block;
+}
+
+.company-info-cell {
+    width: 40%;
+    text-align: right;
+    font-size: 9pt;
+    color: #555;
+    vertical-align: middle;
+}
+
+.company-name {
+    font-weight: bold;
+    font-size: 14pt;
+    color: #ef4444;
+    /* ONGO Red */
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* Meta Data */
+.invoice-title {
+    font-size: 24pt;
+    font-weight: 900;
+    color: #333;
+    letter-spacing: 1px;
+    margin: 0 0 10px 0;
+}
+
+.meta-table {
+    width: 100%;
+}
+
+.meta-label {
+    font-weight: bold;
+    color: #666;
+    padding-right: 10px;
+}
+
+.meta-value {
+    color: #000;
+}
+
+/* Addresses */
+.address-box {
+    background-color: #fcfcfc;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 4px;
+    height: 100px;
+    /* Min height to keep alignment */
+    width: 95%;
+    /* Spacing between cells */
+}
+
+.address-header {
+    font-size: 8pt;
+    text-transform: uppercase;
+    color: #888;
+    font-weight: bold;
+    margin-bottom: 8px;
     border-bottom: 1px solid #eee;
+    padding-bottom: 4px;
+    display: block;
+}
+
+.address-name {
+    font-weight: bold;
+    font-size: 11pt;
+    margin-bottom: 4px;
+    display: block;
+}
+
+/* Items Table */
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+    page-break-inside: auto;
+}
+
+.items-table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+}
+
+.items-table th {
+    background-color: #f8f8f8;
+    color: #444;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 8pt;
+    text-align: left;
+    padding: 10px 8px;
+    border-bottom: 2px solid #ddd;
+}
+
+.items-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+}
+
+.item-name {
+    font-weight: bold;
+    color: #000;
+}
+
+.item-variant {
+    font-size: 8pt;
+    color: #777;
 }
 
 .text-right {
     text-align: right;
 }
 
-.totals {
-    width: 40%;
-    margin-left: auto;
+.text-center {
+    text-align: center;
 }
 
-.totals-row {
-    display: flex;
-    justify-content: space-between;
+/* Totals */
+.totals-table {
+    width: 40%;
+    margin-left: auto;
+    /* Push to right */
+    border-collapse: collapse;
+}
+
+.total-label {
+    font-weight: bold;
+    color: #666;
+    text-align: left;
     padding: 5px 0;
 }
 
-.totals-row.final {
-    font-weight: bold;
-    font-size: 12pt;
-    border-top: 2px solid #333;
-    margin-top: 5px;
-    padding-top: 10px;
+.total-value {
+    text-align: right;
+    padding: 5px 0;
+    color: #333;
 }
 
-.footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
+.grand-total td {
+    border-top: 2px solid #333;
+    padding-top: 10px;
+    margin-top: 5px;
+    font-size: 12pt;
+    font-weight: bold;
+    color: #ef4444;
+}
+
+/* Footer */
+.page-footer {
+    position: running(footer);
+    display: block;
     text-align: center;
-    font-size: 8pt;
-    color: #999;
     border-top: 1px solid #eee;
     padding-top: 10px;
+    color: #999;
+    font-size: 8pt;
+    width: 100%;
 }

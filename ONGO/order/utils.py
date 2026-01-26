@@ -3,7 +3,6 @@ from django.template.loader import render_to_string
 from django.core.files.base import ContentFile
 from django.conf import settings
 from .models import Invoice
-
 from cart.models import Cart
 
 
@@ -35,34 +34,27 @@ def generate_invoice_pdf(order):
     """
     Generates a PDF invoice for the given order and saves it to the Invoice model.
     """
-    # Check if invoice already exists to avoid duplicates
-    if hasattr(order, 'invoice'):
-        return order.invoice
+    # 1. Create Invoice object FIRST to generate invoice_number and created_at
+    invoice, created = Invoice.objects.get_or_create(order=order)
 
-    # Prepare context
+    # 2. Prepare context with the invoice object
     context = {
         'order': order,
+        'invoice': invoice, # Explicitly pass invoice
         'user': order.user,
         'items': order.items.all(),
-        # Add any other static branding info here or in template
     }
 
-    # Render HTML
+    # 3. Render HTML
     html_string = render_to_string('order/invoice.html', context)
 
-    # Generate PDF
-    # We use BASE_DIR as base_url to resolve static files/images
+    # 4. Generate PDF
     if settings.DEBUG:
-        # In dev, static files might be served differently, but file:// access usually works with absolute paths
-        # logic can be adjusted if static files don't resolve
         pass
 
     pdf_file = weasyprint.HTML(string=html_string, base_url=str(settings.BASE_DIR)).write_pdf()
 
-    # Create Invoice and save PDF
-    invoice = Invoice(order=order)
-    invoice.save()  # This generates the invoice_number
-
+    # 5. Save PDF to the existing invoice object
     filename = f"Invoice_{invoice.invoice_number}.pdf"
     invoice.pdf_file.save(filename, ContentFile(pdf_file), save=True)
 
