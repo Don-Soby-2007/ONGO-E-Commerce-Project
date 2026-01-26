@@ -1,0 +1,261 @@
+{% extends 'accounts/base_profile.html' %}
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/accounts/order_detail.css' %}">
+{% endblock %}
+
+{% block profile_content %}
+<div class="order-detail-container mt-20">
+    <div class="order-detail-header mt-20">
+        <div class="order-title-group">
+            <h1 class="order-id-title">Order #{{ order.order_id}}</h1>
+            <span class="order-date">Placed on {{ order.created_at|date:"d M Y, h:i A" }}</span>
+        </div>
+        <div class="order-header-actions">
+            {% if order.status == 'pending' or order.status == 'confirmed' %}
+            <button type="button" class="btn-danger"
+                onclick="openCancelModal('{% url 'cancel_order' order.order_id %}', 'Order')">Cancel Order</button>
+            {% endif %}
+
+            {% if order.status == 'delivered' %}
+            <button class="btn-secondary">Download Invoice</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="order-content-grid">
+        <!-- Left Column: Items and Delivery -->
+        <div class="detail-column-main">
+            <!-- Order Items -->
+            <div class="detail-card">
+                <div class="detail-card-header">
+                    Items ({{ order.items.count }})
+                </div>
+                <div class="detail-card-body">
+                    {% for item in order.items.all %}
+                    <div class="item-row">
+                        {% if item.image_url %}
+                        <img src="{{ item.image_url }}" alt="{{ item.product_name }}" class="item-image">
+                        {% else %}
+                        <img src="https://via.placeholder.com/80" alt="Product" class="item-image">
+                        {% endif %}
+
+                        <div class="item-details">
+                            <span class="item-name">{{ item.product_name }}</span>
+                            <div class="item-meta-row">
+                                <span class="item-variant">Size: {{ item.variant_options.size }}</span>
+                                <span class="item-variant">Color: {{ item.variant_options.color }}</span>
+                            </div>
+                            <div class="item-meta-row">
+                                <span class="item-price">₹{{ item.price_at_time_of_order }} × {{ item.quantity }}</span>
+                                <span class="item-status status-{{ item.status }}">{{ item.status|title }}</span>
+                            </div>
+                        </div>
+
+                        <div class="item-actions">
+                            {% if item.status == 'pending' or item.status == 'confirmed' %}
+                            <button type="button" class="btn-text-danger"
+                                onclick="openCancelModal('{% url 'cancel_order_item' order.order_id item.id %}', 'Item')">Cancel
+                                Item</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Delivery Address -->
+            <div class="detail-card">
+                <div class="detail-card-header">
+                    Delivery Address
+                </div>
+                <div class="detail-card-body">
+                    <div class="address-grid">
+                        <div>
+                            <h4 class="info-value">{{ order.address.name }}</h4>
+                            <p class="order-date">{{ order.address.street_address }}</p>
+                            <p class="order-date">{{ order.address.city }}, {{ order.address.state }} -
+                                {{order.address.postal_code }}</p>
+                            <p class="order-date">{{ order.address.country }}</p>
+                            <p class="order-date">Phone: {{ order.address.phone }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Payment Summary -->
+        <div class="detail-column-side">
+            <div class="detail-card">
+                <div class="detail-card-header">
+                    Payment Summary
+                </div>
+                <div class="detail-card-body">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>₹{{ order.sub_total }}</span>
+                    </div>
+                    {% if order.discount_amount > 0 %}
+                    <div class="summary-row" style="color: #059669;">
+                        <span>Discount</span>
+                        <span>- ₹{{ order.discount_amount }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span>Free</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total Amount</span>
+                        <span>₹{{ order.total_amount }}</span>
+                    </div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <span class="info-label">Payment Method</span>
+                        <br>
+                        <span class="payment-method-badge">{{ order.get_payment_method_display }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Order Timeline -->
+    <div class="timeline-section">
+        {% if order.status == 'cancelled' %}
+        <!-- Cancelled Flow -->
+        <div class="timeline timeline-cancelled">
+            <!-- Step 1: Confirmed (Completed) -->
+            <div class="timeline-step completed">
+                <div class="timeline-icon">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-label">Order Confirmed</div>
+                    <div class="timeline-date">{{ order.created_at|date:"d M, Y" }}</div>
+                </div>
+            </div>
+            <!-- Step 2: Cancelled (Active) -->
+            <div class="timeline-step step-cancelled active">
+                <div class="timeline-icon">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-label">Cancelled</div>
+                    <div class="timeline-date">{{ order.updated_at|date:"d M, Y" }}</div>
+                </div>
+            </div>
+        </div>
+
+        {% elif order.status == 'returned' %}
+        <!-- Returned Flow (Delivered -> Returned) -->
+        <div class="timeline timeline-returned">
+            <!-- Step 1: Confirmed -->
+            <div class="timeline-step completed">
+                <div class="timeline-icon"><i data-lucide="check" class="w-4 h-4"></i></div>
+                <div class="timeline-content">
+                    <div class="timeline-label">Order Confirmed</div>
+                    <div class="timeline-date">{{ order.created_at|date:"d M, Y" }}</div>
+                </div>
+            </div>
+            <!-- Step 2: Shipped -->
+            <div class="timeline-step completed">
+                <div class="timeline-icon"><i data-lucide="check" class="w-4 h-4"></i></div>
+                <div class="timeline-content">
+                    <div class="timeline-label">Shipped</div>
+                </div>
+            </div>
+            <!-- Step 3: Delivered -->
+            <div class="timeline-step completed">
+                <div class="timeline-icon"><i data-lucide="check" class="w-4 h-4"></i></div>
+                <div class="timeline-content">
+                    <div class="timeline-label">Delivered</div>
+                </div>
+            </div>
+            <!-- Step 4: Returned -->
+            <div class="timeline-step step-returned active">
+                <div class="timeline-icon"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></div>
+                <div class="timeline-content">
+                    <div class="timeline-label">Returned</div>
+                    <div class="timeline-date">{{ order.updated_at|date:"d M, Y" }}</div>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- Normal Flow: Pending/Confirmed -> Shipped -> Delivered -->
+        <div class="timeline">
+            <!-- Step 1: Confirmed -->
+            <div class="timeline-step {% if order.status != 'pending' %}completed{% else %}active{% endif %}">
+                <div class="timeline-icon">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-label">Order Confirmed</div>
+                    <div class="timeline-date">{{ order.created_at|date:"d M, Y" }}</div>
+                </div>
+            </div>
+
+            <!-- Step 2: Shipped -->
+            <div
+                class="timeline-step {% if order.status == 'shipped' %}active{% elif order.status == 'delivered' %}completed{% endif %}">
+                <div class="timeline-icon">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-label">Shipped</div>
+                    {% if order.status == 'shipped' %}
+                    <div class="timeline-date">{{ order.updated_at|date:"d M, Y" }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Step 3: Delivered -->
+            <div class="timeline-step {% if order.status == 'delivered' %}active{% endif %}">
+                <div class="timeline-icon">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-label">Delivered</div>
+                    {% if order.status == 'delivered' %}
+                    <div class="timeline-date">{{ order.updated_at|date:"d M, Y" }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+
+<!-- Cancellation Modal -->
+<div id="cancelModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle" class="modal-title">Cancel Order</h3>
+        </div>
+        <form id="cancelForm">
+            {% csrf_token %}
+            <div class="modal-body">
+                <label for="cancelReason" class="info-label" style="display:block; margin-bottom: 0.5rem;">Reason for
+                    cancellation</label>
+                <textarea id="cancelReason" name="cancel_reason" class="cancel-reason-input"
+                    placeholder="Please tell us why you want to cancel..." required></textarea>
+                <input type="hidden" id="cancelType" name="type">
+                <input type="hidden" id="cancelTargetId" name="target_id">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn modal-btn-cancel" onclick="closeCancelModal()">Keep
+                    Order</button>
+                <button type="submit" class="modal-btn modal-btn-confirm">Confirm Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/accounts/order_detail.js' %}"></script>
+{% endblock %}

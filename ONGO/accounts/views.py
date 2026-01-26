@@ -24,7 +24,10 @@ from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .models import User, Address
-from order.models import Order
+from order.models import Order, OrderItem
+
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 import re
 import logging
@@ -705,7 +708,7 @@ class OrderListView(LoginRequiredMixin, ListView):
     model = Order
     template_name = 'accounts/order_list.html'
     context_object_name = 'orders'
-    paginate_by = 8
+    paginate_by = 3
 
     def get_queryset(self):
 
@@ -724,9 +727,9 @@ class OrderListView(LoginRequiredMixin, ListView):
         sort = self.request.GET.get('sort')
 
         if sort == 'oldest':
-            queryset = queryset.filter('created_at')
+            queryset = queryset.order_by('created_at')
         else:
-            queryset = queryset.filter('-created_at')
+            queryset = queryset.order_by('-created_at')
 
         return queryset
 
@@ -749,3 +752,60 @@ class OrderDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         queryset = Order.objects.filter(user=self.request.user).select_related('address').prefetch_related('items')
         return queryset
+
+
+@method_decorator(never_cache, name='dispatch')
+class OrderCancelView(LoginRequiredMixin, View):
+
+    def post(self, request, order_id):
+
+        order = get_object_or_404(Order, order_id=order_id, user=request.user)
+
+        if order.status not in ['pending', 'confirmed']:
+            return JsonResponse({
+                'error': 'Cannot cancell This Order. Current Status: ' + order.status
+            }, status=400)
+
+        reason = request.POST.get('cancel_reason', 'Cancelled by User')
+
+        for item in order.items.all():
+            if item.status in ['pending', 'confirmed']:
+                item.status = 'cancelled'
+                item.cancel_reason = reason
+                item.cancelled_at = timezone.now()
+                item.save()
+                variant = item.product_variant
+                variant.stock += item.quantity
+                variant.save(update_fields=['stock'])
+
+        order.status = 'cancelled'
+        order.save()
+
+        return JsonResponse({'message': 'Order cancelled successfully.'})
+
+
+@method_decorator(never_cache, name='dispatch')
+class OrderItemCancelView(LoginRequiredMixin, View):
+    def post(self, request, order_id, item_id):
+        order = get_object_or_404(Order, order_id=order_id, user=request.user)
+        item = get_object_or_404(OrderItem, id=item_id, order=order)
+
+        if item.status not in ['pending', 'confirmed']:
+            return JsonResponse({
+                'error': 'Cannot cancel this item. Current status: ' + item.status
+            }, status=400)
+
+        reason = request.POST.get('reason', 'Cancelled by user')
+        item.status = 'cancelled'
+        item.cancel_reason = reason
+        item.cancelled_at = timezone.now()
+        item.save()
+        variant = item.product_variant
+        variant.stock += item.quantity
+        variant.save(update_fields=['stock'])
+
+        if not order.items.exclude(status='cancelled').exists():
+            order.status = 'cancelled'
+            order.save()
+
+        return JsonResponse({'message': 'Item cancelled successfully.'})

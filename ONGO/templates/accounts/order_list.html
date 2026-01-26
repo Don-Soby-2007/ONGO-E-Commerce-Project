@@ -1,0 +1,146 @@
+{% extends 'accounts/base_profile.html' %}
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/accounts/order_list.css' %}">
+{% endblock %}
+
+{% block profile_content %}
+<div class="order-list-container mt-20">
+    <div class="order-list-header mt-20">
+        <h1 class="order-list-title">My Orders</h1>
+    </div>
+
+    <!-- Filters Section -->
+    <form method="get" class="order-filters">
+        <div class="filter-group">
+            <input type="text" name="q" placeholder="Search Order ID" value="{{ request.GET.q|default:'' }}"
+                class="filter-input">
+        </div>
+
+        <div class="filter-group">
+            <select name="status" class="filter-select">
+                <option value="">All Statuses</option>
+                <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="confirmed" {% if request.GET.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                <option value="shipped" {% if request.GET.status == 'shipped' %}selected{% endif %}>Shipped</option>
+                <option value="delivered" {% if request.GET.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                <option value="failed" {% if request.GET.status == 'failed' %}selected{% endif %}>Failed</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <select name="sort" class="filter-select">
+                <option value="newest" {% if request.GET.sort != 'oldest' %}selected{% endif %}>Newest First</option>
+                <option value="oldest" {% if request.GET.sort == 'oldest' %}selected{% endif %}>Oldest First</option>
+            </select>
+        </div>
+
+        <button type="submit" class="filter-btn">Apply Filters</button>
+        {% if request.GET.q or request.GET.status or request.GET.sort %}
+        <a href="{% url 'order_list' %}" class="clear-btn">Clear</a>
+        {% endif %}
+    </form>
+
+    <!-- Orders List -->
+    {% if orders %}
+    {% for order in orders %}
+    <div class="order-card">
+        <div class="order-card-header">
+            <div class="order-meta">
+                <div class="meta-item">
+                    <span class="meta-label">Order Placed</span>
+                    <span class="meta-value">{{ order.created_at|date:"d M Y" }}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Total</span>
+                    <span class="meta-value">₹{{ order.total_amount }}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Order ID</span>
+                    <span class="meta-value">#{{ order.order_id|truncatechars:8 }}</span>
+                </div>
+            </div>
+            <span class="order-status status-{{ order.status }}">
+                {{ order.get_status_display }}
+            </span>
+        </div>
+
+        <div class="order-card-body">
+            <div class="order-preview">
+                {% with first_item=order.items.first %}
+                {% if first_item.image_url %}
+                <img src="{{ first_item.image_url }}" alt="Product" class="product-thumb">
+                {% else %}
+                <img src="https://via.placeholder.com/80" alt="Product" class="product-thumb">
+                {% endif %}
+                <div class="order-summary">
+                    <span class="summary-title">{{ first_item.product_name|default:"Product" }}</span>
+                    {% if order.items.count > 1 %}
+                    <span class="summary-subtitle">+ {{ order.items.count|add:"-1" }} more items</span>
+                    {% else %}
+                    <span class="summary-subtitle">Qty: {{ first_item.quantity }}</span>
+                    {% endif %}
+                </div>
+                {% endwith %}
+            </div>
+
+            <div class="order-actions">
+                <a href="{% url 'order_detail' order.order_id %}" class="btn-primary">View Order</a>
+                {% if order.status == 'shipped' or order.status == 'delivered' %}
+                <button class="btn-secondary">Track Order</button>
+                {% endif %}
+                {% if order.status == 'delivered' %}
+                <button class="btn-secondary">Invoice</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}&status={{ request.GET.status }}&sort={{ request.GET.sort }}"
+            class="page-link"><i data-lucide="chevron-left" class="w-4 h-4"></i></a>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="page-link active">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <a
+            href="?page={{ num }}&q={{ request.GET.q }}&status={{ request.GET.status }}&sort={{ request.GET.sort }}"
+            class="page-link">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}&status={{ request.GET.status }}&sort={{ request.GET.sort }}"
+                class="page-link"><i data-lucide="chevron-right" class="w-4 h-4"></i></a>
+            {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+        </svg>
+        <h3 class="empty-title">No orders found</h3>
+        <p class="empty-text">Looks like you haven't placed any orders yet.</p>
+        <a href="{% url 'products' %}" class="btn-primary">Start Shopping</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/accounts/order_list.js' %}"></script>
+{% endblock %}

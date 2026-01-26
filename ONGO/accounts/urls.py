@@ -71,4 +71,7 @@ urlpatterns = [
 
     path('order-list/', views.OrderListView.as_view(), name='order_list'),
     path('order-details/<uuid:order_id>', views.OrderDetailView.as_view(), name='order_detail'),
+    path('cancel-order/<uuid:order_id>', views.OrderCancelView.as_view(), name='cancel_order'),
+    path('cancel-order/<uuid:order_id>/<int:item_id>', views.OrderItemCancelView.as_view(), name='cancel_order_item'),
+
 ]

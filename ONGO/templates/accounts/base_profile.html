@@ -37,7 +37,7 @@
                         class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'profile' %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-red-500"></i>
                     My Account
                 </a>
-                <a href="#"
+                <a href="{% url 'order_list' %}"
                     class="nav-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 group">
                     <i data-lucide="package" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-red-500"></i>
                     My Orders
