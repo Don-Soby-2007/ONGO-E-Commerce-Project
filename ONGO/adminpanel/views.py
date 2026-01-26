@@ -1006,7 +1006,7 @@ class AdminOrderListView(LoginRequiredMixin, ListView):
 class AdminOrderDetailView(LoginRequiredMixin, DetailView):
 
     model = Order
-    template_name = 'accounts/admin_order_detail.html'
+    template_name = 'adminpanel/admin_order_detail.html'
     context_object_name = 'order'
     slug_field = 'order_id'
     slug_url_kwarg = 'order_id'
@@ -1042,8 +1042,8 @@ class ToggleOrderStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
             'pending':      ['confirmed', 'cancelled'],
             'confirmed':    ['shipped', 'cancelled'],
             'shipped':      ['delivered'],
-            'delivered':    [],  # Terminal state
-            'cancelled':    [],  # Terminal state
+            'delivered':    [],
+            'cancelled':    [],
         }
 
         return new in ALLOWED_TRANSITIONS.get(old, [])
