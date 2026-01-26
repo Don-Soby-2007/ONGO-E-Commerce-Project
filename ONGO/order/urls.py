@@ -13,4 +13,5 @@ urlpatterns = [
 
     path('order-success/', views.OrderSuccess.as_view(), name='order-success'),
     path('order-failed/', views.orderFailed, name='order-failed'),
+    path('invoice/<uuid:order_id>/', views.download_invoice, name='download_invoice'),
 ]

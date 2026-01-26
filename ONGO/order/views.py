@@ -12,7 +12,7 @@ from django.views import View
 
 from django.shortcuts import get_object_or_404
 
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse, Http404
 # from django.views.decorators.csrf import csrf_exempt
 
 from django.contrib.auth.decorators import login_required
@@ -315,3 +315,27 @@ class OrderSuccess(LoginRequiredMixin, View):
 def orderFailed(request):
 
     return render(request, 'checkout/order_failed.html')
+
+
+@login_required
+def download_invoice(request, order_id):
+    order = get_object_or_404(Order, order_id=order_id)
+
+    # Permission check: User must own the order
+    if request.user != order.user and not request.user.is_staff:
+        raise Http404("Order not found")
+
+    if not hasattr(order, 'invoice'):
+        # Just in case signals failed or old order, try generating it if delivered
+        if order.status == 'delivered':
+            from .utils import generate_invoice_pdf
+            generate_invoice_pdf(order)
+            # Refresh to get the relation
+            order.refresh_from_db()
+        else:
+            raise Http404("Invoice not available yet")
+
+    try:
+        return FileResponse(order.invoice.pdf_file.open('rb'), content_type='application/pdf')
+    except FileNotFoundError:
+        raise Http404("Invoice file missing")

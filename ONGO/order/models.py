@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.utils import timezone
 from accounts.models import User, Address
 from django.core.validators import MinValueValidator
 from products.models import ProductVariant
@@ -85,4 +86,28 @@ class OrderItem(models.Model):
 
     def save(self, *args, **kwargs):
         self.total_price = self.quantity * self.price_at_time_of_order
+        super().save(*args, **kwargs)
+
+
+class Invoice(models.Model):
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='invoice')
+    invoice_number = models.CharField(max_length=50, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    pdf_file = models.FileField(upload_to='invoices/')
+
+    def __str__(self):
+        return f"Invoice {self.invoice_number} for Order {self.order.order_id}"
+
+    def save(self, *args, **kwargs):
+        if not self.invoice_number:
+            last_invoice = Invoice.objects.order_by('-created_at').first()
+            if last_invoice:
+                try:
+                    last_number = int(last_invoice.invoice_number.split('-')[-1])
+                    new_number = last_number + 1
+                except (ValueError, IndexError):
+                    new_number = 1
+            else:
+                new_number = 1
+            self.invoice_number = f"INV-{timezone.now().year}-{new_number:05d}"
         super().save(*args, **kwargs)

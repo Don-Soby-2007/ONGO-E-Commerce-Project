@@ -1,0 +1,191 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Invoice {{ order.invoice.invoice_number }}</title>
+    <link href="{% static 'css/order/invoice.css' %}" rel="stylesheet">
+    <style>
+        /* Embed critical CSS directly just in case static loading has issues in some weasyprint envs */
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: sans-serif;
+            color: #333;
+        }
+
+        .header {
+            overflow: hidden;
+            margin-bottom: 40px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+
+        .logo {
+            float: left;
+            width: 50%;
+        }
+
+        .invoice-info {
+            float: right;
+            width: 40%;
+            text-align: right;
+        }
+
+        .addresses {
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+
+        .box {
+            width: 45%;
+            float: left;
+        }
+
+        .right-box {
+            float: right;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        .total-section {
+            width: 40%;
+            float: right;
+        }
+
+        .row {
+            overflow: hidden;
+            padding: 5px 0;
+        }
+
+        .label {
+            float: left;
+        }
+
+        .value {
+            float: right;
+            font-weight: bold;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 10px;
+            color: #999;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="logo">
+            <h1 style="color: #ef4444; margin: 0;">ONGO</h1>
+            <p style="margin: 5px 0; color: #666;">
+                123 E-Commerce St.<br>
+                Tech City, TC 90210<br>
+                support@ongo.com
+            </p>
+        </div>
+        <div class="invoice-info">
+            <h2 style="margin: 0;">INVOICE</h2>
+            <p><strong># {{ order.invoice.invoice_number }}</strong></p>
+            <p>Date: {{ order.invoice.created_at|date:"F d, Y" }}</p>
+            <p>Order ID: {{ order.order_id }}</p>
+        </div>
+    </div>
+
+    <div class="addresses">
+        <div class="box">
+            <h3>Bill To:</h3>
+            <p>
+                <strong>{{ user.get_full_name|default:user.username }}</strong><br>
+                {{ order.address.street_address }}<br>
+                {{ order.address.city }}, {{ order.address.state }} {{ order.address.postal_code }}<br>
+                {{ order.address.country }}<br>
+                {{ order.address.phone }}
+            </p>
+        </div>
+        <div class="box right-box">
+            <h3>Ship To:</h3>
+            <p>
+                <strong>{{ order.address.name }}</strong><br>
+                {{ order.address.street_address }}<br>
+                {{ order.address.city }}, {{ order.address.state }} {{ order.address.postal_code }}<br>
+                {{ order.address.country }}<br>
+                {{ order.address.phone }}
+            </p>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Details</th>
+                <th>Price</th>
+                <th>Qty</th>
+                <th style="text-align: right;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.product_name }}</td>
+                <td>
+                    <small>Size: {{ item.variant_options.size }}</small><br>
+                    <small>Color: {{ item.variant_options.color }}</small>
+                </td>
+                <td>₹{{ item.price_at_time_of_order }}</td>
+                <td>{{ item.quantity }}</td>
+                <td style="text-align: right;">₹{{ item.total_price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <div class="row">
+            <span class="label">Subtotal:</span>
+            <span class="value">₹{{ order.sub_total }}</span>
+        </div>
+        {% if order.discount_amount > 0 %}
+        <div class="row" style="color: green;">
+            <span class="label">Discount:</span>
+            <span class="value">- ₹{{ order.discount_amount }}</span>
+        </div>
+        {% endif %}
+        <div class="row" style="font-size: 1.2em; border-top: 2px solid #333; margin-top: 10px; padding-top: 10px;">
+            <span class="label">Total Paid:</span>
+            <span class="value">₹{{ order.total_amount }}</span>
+        </div>
+        <p style="text-align: right; margin-top: 5px; color: #666; font-size: 0.9em;">
+            Payment Method: {{ order.get_payment_method_display }}
+        </p>
+    </div>
+
+    <div class="footer">
+        <p>This is a computer-generated invoice. No signature is required.</p>
+        <p>Thank you for shopping with ONGO!</p>
+    </div>
+
+</body>
+
+</html>

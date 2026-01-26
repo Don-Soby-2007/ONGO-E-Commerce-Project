@@ -1,0 +1,115 @@
+@page {
+    size: A4;
+    margin: 2cm;
+}
+
+body {
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    font-size: 10pt;
+    line-height: 1.5;
+    color: #333;
+}
+
+.invoice-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2cm;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 1cm;
+}
+
+.company-details h1 {
+    color: #e53935;
+    /* ONGO Red */
+    margin: 0;
+    font-size: 24pt;
+}
+
+.company-details p {
+    margin: 0;
+    color: #666;
+}
+
+.invoice-title {
+    text-align: right;
+}
+
+.invoice-title h2 {
+    margin: 0;
+    font-size: 20pt;
+    color: #333;
+}
+
+.customer-details {
+    margin-bottom: 1cm;
+    display: flex;
+    justify-content: space-between;
+}
+
+.bill-to,
+.ship-to {
+    width: 48%;
+}
+
+.bill-to h3,
+.ship-to h3 {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    font-size: 12pt;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1cm;
+}
+
+th {
+    background-color: #f8f8f8;
+    color: #333;
+    font-weight: bold;
+    text-align: left;
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.totals {
+    width: 40%;
+    margin-left: auto;
+}
+
+.totals-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+}
+
+.totals-row.final {
+    font-weight: bold;
+    font-size: 12pt;
+    border-top: 2px solid #333;
+    margin-top: 5px;
+    padding-top: 10px;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 8pt;
+    color: #999;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
