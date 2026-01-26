@@ -20,7 +20,7 @@ urlpatterns = [
 
     path('orders/', views.AdminOrderListView.as_view(), name='admin_orders'),
     path('orders/<uuid:order_id>/', views.AdminOrderDetailView.as_view(), name='admin_order_detail'),
-    path('orders/<uuid:order_id>/', views.ToggleOrderStatusView.as_view(), name='toggle_order_status'),
+    path('orders/status/<uuid:order_id>/', views.ToggleOrderStatusView.as_view(), name='toggle_order_status'),
     path('orders/<uuid:order_id>/<int:item_id>',
          views.ToggleOrderItemStatusView.as_view(),
          name='toggle_orderitem_status'),

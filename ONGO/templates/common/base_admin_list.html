@@ -45,7 +45,7 @@
                         <i data-lucide="bar-chart-2" class="icon w-5 h-5 mr-3"></i>
                         <h2>Analytics</h2>
                     </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="orders">
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'orders' %}active{% endif %}" href="{% url 'admin_orders' %}" data-page="orders">
                         <i data-lucide="package" class="icon w-5 h-5 mr-3"></i>
                         <h2>Orders</h2>
                    </a>

@@ -1,0 +1,180 @@
+{% extends 'common/base_admin_list.html' %}
+{% load static %}
+
+{% block title %}Order #{{ order.order_id|truncatechars:8 }} | Admin Panel{% endblock %}
+
+{% block style %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/adminpanel/orders_panel.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'admin_orders' %}"
+        class="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i>
+        Back to Orders
+    </a>
+</div>
+
+<div class="flex flex-col lg:flex-row gap-6">
+
+    <!-- Left Column: Order Details & Items -->
+    <div class="flex-1 space-y-6">
+
+        <!-- Order Summary Card -->
+        <section class="detail-section">
+            <header class="detail-header">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-lg font-bold text-gray-800">Order Summary</h2>
+                    <span class="px-2 py-0.5 rounded text-xs font-mono bg-gray-100 text-gray-600">#{{ order.order_id}}</span>
+                </div>
+                <div class="status-wrapper">
+                    <span class="status-badge status-{{ order.status }}">
+                        {{ order.get_status_display }}
+                    </span>
+                </div>
+            </header>
+            <div class="detail-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Customer</label>
+                        <p>{{ order.user.email }}</p>
+                        <p class="text-xs text-gray-300 mt-0.5">{{ order.user.username }}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Date Placed</label>
+                        <p>{{ order.created_at|date:"M d, Y" }}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ order.created_at|time:"H:i" }}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Payment Method</label>
+                        <p>{{ order.payment_method|upper }}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Total Amount</label>
+                        <p class="text-lg font-bold text-gray-900">₹{{ order.total_amount }}</p>
+                        {% if order.discount_amount > 0 %}
+                        <p class="text-xs text-green-600 mt-0.5">- ₹{{ order.discount_amount }} discount</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-gray-100">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Update Order Status</label>
+                            <p class="text-xs text-gray-500 max-w-xs">Changing this will update the overall order
+                                status.</p>
+                        </div>
+                        <div class="status-wrapper relative">
+                            <select class="js-status-select status-select w-48" data-order-id="{{ order.order_id }}"
+                                data-type="order" {% if order.status == 'delivered' or order.status == 'cancelled' or order.status == 'returned' %}disabled{% endif %}>
+
+                                <option value="{{ order.status }}" selected disabled hidden>{{ order.get_status_display}}</option>
+
+                                <!-- Strict Transition Logic -->
+                                {% if order.status == 'pending' %}
+                                <option value="confirmed">Confirm Order</option>
+                                <option value="cancelled">Cancel Order</option>
+                                {% elif order.status == 'confirmed' %}
+                                <option value="shipped">Mark as Shipped</option>
+                                <option value="cancelled">Cancel Order</option>
+                                {% elif order.status == 'shipped' %}
+                                <option value="delivered">Mark as Delivered</option>
+                                {% endif %}
+                                <!-- No options for delivered/cancelled/returned as they are terminal -->
+                            </select>
+                            <i data-lucide="chevron-down"
+                                class="w-4 h-4 text-gray-500 absolute right-3 top-3 pointer-events-none"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Items Card -->
+        <section class="detail-section">
+            <header class="detail-header">
+                <h2 class="text-lg font-bold text-gray-800">Order Items ({{ order.items.count }})</h2>
+            </header>
+            <div class="bg-white">
+                {% for item in order.items.all %}
+                <div class="item-row px-6 hover:bg-gray-50 transition-colors">
+                    <!-- Product Image -->
+                    <img src="{{ item.image_url }}" alt="{{ item.product_name }}" class="item-image">
+
+                    <!-- Details -->
+                    <div class="item-details">
+                        <h3 class="item-name">{{ item.product_name }}</h3>
+                        <div class="item-meta">
+                            {% for key, value in item.variant_options.items %}
+                            <span><strong class="capitalize">{{ key }}:</strong> {{ value }}</span>
+                            {% endfor %}
+                            <span><strong>Qty:</strong> {{ item.quantity }}</span>
+                            <span><strong>Price:</strong> ₹{{ item.price_at_time_of_order }}</span>
+                        </div>
+                        <div class="mt-1 text-sm font-medium text-gray-900">
+                            Total: ₹{{ item.total_price }}
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="item-actions flex flex-col items-end gap-2 status-wrapper">
+                        <span class="status-badge status-{{ item.status }} mb-1">
+                            {{ item.get_status_display }}
+                        </span>
+
+                        <div class="relative">
+                            <select class="js-status-select status-select w-40 text-xs py-1.5"
+                                data-order-id="{{ order.order_id }}" data-item-id="{{ item.id }}" data-type="item" 
+                                {% if item.status == 'delivered' or item.status == 'cancelled' or item.status == 'returned'%}disabled{% endif %}>
+
+                                <option value="{{ item.status }}" selected disabled hidden>Change Status</option>
+
+                                <!-- Strict Transition Logic for Items -->
+                                {% if item.status == 'pending' %}
+                                <option value="confirmed">Confirm</option>
+                                <option value="cancelled">Cancel</option>
+                                {% elif item.status == 'confirmed' %}
+                                <option value="shipped">Ship</option>
+                                <option value="cancelled">Cancel</option>
+                                {% elif item.status == 'shipped' %}
+                                <option value="delivered">Deliver</option>
+                                <option value="returned">Return</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    <!-- Right Column: Shipping Address (Bonus/Context) -->
+    <div class="w-full lg:w-80 space-y-6">
+        <section class="detail-section">
+            <header class="detail-header">
+                <h2 class="text-base font-bold text-gray-800">Shipping Address</h2>
+            </header>
+            <div class="p-4 text-sm text-gray-600 leading-relaxed">
+                <p class="font-bold text-gray-900 mb-1">{{ order.address.name }}</p>
+                <p>{{ order.address.street_address }}</p>
+                <p>{{ order.address.city }}, {{ order.address.state }}</p>
+                <p>{{ order.address.postal_code }}</p>
+                <p>{{ order.address.country }}</p>
+                <div class="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
+                    <i data-lucide="phone" class="w-4 h-4 text-gray-400"></i>
+                    <span>{{ order.address.phone }}</span>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/adminpanel/orders_panel.js' %}"></script>
+{% endblock %}

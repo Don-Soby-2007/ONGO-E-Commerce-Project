@@ -21,6 +21,8 @@ from django.db import DatabaseError
 from django.db import transaction
 from django.core.exceptions import ValidationError
 
+from django.utils import timezone
+
 
 import uuid
 
@@ -1033,8 +1035,22 @@ class ToggleOrderStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
         if not self._is_valid_transition(order.status, new_status):
             return JsonResponse({'error': 'Invalid status transition'}, status=400)
 
+        # ✅ BULK UPDATE ITEMS IF ORDER STATUS IMPLIES UNIFORM ACTION
+        if new_status == 'cancelled':
+
+            order.items.filter(status__in=['pending', 'confirmed', 'shipped']).update(
+                status='cancelled',
+                cancel_reason='Cancelled via order-level action',
+                cancelled_at=timezone.now()
+            )
+        elif new_status == 'delivered':
+            order.items.exclude(status='cancelled').update(status='delivered')
+        elif new_status == 'shipped':
+            order.items.exclude(status='cancelled').update(status='shipped')
+
         order.status = new_status
         order.save(update_fields=['status', 'updated_at'])
+
         return JsonResponse({'success': True, 'new_status': new_status})
 
     def _is_valid_transition(self, old, new):
@@ -1084,8 +1100,7 @@ class ToggleOrderItemStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
         elif 'cancelled' in item_statuses and not item_statuses - {'cancelled'}:
             order.status = 'cancelled'
         else:
-            return  # Keep manual control
-        order.save(update_fields=['status'])
+            return order.save(update_fields=['status'])
 
     def _is_valid_transition(self, old, new):
         ALLOWED_TRANSITIONS = {
