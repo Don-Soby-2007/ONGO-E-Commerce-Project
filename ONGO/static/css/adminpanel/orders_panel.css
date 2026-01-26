@@ -295,8 +295,8 @@
 .status-select:focus {
     border-color: #EF4444;
     /* Red-500 */
-    ring: 2px solid #FEE2E2;
-    /* Red-100 */
+    box-shadow: 0 0 0 2px #FEE2E2;
+    /* Red-100 ring effect */
     outline: none;
 }
 

@@ -972,7 +972,7 @@ class AdminOrderListView(LoginRequiredMixin, ListView):
     model = Order
     template_name = 'adminpanel/orders_panel.html'
     context_object_name = 'orders'
-    paginate_by = 3
+    paginate_by = 8
 
     def get_queryset(self):
 
@@ -1035,7 +1035,6 @@ class ToggleOrderStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
         if not self._is_valid_transition(order.status, new_status):
             return JsonResponse({'error': 'Invalid status transition'}, status=400)
 
-        # ✅ BULK UPDATE ITEMS IF ORDER STATUS IMPLIES UNIFORM ACTION
         if new_status == 'cancelled':
 
             order.items.filter(status__in=['pending', 'confirmed', 'shipped']).update(
@@ -1097,10 +1096,10 @@ class ToggleOrderItemStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
         item_statuses = set(order.items.values_list('status', flat=True))
         if item_statuses == {'delivered'}:
             order.status = 'delivered'
+            order.save(update_fields=['status'])
         elif 'cancelled' in item_statuses and not item_statuses - {'cancelled'}:
             order.status = 'cancelled'
-        else:
-            return order.save(update_fields=['status'])
+            order.save(update_fields=['status'])
 
     def _is_valid_transition(self, old, new):
         ALLOWED_TRANSITIONS = {
