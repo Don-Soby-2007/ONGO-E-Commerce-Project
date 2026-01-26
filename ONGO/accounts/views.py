@@ -800,6 +800,11 @@ class OrderItemCancelView(LoginRequiredMixin, View):
         item.cancel_reason = reason
         item.cancelled_at = timezone.now()
         item.save()
+
+        order.sub_total -= item.total_price
+        order.total_amount -= item.total_price
+        order.save(update_fields=['sub_total', 'total_amount'])
+
         variant = item.product_variant
         variant.stock += item.quantity
         variant.save(update_fields=['stock'])
