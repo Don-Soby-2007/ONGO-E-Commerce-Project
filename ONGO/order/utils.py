@@ -45,11 +45,6 @@ def generate_invoice_pdf(order):
     else:
         print("⚠️ CSS file not found by staticfiles finders!")
 
-    print(f"CSS Path Found: {css_path}")
-    print(f"CSS Content Length: {len(css_content)} bytes")
-    if css_content:
-        print(f"First 200 chars: {css_content[:200]}")
-
     context = {
         'order': order,
         'invoice': invoice,
@@ -60,10 +55,6 @@ def generate_invoice_pdf(order):
     }
 
     html_string = render_to_string('order/invoice.html', context)
-
-    with open('/home/don-soby/Desktop/tmp/debug_invoice.html', 'w') as f:
-        f.write(html_string)
-    print("✅ HTML saved to /tmp/debug_invoice.html - OPEN IN BROWSER!")
 
     pdf_file = weasyprint.HTML(
         string=html_string,

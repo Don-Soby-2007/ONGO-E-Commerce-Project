@@ -69,7 +69,7 @@
     <table class="layout-table">
         <tr>
             <td style="width: 50%; padding-right: 10px;">
-                <div class="address-box">
+                <div class="address-box" style="height: 125px;padding-left: 20px;">
                     <span class="address-header">Bill To</span>
                     <span class="address-name">{{ user.get_full_name|default:user.username }}</span>
                     <div>{{ user.email }}</div>
@@ -79,7 +79,7 @@
                 </div>
             </td>
             <td style="width: 50%; padding-left: 10px;">
-                <div class="address-box">
+                <div class="address-box" style="height: 125px;padding-left: 20px;">
                     <span class="address-header">Ship To</span>
                     <span class="address-name">{{ order.address.name }}</span>
                     <div>{{ order.address.street_address }}</div>
