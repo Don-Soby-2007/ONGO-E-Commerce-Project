@@ -28,8 +28,8 @@
 
             {% if order.status == 'delivered' %}
             <a href="{% url 'download_invoice' order.order_id %}"
-                class="btn-secondary flex gap-1 bg-red-400 hover:bg-red-600 font-small items-center px-2 py-3 rounded-xl"><i
-                    data-lucide="download"></i> Download Invoice</a>
+                class="btn-danger flex gap-2 font-small items-center">
+                <i data-lucide="download"></i> Download Invoice</a>
             {% endif %}
         </div>
     </div>

@@ -89,11 +89,8 @@
 
             <div class="order-actions">
                 <a href="{% url 'order_detail' order.order_id %}" class="btn-primary">View Order</a>
-                {% if order.status == 'shipped' or order.status == 'delivered' %}
-                <button class="btn-secondary">Track Order</button>
-                {% endif %}
                 {% if order.status == 'delivered' %}
-                <button class="btn-secondary">Invoice</button>
+                <a href='{% url "download_invoice" order.order_id %}' class="btn-secondary">Invoice</a>
                 {% endif %}
             </div>
         </div>
