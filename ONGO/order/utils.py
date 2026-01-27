@@ -1,9 +1,10 @@
 import weasyprint
 from django.template.loader import render_to_string
 from django.core.files.base import ContentFile
-from django.conf import settings
 from .models import Invoice
 from cart.models import Cart
+
+from django.contrib.staticfiles import finders
 
 
 def get_cart_items_for_user(user):
@@ -31,30 +32,44 @@ def get_cart_items_for_user(user):
 
 
 def generate_invoice_pdf(order):
-    """
-    Generates a PDF invoice for the given order and saves it to the Invoice model.
-    """
-    # 1. Create Invoice object FIRST to generate invoice_number and created_at
     invoice, created = Invoice.objects.get_or_create(order=order)
 
-    # 2. Prepare context with the invoice object
+    css_path = finders.find('css/order/invoice.css')
+    css_content = ""
+    if css_path:
+        try:
+            with open(css_path, 'r') as f:
+                css_content = f.read()
+        except Exception as e:
+            print(f"⚠️ CSS load error: {e}")
+    else:
+        print("⚠️ CSS file not found by staticfiles finders!")
+
+    print(f"CSS Path Found: {css_path}")
+    print(f"CSS Content Length: {len(css_content)} bytes")
+    if css_content:
+        print(f"First 200 chars: {css_content[:200]}")
+
     context = {
         'order': order,
-        'invoice': invoice, # Explicitly pass invoice
+        'invoice': invoice,
         'user': order.user,
         'items': order.items.all(),
+        'for_pdf': True,
+        'css_content': css_content
     }
 
-    # 3. Render HTML
     html_string = render_to_string('order/invoice.html', context)
 
-    # 4. Generate PDF
-    if settings.DEBUG:
-        pass
+    with open('/home/don-soby/Desktop/tmp/debug_invoice.html', 'w') as f:
+        f.write(html_string)
+    print("✅ HTML saved to /tmp/debug_invoice.html - OPEN IN BROWSER!")
 
-    pdf_file = weasyprint.HTML(string=html_string, base_url=str(settings.BASE_DIR)).write_pdf()
+    pdf_file = weasyprint.HTML(
+        string=html_string,
+        base_url=None,
+    ).write_pdf()
 
-    # 5. Save PDF to the existing invoice object
     filename = f"Invoice_{invoice.invoice_number}.pdf"
     invoice.pdf_file.save(filename, ContentFile(pdf_file), save=True)
 

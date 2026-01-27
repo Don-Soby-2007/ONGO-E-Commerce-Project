@@ -321,7 +321,6 @@ def orderFailed(request):
 def download_invoice(request, order_id):
     order = get_object_or_404(Order, order_id=order_id)
 
-    # Permission check: User must own the order
     if request.user != order.user and not request.user.is_staff:
         raise Http404("Order not found")
 
@@ -330,11 +329,9 @@ def download_invoice(request, order_id):
         if order.status == 'delivered':
             from .utils import generate_invoice_pdf
             generate_invoice_pdf(order)
-            # Refresh to get the relation
             order.refresh_from_db()
         else:
             raise Http404("Invoice not available yet")
-
     try:
         return FileResponse(order.invoice.pdf_file.open('rb'), content_type='application/pdf')
     except FileNotFoundError:
