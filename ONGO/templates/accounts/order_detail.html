@@ -32,10 +32,6 @@
                     class="btn-danger flex gap-2 font-small items-center">
                     <i data-lucide="download"></i> Download Invoice
                 </a>
-                <button href="#"
-                    class="bg-yellow-300 border-yellow-600 hover:bg-yellow-400 text-purple-800 px-5 rounded-md flex gap-2 font-small items-center">
-                    <i data-lucide="star" ></i> Review
-                </button>
             </div>
             {% endif %}
         </div>
@@ -246,6 +242,24 @@
         </div>
         {% endif %}
     </div>
+    {% if order.status == 'delivered' %}
+    <div class="bg-white border border-gray-200 rounded-md p-8 mb-4 shadow-sm">
+        <div class="flex items-start justify-between">
+            <div class="flex-1">
+                <h3 class="font-medium text-gray-900">Need to return an item?</h3>
+                <p class="text-sm text-gray-600 mt-1">
+                    You can start a return for eligible items.
+                </p>
+            </div>
+            <div class="ml-4 flex-shrink-0">
+                <a href='#' class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 gap-2">
+                    <i data-lucide="repeat"></i>  
+                    Return Order
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 
