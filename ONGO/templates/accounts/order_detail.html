@@ -27,9 +27,16 @@
             {% endif %}
 
             {% if order.status == 'delivered' %}
-            <a href="{% url 'download_invoice' order.order_id %}"
-                class="btn-danger flex gap-2 font-small items-center">
-                <i data-lucide="download"></i> Download Invoice</a>
+            <div class="flex gap-4">
+                <a href="{% url 'download_invoice' order.order_id %}"
+                    class="btn-danger flex gap-2 font-small items-center">
+                    <i data-lucide="download"></i> Download Invoice
+                </a>
+                <button href="#"
+                    class="bg-yellow-300 border-yellow-600 hover:bg-yellow-400 text-purple-800 px-5 rounded-md flex gap-2 font-small items-center">
+                    <i data-lucide="star" ></i> Review
+                </button>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -58,16 +65,20 @@
                                 <span class="item-variant">Color: {{ item.variant_options.color }}</span>
                             </div>
                             <div class="item-meta-row">
-                                <span class="item-price">₹{{ item.price_at_time_of_order }} × {{ item.quantity }}</span>
+                                <span class="item-price">₹{{ item.price_at_time_of_order }} x {{ item.quantity }}</span>
                                 <span class="item-status status-{{ item.status }}">{{ item.status|title }}</span>
                             </div>
                         </div>
 
                         <div class="item-actions">
                             {% if item.status == 'pending' or item.status == 'confirmed' %}
-                            <button type="button" class="btn-text-danger"
+                            <button type="button" class="btn-text-danger" title='Cancel Item'
                                 onclick="openCancelModal('{% url 'cancel_order_item' order.order_id item.id %}', 'Item')">Cancel
                                 Item</button>
+                            {% elif item.status == 'delivered' %}
+                            <button type="button" class="text-yellow-500" title='Review Item' >
+                                <i data-lucide="star" ></i>
+                            </button>
                             {% endif %}
                         </div>
                     </div>
