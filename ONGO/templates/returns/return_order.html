@@ -1,0 +1,125 @@
+{% extends 'accounts/base_profile.html' %}
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/returns/return_order.css' %}">
+{% endblock %}
+
+{% block profile_content %}
+<div class="return-container mt-20">
+    <!-- Return Header -->
+    <div class="return-header mt-20">
+        <h1>Return Order</h1>
+        <div class="return-meta">
+            <span><strong>Order ID:</strong> #{{ order.order_id }}</span>
+            <span><strong>Order Date:</strong> {{ order.created_at|date:"d M Y" }}</span>
+        </div>
+        <div class="return-info-alert">
+            <i data-lucide="info" class="w-4 h-4"></i>
+            <span>You can request a return only for delivered orders.</span>
+        </div>
+    </div>
+
+    <!-- Return Form -->
+    <form method="POST" id="return-form">
+        {% csrf_token %}
+
+        <!-- Overall Return Reason -->
+        <div class="form-section">
+            <label for="return_reason" class="form-label">Reason for return <span
+                    style="color: #dc2626;">*</span></label>
+            <textarea name="return_reason" id="return_reason" class="form-control"
+                placeholder="Please provide a detailed reason for returning this order..." required></textarea>
+            <div id="return-reason-error" class="error-message"></div>
+        </div>
+
+        <!-- Order Items Table -->
+        <div class="form-section">
+            <h3 class="form-label">Select Items to Return</h3>
+            <div class="items-table-container">
+                <table class="return-items-table">
+                    <thead>
+                        <tr>
+                            <th>Select</th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Return Qty</th>
+                            <th>Item Reason (Optional)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_items %}
+                        <tr>
+                            <!-- Checkbox -->
+                            <td class="checkbox-cell">
+                                <input type="checkbox" name="item_{{ item.id }}_select" class="item-checkbox"
+                                    data-item-id="{{ item.id }}">
+                            </td>
+
+                            <!-- Product Info -->
+                            <td>
+                                <div class="product-cell">
+                                    {% if item.image_url %}
+                                    <img src="{{ item.image_url }}" alt="{{ item.product_name }}" class="product-thumb">
+                                    {% else %}
+                                    <img src="https://via.placeholder.com/60" alt="Product" class="product-thumb">
+                                    {% endif %}
+                                    <div class="product-info">
+                                        <h3>{{ item.product_name }}</h3>
+                                        <div class="variant-text">
+                                            Size: {{ item.variant_options.size }} | Color: {{ item.variant_options.color}}
+                                        </div>
+                                        {% comment %}
+                                        <!-- If backend provides already returned quantity, display it here -->
+                                        {% if item.returned_quantity %}
+                                        <div class="already-returned">
+                                            Already returned: {{ item.returned_quantity }} of {{ item.quantity }}
+                                        </div>
+                                        {% endif %}
+                                        {% endcomment %}
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Ordered Quantity -->
+                            <td>{{ item.quantity }}</td>
+
+                            <!-- Return Quantity Input (Hidden by default) -->
+                            <td>
+                                <div id="qty-wrapper-{{ item.id }}" class="qty-input-wrapper">
+                                    <input type="number" name="item_{{ item.id }}_quantity"
+                                        id="item_{{ item.id }}_quantity" class="qty-input form-control" min="1"
+                                        max="{{ item.quantity }}" placeholder="Qty">
+                                </div>
+                            </td>
+
+                            <!-- Item-specific Reason (Hidden by default) -->
+                            <td>
+                                <div id="reason-wrapper-{{ item.id }}" class="reason-input-wrapper">
+                                    <textarea name="item_{{ item.id }}_reason" class="item-reason-input form-control"
+                                        placeholder="Optional: Specific reason for this item..." rows="2"></textarea>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="return-actions">
+            <a href="{% url 'order_detail' order.order_id %}" class="btn-secondary">Cancel</a>
+            <button type="submit" id="submit-return-btn" class="btn-primary" disabled>
+                Submit Return Request
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/returns/return_order.js' %}"></script>
+{% endblock %}
