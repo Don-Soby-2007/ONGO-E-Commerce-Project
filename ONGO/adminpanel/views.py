@@ -4,7 +4,7 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views import View
-from django.db.models import Q, Count, Case, When, Value, IntegerField
+from django.db.models import Q, Count, Case, When, Value, IntegerField, Sum
 from django.views.generic import ListView
 from django.views.generic import DetailView
 from django.contrib.auth import authenticate, login, logout
@@ -13,13 +13,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from accounts.models import User
 from products.models import Category, Product, ProductVariant, ProductImage
 from order.models import Order, OrderItem
-from returns.models import Return
+from returns.models import Return, ReturnItem
 
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse
 
 from django.db import DatabaseError
-
 from django.db import transaction
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from django.utils import timezone
@@ -1207,6 +1207,12 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
                 )
                 current_status = returns.status
 
+                if current_status in ['accepted', 'rejected']:
+                    return JsonResponse({
+                        'error': 'Status cannot be changed',
+                        'details': f'This return has already been {current_status}.Status is final and cannot be modified.'
+                    }, status=403)
+
                 if current_status == new_status:
                     return JsonResponse({
                         'success': True,
@@ -1219,11 +1225,12 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
                 else:
                     returns.processed_at = None
 
-                if current_status == 'pending' and new_status == 'accepted':
+                if new_status == 'rejected':
+                    admin_notes = request.POST.get('admin_notes', '').strip()
+                    returns.admin_notes = admin_notes if admin_notes else 'Rejected by admin'
 
-                    for item in returns.return_items.select_related(
-                        'order_item__product_variant'
-                    ):
+                if current_status == 'pending' and new_status == 'accepted':
+                    for item in returns.return_items.select_related('order_item__product_variant'):
                         variant = item.order_item.product_variant
                         original_stock = variant.stock
                         variant.stock += item.quantity
@@ -1233,39 +1240,55 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
                             f"+{item.quantity} (Return #{returns.id}) | "
                             f"Old: {original_stock} → New: {variant.stock}"
                         )
-                elif current_status == 'pending' and new_status == 'rejected':
-                    admin_notes = request.POST.get('admin_notes')
-
-                    returns.admin_notes = admin_notes if admin_notes else 'Admin Rejectod due to reason'
-                    returns.save(update_fields=['admin_notes'])
 
                 returns.status = new_status
-                returns.save(update_fields=['status', 'processed_at'])
+                returns.save(update_fields=['status', 'processed_at', 'admin_notes'])
 
                 if new_status == 'accepted':
-                    for item in returns.return_items.select_related('order_item'):
-                        if item.quantity == item.order_item.quantity:
-                            item.order_item.status = 'returned'
-                            item.order_item.save(update_fields=['status'])
+                    order = returns.order
+                    fully_returned_items = []
+
+                    for return_item in returns.return_items.select_related('order_item'):
+                        order_item = return_item.order_item
+
+                        total_returned = ReturnItem.objects.filter(
+                            order_item=order_item,
+                            return_request__status='accepted'
+                        ).aggregate(total=Sum('quantity'))['total'] or 0
+
+                        if total_returned >= order_item.quantity and order_item.status != 'returned':
+                            order_item.status = 'returned'
+                            order_item.save(update_fields=['status'])
+                            fully_returned_items.append(order_item)
+                            logger.info(
+                                f"OrderItem #{order_item.id} marked as 'returned' | "
+                                f"Total returned: {total_returned}/{order_item.quantity}"
+                            )
+
+                    if fully_returned_items:
+                        total_order_items = order.items.count()
+                        returned_order_items = order.items.filter(status='returned').count()
+
+                        if total_order_items == returned_order_items and order.status != 'returned':
+                            old_order_status = order.status
+                            order.status = 'returned'
+                            order.save(update_fields=['status'])
+                            logger.info(
+                                f"Order #{order.id} status updated: {old_order_status} → 'returned' | "
+                                f"All {total_order_items} items returned"
+                            )
 
             return JsonResponse({
                 'success': True,
                 'new_status': new_status,
                 'processed_at': returns.processed_at.isoformat() if returns.processed_at else None,
-                'message': f'Return status updated to "{new_status}"'
+                'message': f'Return status updated to "{new_status}"',
+                'is_final': new_status in ['accepted', 'rejected']
             })
 
-        except Http404:
-            return JsonResponse({'error': 'Return request not found'}, status=404)
-        except DatabaseError as e:
-            logger.error(f"Database error processing return #{return_id}: {str(e)}", exc_info=True)
-            return JsonResponse({
-                'error': 'Database error occurred',
-                'details': 'Unable to process stock adjustment'
-            }, status=500)
         except Exception as e:
-            logger.error(f"Unexpected error processing return #{return_id}: {str(e)}", exc_info=True)
+            logger.error(f"Error processing return #{return_id}: {str(e)}", exc_info=True)
             return JsonResponse({
                 'error': 'Internal server error',
-                'details': 'An unexpected error occurred during processing'
+                'details': str(e) if settings.DEBUG else 'An error occurred during processing'
             }, status=500)

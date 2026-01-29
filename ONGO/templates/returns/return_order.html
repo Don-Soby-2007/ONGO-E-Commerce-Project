@@ -50,6 +50,7 @@
                     </thead>
                     <tbody>
                         {% for item in order_items %}
+                        {% if item.status != 'returned' and item.status != 'refunded' %}
                         <tr>
                             <!-- Checkbox -->
                             <td class="checkbox-cell">
@@ -102,6 +103,7 @@
                                 </div>
                             </td>
                         </tr>
+                        {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>
