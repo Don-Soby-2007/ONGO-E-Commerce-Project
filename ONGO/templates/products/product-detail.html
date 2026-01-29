@@ -2,7 +2,7 @@
 {% load static %}
 {% load static product_extras %}
 
-{% block title %}URB_N Men Geometric Print Shirt | Ongo{% endblock %}
+{% block title %}{{product.name}} | {{product.category}}{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -187,10 +187,6 @@
                         <button id="addCartBtn"
                             class="flex-1 bg-red-500 hover:bg-red-600 text-white py-4 rounded-lg font-semibold transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center">
                             <i data-lucide="shopping-cart" class="mr-2"></i> Add to Cart
-                        </button>
-                        <button
-                            class="flex-1 bg-black hover:bg-gray-800 text-white py-4 rounded-lg font-semibold transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md">
-                            <i data-lucide="zap" class="mr-2 inline"></i> Buy Now
                         </button>
                     </div>
                     <div class="mt-4 text-sm text-gray-600 flex items-center">
@@ -580,9 +576,22 @@
 
         const variants = variantsByColor[selectedColor] || [];
         const inStock = variants.filter(v => v.stock > 0);
-        const outOfStock = variants.filter(v => v.stock <= 0);
+        const midStock = variants.filter(v => v.stock <= 10);
+        console.log(midStock)
+        const outOfStock = variants.filter(v => v.stock == 0);
 
-        if (inStock.length > 0) {
+        if ( midStock.length > 0) {
+            console.log('midstock')
+            stockMessage.innerHTML = `
+                    <span class="flex items-center text-red-500 font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Limited Stock Only
+                    </span>
+                `;
+            
+        } else if (inStock.length > 0) {
             const inStockSizes = inStock.map(v => v.size).join(', ');
             stockMessage.innerHTML = `
                     <span class="flex items-center text-green-600 font-medium">
@@ -592,7 +601,8 @@
                         In stock • Ships in 24h (${inStockSizes})
                     </span>
                 `;
-        } else if (outOfStock.length > 0) {
+            
+        } else if(outOfStock.length > 0 ){
             stockMessage.innerHTML = `
                     <span class="flex items-center text-red-500 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
