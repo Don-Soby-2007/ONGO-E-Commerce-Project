@@ -223,7 +223,7 @@ class AddCategoryView(View, LoginRequiredMixin):
                 messages.error(request, 'description is too long')
                 return render(request, self.template_name)
 
-            category = Category.objects.filter(name=name).first()
+            category = Category.objects.filter(name__iexact=name).first()
 
             if category:
                 messages.error(request, 'category name alredy existed, please give other name')
@@ -237,7 +237,7 @@ class AddCategoryView(View, LoginRequiredMixin):
 
         except DatabaseError as d:
             messages.error(request, 'Database error occured. :(')
-            logger.error(f'Some thing happend iin database side : {d}')
+            logger.error(f'Some thing happend in database side : {d}')
             return redirect('categories')
 
         except Exception as e:
