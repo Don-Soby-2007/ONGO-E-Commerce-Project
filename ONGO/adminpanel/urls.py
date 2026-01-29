@@ -25,4 +25,9 @@ urlpatterns = [
          views.ToggleOrderItemStatusView.as_view(),
          name='toggle_orderitem_status'),
 
+    path('returns/', views.ReturnListView.as_view(), name='returns_list'),
+    path('returns/<int:return_id>', views.ReturnDetailView.as_view(), name='returs_detail'),
+    path('returns/<int:return_id>/action', views.ReturnStatusToggleView.as_view(), name='returns_status_toggle'),
+
+
 ]

@@ -13,8 +13,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from accounts.models import User
 from products.models import Category, Product, ProductVariant, ProductImage
 from order.models import Order, OrderItem
+from returns.models import Return
 
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 
 from django.db import DatabaseError
 
@@ -1120,3 +1121,109 @@ class ToggleOrderItemStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
         }
 
         return new in ALLOWED_TRANSITIONS.get(old, [])
+
+
+@method_decorator(never_cache, name='dispatch')
+class ReturnListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    template_name = 'adminpanel/return_list.html'
+    model = Return
+    paginate_by = 6
+    context_object_name = 'returns_list'
+
+
+@method_decorator(never_cache, name='dispatch')
+class ReturnDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    template_name = 'adminpanel/return_detal.html'
+
+    model = Return
+    context_object_name = 'returns_list'
+    slug_field = 'return_id'
+    slug_url_kwarg = 'return_id'
+
+
+@method_decorator(never_cache, name='dispatch')
+class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
+
+    def test_func(self):
+        return self.request.user.is_authenticated
+
+    def post(self, request, return_id):
+        new_status = request.POST.get('status')
+        allowed_statuses = [choice[0] for choice in Return.RETURN_STATUS_CHOICES]
+
+        if new_status not in allowed_statuses:
+            return JsonResponse({'error': 'Invalid status value'}, status=400)
+
+        try:
+            with transaction.atomic():
+                returns = get_object_or_404(
+                    Return.objects.select_for_update(),
+                    id=return_id
+                )
+                current_status = returns.status
+
+                if current_status == new_status:
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Status unchanged',
+                        'current_status': current_status
+                    }, status=200)
+
+                if new_status in ['accepted', 'rejected']:
+                    returns.processed_at = timezone.now()
+                else:
+                    returns.processed_at = None
+
+                if current_status == 'pending' and new_status == 'accepted':
+
+                    for item in returns.return_items.select_related(
+                        'order_item__product_variant'
+                    ):
+                        variant = item.order_item.product_variant
+                        original_stock = variant.stock
+                        variant.stock += item.quantity
+                        variant.save(update_fields=['stock'])
+                        logger.info(
+                            f"Stock increased: Variant {variant.sku} | "
+                            f"+{item.quantity} (Return #{returns.id}) | "
+                            f"Old: {original_stock} → New: {variant.stock}"
+                        )
+
+                returns.status = new_status
+                returns.save(update_fields=['status', 'processed_at'])
+
+                if new_status == 'accepted':
+                    for item in returns.return_items.select_related('order_item'):
+                        if item.quantity == item.order_item.quantity:
+                            item.order_item.status = 'returned'
+                            item.order_item.save(update_fields=['status'])
+
+            return JsonResponse({
+                'success': True,
+                'new_status': new_status,
+                'processed_at': returns.processed_at.isoformat() if returns.processed_at else None,
+                'message': f'Return status updated to "{new_status}"'
+            })
+
+        except Http404:
+            return JsonResponse({'error': 'Return request not found'}, status=404)
+        except DatabaseError as e:
+            logger.error(f"Database error processing return #{return_id}: {str(e)}", exc_info=True)
+            return JsonResponse({
+                'error': 'Database error occurred',
+                'details': 'Unable to process stock adjustment'
+            }, status=500)
+        except Exception as e:
+            logger.error(f"Unexpected error processing return #{return_id}: {str(e)}", exc_info=True)
+            return JsonResponse({
+                'error': 'Internal server error',
+                'details': 'An unexpected error occurred during processing'
+            }, status=500)

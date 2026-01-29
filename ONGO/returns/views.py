@@ -77,8 +77,6 @@ class ReturnOrderView(LoginRequiredMixin, View):
                         return_request__status__in=['pending', 'accepted']
                     ).aggregate(total=Sum('quantity'))['total'] or 0
 
-                    print(total_returned)
-
                     if total_returned + quantity > order_item.quantity:
                         messages.error(
                             request,
