@@ -313,8 +313,8 @@ class EditProfileView(LoginRequiredMixin, View):
 
         original_email = user.email
 
-        if not re.match(r'^[a-zA-Z0-9_]{3,}$', username):
-            messages.error(request, "Username must be at least 3 characters alphanumeric/underscore.")
+        if not re.match(r'^[a-zA-Z ]{3,}$', username):
+            messages.error(request, "Username must be at least 3 characters only alphabets.")
             return render(request, self.template_name)
 
         if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):

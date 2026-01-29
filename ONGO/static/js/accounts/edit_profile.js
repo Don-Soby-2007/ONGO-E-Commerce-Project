@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const phoneError = document.getElementById('phone-error');
 
     // Validation Regex Patterns
-    const usernameRegex = /^[a-zA-Z0-9_]{3,}$/;
+    const usernameRegex = /^[a-zA-Z ]{3,}$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^\+?[\d\s-]{10,}$/;
 
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Real-time validation
     usernameInput.addEventListener('input', () => {
         if (!usernameRegex.test(usernameInput.value.trim())) {
-            showError(usernameError, 'Username must be at least 3 characters (letters, numbers, underscore).');
+            showError(usernameError, 'Username must be at least 3 characters, only alphabets and space');
         } else {
             clearError(usernameError, usernameInput);
         }

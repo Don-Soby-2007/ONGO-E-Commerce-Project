@@ -1210,7 +1210,7 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
                 if current_status in ['accepted', 'rejected']:
                     return JsonResponse({
                         'error': 'Status cannot be changed',
-                        'details': f'This return has already been {current_status}.Status is final and cannot be modified.'
+                        'details': f'This return has already been {current_status}.'
                     }, status=403)
 
                 if current_status == new_status:
