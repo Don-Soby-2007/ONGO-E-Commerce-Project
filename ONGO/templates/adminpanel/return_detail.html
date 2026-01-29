@@ -1,0 +1,512 @@
+{% extends 'common/base_admin_list.html' %}
+{% load static %}
+
+{% block title %}Return #{{ returns_list.id }} | Admin Panel{% endblock %}
+
+{% block style %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/adminpanel/return_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Header with Back Button -->
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+        <a href="{% url 'returns_list' %}" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <i data-lucide="arrow-left" class="w-5 h-5 text-gray-600"></i>
+        </a>
+        <h1 class="text-3xl font-bold text-gray-800">Return Request #{{ returns_list.id }}</h1>
+    </div>
+    <span class="px-3 py-1.5 text-sm font-semibold rounded-full status-badge status-{{ returns_list.status }}">
+        {{ returns_list.get_status_display }}
+    </span>
+</div>
+
+<!-- Section 1: Return Summary -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 overflow-hidden">
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-800">Return Summary</h2>
+    </div>
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Return ID -->
+            <div class="info-item">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Return ID</label>
+                <p class="text-base font-semibold text-gray-900">#{{ returns_list.id }}</p>
+            </div>
+
+            <!-- Status -->
+            <div class="info-item">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Status</label>
+                <p>
+                    <span
+                        class="px-2 py-1 text-xs font-semibold rounded-full status-badge status-{{ returns_list.status }}">
+                        {{ returns_list.get_status_display }}
+                    </span>
+                </p>
+            </div>
+
+            <!-- Requested At -->
+            <div class="info-item">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Requested
+                    At</label>
+                <p class="text-base font-medium text-gray-900">{{ returns_list.created_at|date:"M d, Y" }}</p>
+                <p class="text-sm text-gray-500">{{ returns_list.created_at|time:"H:i" }}</p>
+            </div>
+
+            <!-- Processed At -->
+            <div class="info-item">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Processed
+                    At</label>
+                {% if returns_list.processed_at %}
+                <p class="text-base font-medium text-gray-900">{{ returns_list.processed_at|date:"M d, Y" }}</p>
+                <p class="text-sm text-gray-500">{{ returns_list.processed_at|time:"H:i" }}</p>
+                {% else %}
+                <p class="text-base font-medium text-gray-400">—</p>
+                {% endif %}
+            </div>
+
+            <!-- Customer -->
+            <div class="info-item">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Customer</label>
+                <p class="text-base font-medium text-gray-900">{{returns_list.user.get_full_name|default:returns_list.user.username }}</p>
+                <p class="text-sm text-gray-500">{{ returns_list.user.email }}</p>
+            </div>
+
+            <!-- Order ID -->
+            <div class="info-item">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Order ID</label>
+                <a href="{% url 'admin_order_detail' returns_list.order.order_id %}"
+                    class="text-base font-medium text-red-600 hover:text-red-800 hover:underline">
+                    #{{ returns_list.order.order_id|truncatechars:16 }}
+                </a>
+            </div>
+
+            <!-- Total Items -->
+            <div class="info-item">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Total Items</label>
+                <p class="text-base font-semibold text-gray-900">{{ returns_list.total_items }}</p>
+            </div>
+        </div>
+
+        <!-- Return Reason -->
+        <div class="mt-6 pt-6 border-t border-gray-200">
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 block">Overall Return
+                Reason</label>
+            <p class="text-base text-gray-700 leading-relaxed">{{ returns_list.return_reason }}</p>
+        </div>
+
+        <!-- Admin Notes (if exists) -->
+        {% if returns_list.admin_notes %}
+        <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <label
+                class="text-xs font-medium text-yellow-800 uppercase tracking-wider mb-2 block flex items-center gap-2">
+                <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                Admin Notes
+            </label>
+            <p class="text-sm text-yellow-900">{{ returns_list.admin_notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Section 2: Returned Items Table -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 overflow-hidden">
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-800">Returned Items</h2>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variant
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ordered
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Returned
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item
+                        Reason</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item
+                        Status</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for return_item in returns_list.return_items.all %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <div
+                                class="flex-shrink-0 h-12 w-12 bg-gray-100 rounded-md overflow-hidden border border-gray-200">
+                                {% if return_item.order_item.image_url %}
+                                <img class="h-12 w-12 object-cover" src="{{ return_item.order_item.image_url }}"
+                                    alt="{{ return_item.order_item.product_name }}">
+                                {% else %}
+                                <div class="h-full w-full flex items-center justify-center text-gray-400">
+                                    <i data-lucide="package" class="w-6 h-6"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">{{ return_item.order_item.product_name }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-700">
+                            {% if return_item.order_item.variant_options.size %}
+                            <span>Size: {{ return_item.order_item.variant_options.size }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="text-sm text-gray-700">
+                            {% if return_item.order_item.variant_options.color %}
+                            <span>Color: {{ return_item.order_item.variant_options.color }}</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-mono text-gray-600">{{ return_item.order_item.product_variant.sku }}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">{{ return_item.order_item.quantity }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-semibold text-red-600">{{ return_item.quantity }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% with remaining=return_item.order_item.quantity|add:"-"|add:return_item.quantity|default:0 %}
+                        <div
+                            class="text-sm font-medium {% if remaining > 0 %}text-green-600{% else %}text-gray-400{% endif %}">
+                            {{ return_item.order_item.quantity|add:"-"|add:return_item.quantity }}
+                        </div>
+                        {% endwith %}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-700 max-w-xs">
+                            {{ return_item.item_reason|default:"—" }}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span
+                            class="px-2 py-1 text-xs font-semibold rounded-full status-badge status-{{ return_item.order_item.status }}">
+                            {{ return_item.order_item.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Section 3: Admin Action Controls (Only for Pending) -->
+{% if returns_list.status == 'pending' %}
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-800">Admin Actions</h2>
+    </div>
+    <div class="p-6">
+        <div class="flex flex-col sm:flex-row gap-4">
+            <button type="button" id="acceptReturnBtn" data-return-id="{{ returns_list.id }}"
+                class="flex-1 sm:flex-none px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors inline-flex items-center justify-center gap-2">
+                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                Accept Return
+            </button>
+            <button type="button" id="rejectReturnBtn" data-return-id="{{ returns_list.id }}"
+                class="flex-1 sm:flex-none px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors inline-flex items-center justify-center gap-2">
+                <i data-lucide="x-circle" class="w-5 h-5"></i>
+                Reject Return
+            </button>
+        </div>
+        <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="flex gap-2">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"></i>
+                <p class="text-sm text-yellow-800">
+                    <strong>Warning:</strong> Accepting a return will update stock levels and mark items as returned.
+                    Rejecting requires providing admin notes.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/adminpanel/return_detail.js' %}"></script>
+<script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+</script>
+{% endblock %}
+
+{% comment %} 
+{% block style %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/adminpanel/return_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Header with Back Button -->
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+        <a href="{% url 'returns_list' %}" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <i data-lucide="arrow-left" class="w-5 h-5 text-gray-600"></i>
+        </a>
+        <h1 class="text-3xl font-bold text-gray-800">Return Request #{{ return_request.id }}</h1>
+    </div>
+    <span class="px-3 py-1.5 text-sm font-semibold rounded-full status-badge status-{{ return_request.status }}">
+        {{ return_request.get_status_display }}
+    </span>
+</div>
+
+<!-- Section 1: Return Summary -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 overflow-hidden">
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-800">Return Summary</h2>
+    </div>
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Return ID -->
+            <div class="info-item">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Return ID</label>
+                <p class="text-base font-semibold text-gray-900">#{{ return_request.id }}</p>
+            </div>
+
+            <!-- Status -->
+            <div class="info-item">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Status</label>
+                <p>
+                    <span
+                        class="px-2 py-1 text-xs font-semibold rounded-full status-badge status-{{ return_request.status }}">
+                        {{ return_request.get_status_display }}
+                    </span>
+                </p>
+            </div>
+
+            <!-- Requested At -->
+            <div class="info-item">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Requested
+                    At</label>
+                <p class="text-base font-medium text-gray-900">{{ return_request.created_at|date:"M d, Y" }}</p>
+                <p class="text-sm text-gray-500">{{ return_request.created_at|time:"H:i" }}</p>
+            </div>
+
+            <!-- Processed At -->
+            <div class="info-item">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Processed
+                    At</label>
+                {% if return_request.processed_at %}
+                <p class="text-base font-medium text-gray-900">{{ return_request.processed_at|date:"M d, Y" }}</p>
+                <p class="text-sm text-gray-500">{{ return_request.processed_at|time:"H:i" }}</p>
+                {% else %}
+                <p class="text-base font-medium text-gray-400">—</p>
+                {% endif %}
+            </div>
+
+            <!-- Customer -->
+            <div class="info-item">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Customer</label>
+                <p class="text-base font-medium text-gray-900">{{
+                    return_request.user.get_full_name|default:return_request.user.username }}</p>
+                <p class="text-sm text-gray-500">{{ return_request.user.email }}</p>
+            </div>
+
+            <!-- Order ID -->
+            <div class="info-item">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Order ID</label>
+                <a href="{% url 'admin_order_detail' return_request.order.order_id %}"
+                    class="text-base font-medium text-red-600 hover:text-red-800 hover:underline">
+                    #{{ return_request.order.order_id|truncatechars:16 }}
+                </a>
+            </div>
+
+            <!-- Total Items -->
+            <div class="info-item">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Total Items</label>
+                <p class="text-base font-semibold text-gray-900">{{ return_request.total_items }}</p>
+            </div>
+        </div>
+
+        <!-- Return Reason -->
+        <div class="mt-6 pt-6 border-t border-gray-200">
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 block">Overall Return
+                Reason</label>
+            <p class="text-base text-gray-700 leading-relaxed">{{ return_request.return_reason }}</p>
+        </div>
+
+        <!-- Admin Notes (if exists) -->
+        {% if return_request.admin_notes %}
+        <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <label
+                class="text-xs font-medium text-yellow-800 uppercase tracking-wider mb-2 block flex items-center gap-2">
+                <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                Admin Notes
+            </label>
+            <p class="text-sm text-yellow-900">{{ return_request.admin_notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Section 2: Returned Items Table -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 overflow-hidden">
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-800">Returned Items</h2>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variant
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ordered
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Returned
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item
+                        Reason</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item
+                        Status</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for return_item in return_request.return_items.all %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <div
+                                class="flex-shrink-0 h-12 w-12 bg-gray-100 rounded-md overflow-hidden border border-gray-200">
+                                {% if return_item.order_item.image_url %}
+                                <img class="h-12 w-12 object-cover" src="{{ return_item.order_item.image_url }}"
+                                    alt="{{ return_item.order_item.product_name }}">
+                                {% else %}
+                                <div class="h-full w-full flex items-center justify-center text-gray-400">
+                                    <i data-lucide="package" class="w-6 h-6"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">{{ return_item.order_item.product_name }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-700">
+                            {% if return_item.order_item.variant_options.size %}
+                            <span>Size: {{ return_item.order_item.variant_options.size }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="text-sm text-gray-700">
+                            {% if return_item.order_item.variant_options.color %}
+                            <span>Color: {{ return_item.order_item.variant_options.color }}</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-mono text-gray-600">{{ return_item.order_item.product_variant.sku }}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">{{ return_item.order_item.quantity }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-semibold text-red-600">{{ return_item.quantity }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% with remaining=return_item.order_item.quantity|add:"-"|add:return_item.quantity|default:0 %}
+                        <div
+                            class="text-sm font-medium {% if remaining > 0 %}text-green-600{% else %}text-gray-400{% endif %}">
+                            {{ return_item.order_item.quantity|add:"-"|add:return_item.quantity }}
+                        </div>
+                        {% endwith %}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-700 max-w-xs">
+                            {{ return_item.item_reason|default:"—" }}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span
+                            class="px-2 py-1 text-xs font-semibold rounded-full status-badge status-{{ return_item.order_item.status }}">
+                            {{ return_item.order_item.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Section 3: Admin Action Controls (Only for Pending) -->
+{% if return_request.status == 'pending' %}
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-800">Admin Actions</h2>
+    </div>
+    <div class="p-6">
+        <div class="flex flex-col sm:flex-row gap-4">
+            <button type="button" id="acceptReturnBtn" data-return-id="{{ return_request.id }}"
+                class="flex-1 sm:flex-none px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors inline-flex items-center justify-center gap-2">
+                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                Accept Return
+            </button>
+            <button type="button" id="rejectReturnBtn" data-return-id="{{ return_request.id }}"
+                class="flex-1 sm:flex-none px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors inline-flex items-center justify-center gap-2">
+                <i data-lucide="x-circle" class="w-5 h-5"></i>
+                Reject Return
+            </button>
+        </div>
+        <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="flex gap-2">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"></i>
+                <p class="text-sm text-yellow-800">
+                    <strong>Warning:</strong> Accepting a return will update stock levels and mark items as returned.
+                    Rejecting requires providing admin notes.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/adminpanel/return_detail.js' %}"></script>
+<script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+</script>
+{% endblock %} {% endcomment %}

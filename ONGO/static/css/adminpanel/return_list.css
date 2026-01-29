@@ -1,0 +1,98 @@
+/* Modern Admin Returns Panel Styles */
+
+/* --- Status Badges --- */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    line-height: 1;
+}
+
+/* Status Colors */
+.status-pending {
+    background-color: #FEF3C7;
+    /* yellow-100 */
+    color: #92400E;
+    /* yellow-800 */
+}
+
+.status-accepted {
+    background-color: #D1FAE5;
+    /* green-100 */
+    color: #065F46;
+    /* green-800 */
+}
+
+.status-rejected {
+    background-color: #FEE2E2;
+    /* red-100 */
+    color: #991B1B;
+    /* red-800 */
+}
+
+/* --- Table Enhancements --- */
+.table-container {
+    overflow-x: auto;
+    border-radius: 0.5rem;
+    border: 1px solid #E5E7EB;
+    background-color: white;
+}
+
+.custom-table {
+    width: 100%;
+    min-width: 1000px;
+    /* Ensure horizontal scroll on small screens */
+    text-align: left;
+    border-collapse: collapse;
+}
+
+.custom-table th {
+    background-color: #F9FAFB;
+    color: #374151;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.custom-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #E5E7EB;
+    font-size: 0.875rem;
+    color: #111827;
+    vertical-align: middle;
+}
+
+.custom-table tr:last-child td {
+    border-bottom: none;
+}
+
+.custom-table tr:hover td {
+    background-color: #F9FAFB;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .custom-table {
+        min-width: 800px;
+    }
+}
+
+/* Empty state styling */
+.empty-state {
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.empty-state-icon {
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto 1rem;
+    color: #D1D5DB;
+}

@@ -2,6 +2,7 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,11 +11,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Lucide Icons for high-quality SVG icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.4/dist/sweetalert2.all.min.js" integrity="sha256-CXJQDRV/kfNAc4Ubtua9IIlDadsXV85fRIBQi4TThqs=" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.4/dist/sweetalert2.min.css" integrity="sha256-VqBagSPahwzjkw8/E0KAY23AmFZuYBxX6f6uVDgY1rg=" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.4/dist/sweetalert2.all.min.js"
+        integrity="sha256-CXJQDRV/kfNAc4Ubtua9IIlDadsXV85fRIBQi4TThqs=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.4/dist/sweetalert2.min.css"
+        integrity="sha256-VqBagSPahwzjkw8/E0KAY23AmFZuYBxX6f6uVDgY1rg=" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    {% block style %}<link href="{% static 'css/adminpanel/customerse.css' %}" rel="stylesheet">{% endblock style %}
+    {% block style %}
+    <link href="{% static 'css/adminpanel/customerse.css' %}" rel="stylesheet">{% endblock style %}
 </head>
+
 <body>
     <!-- Main Application Layout -->
     <div class="flex flex-col h-screen overflow-hidden">
@@ -22,7 +27,9 @@
         <!-- 1. Top Header -->
         <header class="h-16 flex items-center justify-between px-6 border-b border-gray-200 bg-white shadow-sm z-10">
             <!-- Logo -->
-            <div class="text-xl font-bold tracking-widest text-gray-800"><img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="Logo" class="h-6"></div>
+            <div class="text-xl font-bold tracking-widest text-gray-800"><img
+                    src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="Logo"
+                    class="h-6"></div>
             <!-- User Profile (Placeholder) -->
             <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
@@ -35,7 +42,8 @@
         <div class="flex flex-1 overflow-hidden">
 
             <!-- 2.1. Sidebar Navigation -->
-            <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 p-4 flex flex-col justify-between overflow-y-auto">
+            <aside id="sidebar"
+                class="w-64 bg-white border-r border-gray-200 p-4 flex flex-col justify-between overflow-y-auto">
                 <nav class="space-y-1 inline-grid grid-cols-1 gap-y-5">
                     <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="dashboard">
                         <i data-lucide="layout-dashboard" class="icon w-5 h-5 mr-3"></i>
@@ -45,20 +53,24 @@
                         <i data-lucide="bar-chart-2" class="icon w-5 h-5 mr-3"></i>
                         <h2>Analytics</h2>
                     </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'orders' %}active{% endif %}" href="{% url 'admin_orders' %}" data-page="orders">
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'orders' %}active{% endif %}"
+                        href="{% url 'admin_orders' %}" data-page="orders">
                         <i data-lucide="package" class="icon w-5 h-5 mr-3"></i>
                         <h2>Orders</h2>
-                   </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'categories' %}active{% endif %}" href="{% url 'categories' %}" data-page="categories">
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'categories' %}active{% endif %}"
+                        href="{% url 'categories' %}" data-page="categories">
                         <i data-lucide="grip" class="icon w-5 h-5 mr-3"></i>
                         <h2>Categories</h2>
                     </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'products' %}active{% endif %}" href='{% url "products" %}' data-page="products">
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'products' %}active{% endif %}"
+                        href='{% url "products" %}' data-page="products">
                         <i data-lucide="list-checks" class="icon w-5 h-5 mr-3"></i>
                         <h2>Products</h2>
                     </a>
                     <!-- Active Link -->
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'customers' %}active{% endif %}" href="{% url 'customers' %}" data-page="customers">
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'customers' %}active{% endif %}"
+                        href="{% url 'customers' %}" data-page="customers">
                         <i data-lucide="users" class="icon w-5 h-5 mr-3"></i>
                         <h2>Customers</h2>
                     </a>
@@ -68,15 +80,16 @@
                     </a>
                     <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="offer">
                         <i data-lucide="gift" class="icon w-5 h-5 mr-3"></i>
-                       <h2> Offer</h2>
-                   </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="returns">
+                        <h2> Offer</h2>
+                    </a>
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'returns_list' or request.resolver_match.url_name == 'returs_detail' %}active{% endif %}"
+                        href="{% url 'returns_list' %}" data-page="returns">
                         <i data-lucide="corner-down-left" class="icon w-5 h-5 mr-3"></i>
                         <h2>Returns</h2>
                     </a>
                     <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="banners">
                         <i data-lucide="image" class="icon w-5 h-5 mr-3"></i>
-                        <h2>Banners</h2>                    
+                        <h2>Banners</h2>
                     </a>
                     <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="settings">
                         <i data-lucide="settings" class="icon w-5 h-5 mr-3"></i>
@@ -84,9 +97,10 @@
                     </a>
                 </nav>
 
-              <!-- Logout -->
+                <!-- Logout -->
                 <div class="mt-8 pt-4 border-t border-gray-200">
-                    <a class="text-gray-500 hover:text-gray-800 flex items-center space-x-3 py-2 px-3" href='{% url "admin_logout" %}'>
+                    <a class="text-gray-500 hover:text-gray-800 flex items-center space-x-3 py-2 px-3"
+                        href='{% url "admin_logout" %}'>
                         <i data-lucide="log-out" class="icon w-5 h-5 mr-3"></i>
                         Logout
                     </a>
@@ -107,18 +121,19 @@
     <!-- Hidden Django messages for JS to consume -->
     <div id="django-messages" class="hidden">
         {% for message in messages %}
-            <div data-message="{{ message|escape }}" data-level="{{ message.tags }}"></div>
+        <div data-message="{{ message|escape }}" data-level="{{ message.tags }}"></div>
         {% endfor %}
     </div>
 
     <!-- Toast Template (cloned by JS) -->
     <template id="toast-template">
-        <div class="relative bg-white rounded-lg shadow-lg border-l-4 border-l-gray-400 overflow-hidden flex items-start w-full">
+        <div
+            class="relative bg-white rounded-lg shadow-lg border-l-4 border-l-gray-400 overflow-hidden flex items-start w-full">
             <div class="flex-1 p-4 pr-10">
                 <div class="text-sm font-medium text-gray-800" id="toast-message"></div>
             </div>
-            <button class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-sm p-1 focus:outline-none" 
-                    onclick="this.closest('.toast').remove()">
+            <button class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-sm p-1 focus:outline-none"
+                onclick="this.closest('.toast').remove()">
                 ✕
             </button>
             <div class="absolute bottom-0 left-0 h-1 bg-gray-200 w-full">
@@ -128,82 +143,102 @@
     </template>
 
     <!-- Cropper Modal -->
-    <div id="cropperModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 scale-95 transition-transform duration-300">
-        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-        <h3 class="text-xl font-bold text-gray-800">Crop & Adjust Image</h3>
-        <button id="closeCropperModal" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-full transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
-        </div>
+    <div id="cropperModal"
+        class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+                <h3 class="text-xl font-bold text-gray-800">Crop & Adjust Image</h3>
+                <button id="closeCropperModal"
+                    class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-full transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
 
-        <div class="p-6">
-        <!-- Image Preview + Cropper -->
-        <div class="relative mb-6 bg-gray-50 rounded-xl overflow-hidden border border-gray-200 h-80 flex items-center justify-center">
-            <img id="cropperImage" src="" class="max-w-full max-h-full hidden">
-            <div id="cropperContainer" class="w-full h-full"></div>
-            <div id="cropperLoader" class="absolute inset-0 flex items-center justify-center">
-            <svg class="w-8 h-8 text-gray-400 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
+            <div class="p-6">
+                <!-- Image Preview + Cropper -->
+                <div
+                    class="relative mb-6 bg-gray-50 rounded-xl overflow-hidden border border-gray-200 h-80 flex items-center justify-center">
+                    <img id="cropperImage" src="" class="max-w-full max-h-full hidden">
+                    <div id="cropperContainer" class="w-full h-full"></div>
+                    <div id="cropperLoader" class="absolute inset-0 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-gray-400 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                    <button type="button" id="rotateLeft"
+                        class="flex flex-col items-center justify-center p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition btn-transition">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        </svg>
+                        <span class="text-xs mt-1 text-gray-600">↺</span>
+                    </button>
+                    <button type="button" id="rotateRight"
+                        class="flex flex-col items-center justify-center p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition btn-transition">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10h10a8 8 0 008-8v2M3 10l6-6m-6 6l6 6" />
+                        </svg>
+                        <span class="text-xs mt-1 text-gray-600">↻</span>
+                    </button>
+                    <button type="button" id="zoomIn"
+                        class="flex flex-col items-center justify-center p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition btn-transition">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <span class="text-xs mt-1 text-gray-600">+</span>
+                    </button>
+                    <button type="button" id="zoomOut"
+                        class="flex flex-col items-center justify-center p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition btn-transition">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6M7 10h10" />
+                        </svg>
+                        <span class="text-xs mt-1 text-gray-600">−</span>
+                    </button>
+                </div>
+
+                <!-- Crop Info -->
+                <div class="text-center mb-6">
+                    <div
+                        class="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Square crop (1:1) for best thumbnail
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex justify-end gap-3">
+                    <button type="button" id="cancelCrop"
+                        class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition">
+                        Cancel
+                    </button>
+                    <button type="button" id="applyCrop"
+                        class="px-5 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 btn-transition flex items-center">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Apply Crop
+                    </button>
+                </div>
             </div>
         </div>
-
-        <!-- Controls -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-            <button type="button" id="rotateLeft" class="flex flex-col items-center justify-center p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition btn-transition">
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-            </svg>
-            <span class="text-xs mt-1 text-gray-600">↺</span>
-            </button>
-            <button type="button" id="rotateRight" class="flex flex-col items-center justify-center p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition btn-transition">
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 008-8v2M3 10l6-6m-6 6l6 6" />
-            </svg>
-            <span class="text-xs mt-1 text-gray-600">↻</span>
-            </button>
-            <button type="button" id="zoomIn" class="flex flex-col items-center justify-center p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition btn-transition">
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <span class="text-xs mt-1 text-gray-600">+</span>
-            </button>
-            <button type="button" id="zoomOut" class="flex flex-col items-center justify-center p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition btn-transition">
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6M7 10h10" />
-            </svg>
-            <span class="text-xs mt-1 text-gray-600">−</span>
-            </button>
-        </div>
-
-        <!-- Crop Info -->
-        <div class="text-center mb-6">
-            <div class="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
-            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Square crop (1:1) for best thumbnail
-            </div>
-        </div>
-
-        <!-- Buttons -->
-        <div class="flex justify-end gap-3">
-            <button type="button" id="cancelCrop" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition">
-            Cancel
-            </button>
-            <button type="button" id="applyCrop" class="px-5 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 btn-transition flex items-center">
-            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-            Apply Crop
-            </button>
-        </div>
-        </div>
-    </div>
     </div>
 
     <!-- Your toast JS -->
@@ -217,4 +252,5 @@
     {% block scripts %}{% endblock %}
 
 </body>
+
 </html>

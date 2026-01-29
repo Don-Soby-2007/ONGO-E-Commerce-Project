@@ -4,7 +4,7 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views import View
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Case, When, Value, IntegerField
 from django.views.generic import ListView
 from django.views.generic import DetailView
 from django.contrib.auth import authenticate, login, logout
@@ -1134,6 +1134,43 @@ class ReturnListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     paginate_by = 6
     context_object_name = 'returns_list'
 
+    def get_queryset(self):
+        queryset = Return.objects.select_related(
+            'user',
+            'order'
+        ).prefetch_related(
+            'return_items'
+        ).all()
+
+        q = self.request.GET.get('q', '').strip()
+        status = self.request.GET.get('status')
+
+        if q:
+            queryset = queryset.filter(
+                Q(user__email__icontains=q) |
+                Q(order__order_id__icontains=q.replace('-', '').replace(' ', ''))
+            )
+
+        if status and status in dict(Return.RETURN_STATUS_CHOICES):
+            queryset = queryset.filter(status=status)
+
+        queryset = queryset.annotate(
+            pending_priority=Case(
+                When(status='pending', then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            )
+        ).order_by('pending_priority', '-created_at')
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        context['current_status'] = self.request.GET.get('status', '')
+        context['status_choices'] = Return.RETURN_STATUS_CHOICES
+        return context
+
 
 @method_decorator(never_cache, name='dispatch')
 class ReturnDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
@@ -1141,11 +1178,11 @@ class ReturnDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     def test_func(self):
         return self.request.user.is_staff
 
-    template_name = 'adminpanel/return_detal.html'
+    template_name = 'adminpanel/return_detail.html'
 
     model = Return
     context_object_name = 'returns_list'
-    slug_field = 'return_id'
+    slug_field = 'id'
     slug_url_kwarg = 'return_id'
 
 
@@ -1196,6 +1233,11 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
                             f"+{item.quantity} (Return #{returns.id}) | "
                             f"Old: {original_stock} → New: {variant.stock}"
                         )
+                elif current_status == 'pending' and new_status == 'rejected':
+                    admin_notes = request.POST.get('admin_notes')
+
+                    returns.admin_notes = admin_notes if admin_notes else 'Admin Rejectod due to reason'
+                    returns.save(update_fields=['admin_notes'])
 
                 returns.status = new_status
                 returns.save(update_fields=['status', 'processed_at'])
