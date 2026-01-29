@@ -149,12 +149,16 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 // Revert on error
                 input.value = originalValue;
-                alert(data.error || 'Failed to update quantity.');
+                Swal.fire(
+                    'Max Limit achived',
+                    data.error,
+                    'error'
+                );
             }
         } catch (error) {
             input.value = originalValue;
             console.error('AJAX error:', error);
-            alert('Network error. Please try again.');
+            Swal.fire('Error!', 'Network error. Please try again.', 'error');
         }
     }
 

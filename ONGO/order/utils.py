@@ -26,6 +26,7 @@ def get_cart_items_for_user(user):
             'image_url': image_url,
             'size': variant.size,
             'color': variant.color,
+            'stock': variant.stock,
             'in_stock': variant.is_in_stock,
         })
     return cart_items

@@ -47,6 +47,11 @@ class CheckoutInformation(LoginRequiredMixin, View):
 
         cart_items = get_cart_items_for_user(user)
 
+        for item in cart_items:
+            if item.get('stock') < item.get('quantity'):
+                messages.error(request, f'Insufficient Stock for {item.get('product_name')}')
+                return redirect('cart')
+
         return render(request, self.template_name, {'addresses': address, 'cart_items': cart_items})
 
     def post(self, request):
@@ -114,6 +119,11 @@ class PaymentMethode(LoginRequiredMixin, View):
 
         cart_items = get_cart_items_for_user(user)
 
+        for item in cart_items:
+            if item.get('stock') < item.get('quantity'):
+                messages.error(request, f'Insufficient Stock for {item.get('product_name')}')
+                return redirect('cart')
+
         return render(request, self.template_name, {'address': address, 'cart_items': cart_items})
 
     def post(self, request):
@@ -154,6 +164,11 @@ class OrderConfirmation(LoginRequiredMixin, View):
         address = Address.objects.get(user=user, id=address_id)
 
         cart_items = get_cart_items_for_user(user)
+
+        for item in cart_items:
+            if item.get('stock') < item.get('quantity'):
+                messages.error(request, f'Insufficient Stock for {item.get('product_name')}')
+                return redirect('cart')
 
         request.session["checkout_step"] = "confirmation"
         request.session.modified = True
