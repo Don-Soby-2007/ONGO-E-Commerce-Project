@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('order', '0004_invoice'),
-        ('return', '0001_initial'),
+        ('returns', '0001_initial'),
     ]
 
     operations = [
@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
                 ('item_reason', models.TextField(blank=True, help_text='Specific reason for returning this item')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('order_item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='return_items', to='order.orderitem')),
-                ('return_request', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='return_items', to='return.return')),
+                ('return_request', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='return_items', to='returns.return')),
             ],
             options={
                 'verbose_name': 'Return Item',
