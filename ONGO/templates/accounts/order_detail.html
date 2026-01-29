@@ -11,7 +11,7 @@
     <div class="mb-6">
         <a href="{% url 'order_list' %}"
             class="text-red-500 hover:text-red-700 font-medium flex items-center gap-2 mt-20">
-            <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
             Back to Order
         </a>
     </div>
@@ -26,7 +26,7 @@
                 onclick="openCancelModal('{% url 'cancel_order' order.order_id %}', 'Order')">Cancel Order</button>
             {% endif %}
 
-            {% if order.status == 'delivered' %}
+            {% if order.status == 'delivered' or order.status == 'returned' or order.status == 'refunded' %}
             <div class="flex gap-4">
                 <a href="{% url 'download_invoice' order.order_id %}"
                     class="btn-danger flex gap-2 font-small items-center">
