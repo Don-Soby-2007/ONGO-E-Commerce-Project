@@ -1,0 +1,133 @@
+/* ========================================
+   Error Pages Custom Styles
+   Lightweight enhancements beyond Tailwind
+   ======================================== */
+
+/* Error Code Typography */
+.error-code {
+    font-size: 8rem;
+    font-weight: 800;
+    line-height: 1;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0.15;
+    user-select: none;
+}
+
+/* Error Container Animations */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.error-container {
+    animation: fadeInScale 0.6s ease-out forwards;
+}
+
+.error-content {
+    animation: slideUp 0.8s ease-out 0.2s forwards;
+    opacity: 0;
+}
+
+/* Button Hover Effects */
+.error-btn-primary {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.error-btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.error-btn-primary:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.error-btn-secondary {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.error-btn-secondary::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: #ef4444;
+    transform: translateX(-50%);
+    transition: width 0.3s ease;
+}
+
+.error-btn-secondary:hover::after {
+    width: 100%;
+}
+
+/* Icon Animation */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.error-icon {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Responsive Typography */
+@media (max-width: 640px) {
+    .error-code {
+        font-size: 5rem;
+    }
+}
+
+/* Subtle Glow Effect for Error Container */
+.error-container-glow {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+}
+
+/* Smooth Focus States for Accessibility */
+.error-btn-primary:focus,
+.error-btn-secondary:focus {
+    outline: 3px solid #ef4444;
+    outline-offset: 3px;
+}
