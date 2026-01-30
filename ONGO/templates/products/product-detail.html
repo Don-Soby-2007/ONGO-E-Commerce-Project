@@ -575,19 +575,30 @@
         }
 
         const variants = variantsByColor[selectedColor] || [];
-        const inStock = variants.filter(v => v.stock > 0);
+        const inStock = variants.filter(v => v.stock > 10);
         const midStock = variants.filter(v => v.stock <= 10);
-        console.log(midStock)
         const outOfStock = variants.filter(v => v.stock == 0);
 
-        if ( midStock.length > 0) {
-            console.log('midstock')
+        if(outOfStock.length > 0 ){
             stockMessage.innerHTML = `
                     <span class="flex items-center text-red-500 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
-                        Limited Stock Only
+                        Temporarily out of stock
+                    </span>
+                    <button class="ml-3 text-sm text-orange-500 underline hover:no-underline">
+                        Notify when available
+                    </button>
+                `;
+        } else if ( midStock.length > 0) {
+            const midStockStocks = midStock.map(v => v.stock).join(', ');
+            stockMessage.innerHTML = `
+                    <span class="flex items-center text-orange-600 font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Only ${midStockStocks} stocks are left !!
                     </span>
                 `;
             
@@ -600,19 +611,6 @@
                         </svg>
                         In stock • Ships in 24h (${inStockSizes})
                     </span>
-                `;
-            
-        } else if(outOfStock.length > 0 ){
-            stockMessage.innerHTML = `
-                    <span class="flex items-center text-red-500 font-medium">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        Temporarily out of stock
-                    </span>
-                    <button class="ml-3 text-sm text-orange-500 underline hover:no-underline">
-                        Notify when available
-                    </button>
                 `;
         } else {
             stockMessage.innerHTML = '<span class="text-gray-500 text-sm">No sizes available</span>';
