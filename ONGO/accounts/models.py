@@ -6,6 +6,8 @@ import cloudinary.uploader
 import cloudinary.utils
 import uuid
 
+from products.models import ProductVariant
+
 # Create your models here.
 
 
@@ -166,3 +168,21 @@ class Address(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.city}, {self.country}"
+
+
+class Wishlist(models.Model):
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wishlist_items')
+
+    product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name='wishlist_entries')
+
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+
+        db_table = 'wishlists'
+        unique_together = ('user', 'product_variant')
+        ordering = ['-added_at']
+
+    def __str__(self):
+        return f'{self.user} - {self.product_variant}'
