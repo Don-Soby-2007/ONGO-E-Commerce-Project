@@ -61,7 +61,7 @@ class Product(models.Model):
             return image.image_url
 
         # fallback image
-        return "https://via.placeholder.com/150?text=No+Image"
+        return "https://placehold.co/600x400?text=No+Image"
 
     def get_display_price(self):
         variant = (

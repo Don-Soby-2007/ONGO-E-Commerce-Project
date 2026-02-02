@@ -280,7 +280,6 @@ class ToggleWishlistView(LoginRequiredMixin, View):
                     action = 'removed'
                     message = 'Removed from wishlist'
                 else:
-                    # Create new entry with validation
                     wishlist_item = Wishlist(user=request.user, product_variant=variant)
                     wishlist_item.full_clean()
                     wishlist_item.save()
