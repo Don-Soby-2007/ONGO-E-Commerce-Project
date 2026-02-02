@@ -485,9 +485,17 @@
         const images = imagesByColor[selectedColor];
         thumbnailContainer.innerHTML = '';
 
-        images.forEach((url, idx) => {
+        let count = 0;
+        let idx = 0;
+
+        for (const url of images) {
             const div = document.createElement('div');
-            div.className = `thumbnail w-20 h-20 rounded-lg bg-gray-200 border-2 border-transparent cursor-pointer ${idx === 0 ? 'active' : ''}`;
+            count++;
+
+            div.className = `thumbnail w-20 h-20 rounded-lg bg-gray-200 border-2 border-transparent cursor-pointer ${
+                idx === 0 ? 'active' : ''
+            }`;
+
             div.dataset.index = idx;
             div.style.backgroundImage = `url('${url}')`;
             div.style.backgroundSize = 'cover';
@@ -500,7 +508,12 @@
             });
 
             thumbnailContainer.appendChild(div);
-        });
+
+            if (count === 3) break;
+
+            idx++;
+        }
+
 
         // Set first image as main
         if (images.length > 0) {

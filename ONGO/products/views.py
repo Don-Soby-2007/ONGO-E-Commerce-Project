@@ -1,19 +1,27 @@
 from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView
+
 from .models import Product, ProductVariant, ProductImage, Category
 from cart.models import Cart
+from accounts.models import Wishlist
+
 from django.db.models import Prefetch, Min, Case, When, DecimalField
 from django.db.models.functions import Coalesce
+from django.db import transaction
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 
+from django.core.exceptions import ValidationError
+
 from django.views import View
 
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+
+# from django.shortcuts import get_object_or_404
 
 import logging
 import json
@@ -207,7 +215,7 @@ class AddToCartView(LoginRequiredMixin, View):
             if new_quantity > variant.stock:
                 return JsonResponse({
                     'success': False,
-                    'message': 'This product is now out of stock'
+                    'message': 'Insuffcient stock, Please try again'
                 })
 
             if qty < 1 or qty > 5:
@@ -235,3 +243,75 @@ class AddToCartView(LoginRequiredMixin, View):
         except Exception as e:
             logger.error(request, f'Unexpected error occured when adding to cart: {e}')
             return JsonResponse({'success': False, 'message': 'Error adding to cart'})
+
+
+class ToggleWishlistView(LoginRequiredMixin, View):
+
+    def post(self, request, variant_id):
+        try:
+            variant_id = int(variant_id)
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid variant ID format '{variant_id}' from user {request.user.id}")
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid product identifier'
+            }, status=400)
+
+        try:
+            variant = ProductVariant.objects.select_related('product').get(
+                id=variant_id,
+                product__is_active=True
+            )
+        except ProductVariant.DoesNotExist:
+            logger.warning(
+                f"User {request.user.id} attempted wishlist operation on "
+                f"non-existent/inactive variant ID {variant_id}"
+            )
+            raise Http404("Product variant not found")
+
+        try:
+            with transaction.atomic():
+                deleted_count, _ = Wishlist.objects.filter(
+                    user=request.user,
+                    product_variant=variant
+                ).delete()
+
+                if deleted_count:
+                    action = 'removed'
+                    message = 'Removed from wishlist'
+                else:
+                    # Create new entry with validation
+                    wishlist_item = Wishlist(user=request.user, product_variant=variant)
+                    wishlist_item.full_clean()
+                    wishlist_item.save()
+                    action = 'added'
+                    message = 'Added to wishlist'
+
+                wishlist_count = Wishlist.objects.filter(user=request.user).count()
+
+        except ValidationError as e:
+            logger.warning(
+                f"Validation error during wishlist toggle for user {request.user.id}, "
+                f"variant {variant_id}: {e}"
+            )
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid wishlist item data'
+            }, status=400)
+        except Exception as e:
+            logger.exception(
+                f"Unexpected error toggling wishlist for user {request.user.id}, "
+                f"variant {variant_id}: {str(e)}"
+            )
+            return JsonResponse({
+                'success': False,
+                'message': 'Failed to update wishlist. Please try again.'
+            }, status=500)
+
+        return JsonResponse({
+            'success': True,
+            'action': action,
+            'wishlist_count': wishlist_count,
+            'message': message,
+            'variant_id': variant_id
+        })

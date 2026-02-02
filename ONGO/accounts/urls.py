@@ -74,4 +74,8 @@ urlpatterns = [
     path('cancel-order/<uuid:order_id>', views.OrderCancelView.as_view(), name='cancel_order'),
     path('cancel-order/<uuid:order_id>/<int:item_id>', views.OrderItemCancelView.as_view(), name='cancel_order_item'),
 
+    # Wish list
+
+    path('wishlist/', views.WishlistView.as_view(), name='wishlist')
+
 ]

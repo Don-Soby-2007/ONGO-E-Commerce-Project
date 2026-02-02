@@ -23,7 +23,7 @@ from django.http import JsonResponse
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import User, Address
+from .models import User, Address, Wishlist
 from order.models import Order, OrderItem
 
 from django.shortcuts import get_object_or_404
@@ -814,3 +814,14 @@ class OrderItemCancelView(LoginRequiredMixin, View):
             order.save()
 
         return JsonResponse({'message': 'Item cancelled successfully.'})
+
+
+@method_decorator(never_cache, name='dispatch')
+class WishlistView(LoginRequiredMixin, ListView):
+
+    model = Wishlist
+    template_name = 'accounts/wishlist.html'
+    context_object_name = 'wishlist_items'
+
+    def get_queryset(self):
+        return Wishlist.objects.filter(user=self.request.user)
