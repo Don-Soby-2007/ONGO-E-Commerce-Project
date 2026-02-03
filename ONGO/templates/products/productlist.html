@@ -130,20 +130,32 @@
                     <!-- Product 1 -->
                     {% for product in products %}
 
-                    <a href="{% url 'product_detail' product.id %}"
+                    <div onclick="window.location='{% url 'product_detail' product.id %}'"
                         class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
                         <div class="relative">
                             <img src="{{product.get_thumbnail_url}}" alt="URB_N Men Geometric Print Regular Fit Shirt"
                                 class="w-full h-80 object-cover">
-                            <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow">
-                                <i data-lucide="heart" class="text-gray-500"></i>
-                            </button>
+                            {% if product.rep_variant_id %}
+                                <button type='button' data-url='{% url "toggle_wishlist" product.rep_variant_id %}'
+                                        class="toggleWishlist absolute top-2 right-2 p-2 rounded-full bg-white shadow hover:text-red-500 transition-colors"
+                                        aria-label="{% if product.in_wishlist %}Remove from wishlist{% else %}Add to wishlist{% endif %}">
+                                    {% if product.in_wishlist %}
+                                        <i data-lucide="heart" class="text-red-500 fill-current"></i>
+                                    {% else %}
+                                        <i data-lucide="heart" class="text-gray-500 hover:text-red-500 transition-colors"></i>
+                                    {% endif %}
+                                </button>
+                            {% else %}
+                                <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow hover:text-red-500 transition-colors">
+                                    <i data-lucide="heart" class="text-gray-500 hover:text-red-500 transition-colors"></i>
+                                </button>
+                            {% endif %}
                         </div>
                         <div class="p-4">
                             <h3 class="font-semibold text-gray-800">{{product.name}}</h3>
                             <p class="text-gray-600 mt-2"> ₹{{product.get_display_price}}</p>
                         </div>
-                    </a>
+                    </div>
 
                     {% endfor %}
                 </div>
@@ -188,6 +200,7 @@
 
 {% block extra_js %}
 <script>
+    window.CSRF_TOKEN = '{{ csrf_token }}';
     // Reusable: show/hide error
     function showError(message) {
         const el = document.getElementById('price-error');
@@ -249,6 +262,84 @@
         if (!validatePrice()) {
             e.preventDefault(); //  Prevent submission
         }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const wishlistButtons = document.querySelectorAll('.toggleWishlist');
+
+        wishlistButtons.forEach(button => {
+        button.addEventListener('click', async function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            const url = this.getAttribute('data-url');
+            if (!url) return;
+
+            const icon = this.querySelector('.lucide-heart');
+            const wasInWishlist = icon.classList.contains('text-red-500');
+
+            // Visual feedback: disable & show loading state
+            this.disabled = true;
+            const originalColor = wasInWishlist ? 'text-red-500' : 'text-gray-500';
+            icon.classList.remove(originalColor);
+            icon.classList.add('text-gray-400'); // dim during load
+
+            try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                'X-CSRFToken': window.CSRF_TOKEN,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+                },
+                // No body needed — your view only uses URL param + user from request
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Update UI based on action
+                if (data.action === 'added') {
+                icon.classList.remove('text-gray-400', 'text-gray-500');
+                icon.classList.add('text-red-500', 'fill-current');
+                this.setAttribute('aria-label', 'Remove from wishlist');
+                } else if (data.action === 'removed') {
+                icon.classList.remove('text-red-500', 'fill-current', 'text-gray-400');
+                icon.classList.add('text-gray-500');
+                this.setAttribute('aria-label', 'Add to wishlist');
+                }
+
+                // Optional: update wishlist count in navbar (if you have one)
+                // e.g., document.getElementById('wishlist-count').textContent = data.wishlist_count;
+
+                // Optional: show toast/snackbar
+                console.log(data.message); // or use a toast library
+
+            } else {
+                throw new Error(data.message || 'Failed to update wishlist');
+            }
+            } catch (error) {
+            console.error('Wishlist toggle error:', error);
+            // Revert icon
+            icon.classList.remove('text-gray-400');
+            icon.classList.add(wasInWishlist ? 'text-red-500' : 'text-gray-500');
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                animation: true,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                icon: 'error',
+                title: 'Failed to update wishlist. Please try again.',
+                customClass: {
+                popup: 'swal2-toast'
+                }
+            });
+            } finally {
+            this.disabled = false;
+            }
+        });
+        });
     });
 
 </script>

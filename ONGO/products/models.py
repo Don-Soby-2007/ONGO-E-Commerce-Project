@@ -75,6 +75,16 @@ class Product(models.Model):
 
         return None
 
+    def get_representative_variant(self):
+        image = (
+            ProductImage.objects
+            .filter(product_variant__product=self)
+            .select_related('product_variant')
+            .order_by('-is_primary', '-created_at')
+            .first()
+        )
+        return image.product_variant if image else None
+
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(

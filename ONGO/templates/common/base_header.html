@@ -90,13 +90,13 @@
                     </div>
 
                     <div class="flex gap-5 items-center space-x-4">
-                        <div class="flex items-center space-x-1">
+                        <div onclick="window.location='{% url 'wishlist' %}'" class="flex items-center space-x-1">
                             <i data-lucide="heart"></i>
                         </div>
                         <div class="flex items-center space-x-1">
-                            <a href='{% url "cart" %}'>
+                            <div onclick="window.location'{% url 'cart' %}'">
                                 <i data-lucide="shopping-cart"></i>
-                            </a>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -52,7 +52,12 @@ class ProductListView(ListView):
             Product.objects
             .filter(is_active=True, category__is_active=True)
             .select_related('category')
-            .prefetch_related('variants__images')
+            .prefetch_related(
+                Prefetch(
+                    'variants__images',
+                    queryset=ProductImage.objects.order_by('-is_primary', '-created_at')
+                )
+            )
         )
 
         # Search Query
@@ -108,6 +113,33 @@ class ProductListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        products = context['products']
+
+        rep_variant_ids = []
+        product_rep_map = {}  # product.id : variant_id
+
+        for product in products:
+            rep_variant = product.get_representative_variant()
+            if rep_variant:
+                rep_variant_ids.append(rep_variant.id)
+                product_rep_map[product.id] = rep_variant.id
+            else:
+                product_rep_map[product.id] = None
+
+        wishlist_variant_ids = set()
+        if self.request.user.is_authenticated:
+            wishlist_variant_ids = set(
+                Wishlist.objects.filter(
+                    user=self.request.user,
+                    product_variant_id__in=rep_variant_ids
+                ).values_list('product_variant_id', flat=True)
+            )
+
+        for product in products:
+            rep_id = product_rep_map[product.id]
+            product.rep_variant_id = rep_id
+            product.in_wishlist = (rep_id in wishlist_variant_ids)
 
         context['categories'] = Category.objects.filter(is_active=True).order_by('name')
 
