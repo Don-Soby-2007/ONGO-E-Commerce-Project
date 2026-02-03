@@ -9,6 +9,7 @@
 
 {% block extra_js %}
 <script src="{% static 'js/accounts/wishlist.js' %}"></script>
+<script> window.CSRF_TOKEN = '{{csrf_token}}' </script>
 {% endblock %}
 
 {% block profile_content %}
@@ -26,86 +27,35 @@
     <!-- Wishlist Grid -->
     <div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        <!-- Product Card 1 -->
-        <div class="wishlist-card group relative bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden"
-            id="product-1">
-            <div class="relative h-64 overflow-hidden bg-gray-100">
-                <img src="https://placehold.co/400x500/f3f4f6/374151?text=Classic+Sneakers" alt="Classic Sneakers"
-                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-                <div class="absolute top-3 right-3">
-                    <button onclick="removeFromWishlist('product-1')"
-                        class="bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white hover:text-red-500 transition-colors text-gray-400">
-                        <i data-lucide="trash-2" class="w-5 h-5"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="p-5">
-                <h3 class="text-lg font-bold text-gray-900 mb-1">Classic Sneakers</h3>
-                <p class="text-gray-500 text-sm mb-4">Size: 42 • Color: White</p>
-                <div class="flex items-center justify-between mb-4">
-                    <span class="text-xl font-bold text-black">$89.00</span>
-                </div>
-                <button onclick="addToCart('product-1')"
-                    class="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition-all flex items-center justify-center gap-2 group-hover:shadow-lg">
-                    <i data-lucide="shopping-bag" class="w-4 h-4"></i>
-                    Add to Cart
-                </button>
-            </div>
-        </div>
+        <!-- Product Card -->
 
-        <!-- Product Card 2 -->
+        {% for item in wishlist_items %}
         <div class="wishlist-card group relative bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden"
-            id="product-2">
+            id="{{item.product_variant.id}}">
             <div class="relative h-64 overflow-hidden bg-gray-100">
-                <img src="https://placehold.co/400x500/f3f4f6/374151?text=Leather+Backpack" alt="Leather Backpack"
+                <img src="{{item.product_variant.images.first.image_url}}" alt="{{item.product_variant.product.name}}"
                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                 <div class="absolute top-3 right-3">
-                    <button onclick="removeFromWishlist('product-2')"
+                    <button onclick="removeFromWishlist('{{item.product_variant.id}}')" data-url='{% url "delete_wishlist_item" item.product_variant.id %}'
                         class="bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white hover:text-red-500 transition-colors text-gray-400">
                         <i data-lucide="trash-2" class="w-5 h-5"></i>
                     </button>
                 </div>
             </div>
             <div class="p-5">
-                <h3 class="text-lg font-bold text-gray-900 mb-1">Leather Backpack</h3>
-                <p class="text-gray-500 text-sm mb-4">One Size • Color: Brown</p>
+                <h3 class="text-lg font-bold text-gray-900 mb-1">{{item.product_variant.product.name}}</h3>
+                <p class="text-gray-500 text-sm mb-4">Size: {{item.product_variant.size}} • Color: {{item.product_variant.color}}</p>
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-xl font-bold text-black">$129.50</span>
+                    <span class="text-xl font-bold text-black">{{item.product_variant.final_price}}</span>
                 </div>
-                <button onclick="addToCart('product-2')"
+                <button onclick="addToCart('{{item.product_variant.id}}')"
                     class="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition-all flex items-center justify-center gap-2 group-hover:shadow-lg">
                     <i data-lucide="shopping-bag" class="w-4 h-4"></i>
                     Add to Cart
                 </button>
             </div>
         </div>
-
-        <!-- Product Card 3 -->
-        <div class="wishlist-card group relative bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden"
-            id="product-3">
-            <div class="relative h-64 overflow-hidden bg-gray-100">
-                <img src="https://placehold.co/400x500/f3f4f6/374151?text=Wireless+Headphones" alt="Wireless Headphones"
-                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-                <div class="absolute top-3 right-3">
-                    <button onclick="removeFromWishlist('product-3')"
-                        class="bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white hover:text-red-500 transition-colors text-gray-400">
-                        <i data-lucide="trash-2" class="w-5 h-5"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="p-5">
-                <h3 class="text-lg font-bold text-gray-900 mb-1">Wireless Headphones</h3>
-                <p class="text-gray-500 text-sm mb-4">Noise Cancelling • Color: Black</p>
-                <div class="flex items-center justify-between mb-4">
-                    <span class="text-xl font-bold text-black">$249.99</span>
-                </div>
-                <button onclick="addToCart('product-3')"
-                    class="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition-all flex items-center justify-center gap-2 group-hover:shadow-lg">
-                    <i data-lucide="shopping-bag" class="w-4 h-4"></i>
-                    Add to Cart
-                </button>
-            </div>
-        </div>
+        {% endfor %}
 
     </div>
 

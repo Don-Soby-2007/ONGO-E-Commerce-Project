@@ -17,7 +17,7 @@ from django.core.mail import send_mail
 
 from django.utils.decorators import method_decorator
 
-from django.db import DatabaseError
+from django.db import DatabaseError, transaction
 
 from django.http import JsonResponse
 
@@ -25,6 +25,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .models import User, Address, Wishlist
 from order.models import Order, OrderItem
+from products.models import ProductVariant
 
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -825,3 +826,57 @@ class WishlistView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return Wishlist.objects.filter(user=self.request.user)
+
+
+class DeleteWishlistItem(LoginRequiredMixin, View):
+
+    def post(self, request, variant_id):
+
+        try:
+            # Validate variant_id is an integer
+            try:
+                variant_id = int(variant_id)
+            except (ValueError, TypeError):
+                logger.warning(f'User {request.user.id} provided invalid variant_id: {variant_id}')
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid product identifier'
+                }, status=400)
+
+            # Get the variant (404 if not found or inactive)
+            try:
+                variant = get_object_or_404(ProductVariant, id=variant_id, product__is_active=True)
+            except ProductVariant.DoesNotExist:
+                logger.warning(f'User {request.user.id} attempted to delete non-existent variant {variant_id}')
+                return JsonResponse({
+                        'success': False,
+                        'message': 'Variant is not found in Product'
+                    }, status=404)
+
+            # Delete the wishlist item
+            with transaction.atomic():
+                deleted_count, _ = Wishlist.objects.filter(
+                    user=request.user,
+                    product_variant=variant
+                ).delete()
+
+                if deleted_count == 0:
+                    logger.warning(f'User {request.user.id} tried to delete non-existent wishlist item for variant {variant_id}')
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Item not found in your wishlist'
+                    }, status=404)
+
+            logger.info(f'User {request.user.id} deleted variant {variant_id} from wishlist')
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Removed from wishlist',
+            }, status=200)
+
+        except Exception as e:
+            logger.exception(f'Unexpected error deleting wishlist item for user {request.user.id}, variant {variant_id}: {str(e)}')
+            return JsonResponse({
+                'success': False,
+                'message': 'Something went wrong while deleting wishlist item. Please try again later.'
+            }, status=500)

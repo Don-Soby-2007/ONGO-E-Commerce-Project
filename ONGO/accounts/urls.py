@@ -76,6 +76,6 @@ urlpatterns = [
 
     # Wish list
 
-    path('wishlist/', views.WishlistView.as_view(), name='wishlist')
-
+    path('wishlist/', views.WishlistView.as_view(), name='wishlist'),
+    path('wishlist/delete/<int:variant_id>/', views.DeleteWishlistItem.as_view(), name='delete_wishlist_item'),
 ]
