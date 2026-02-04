@@ -861,7 +861,8 @@ class DeleteWishlistItem(LoginRequiredMixin, View):
                 ).delete()
 
                 if deleted_count == 0:
-                    logger.warning(f'User {request.user.id} tried to delete non-existent wishlist item for variant {variant_id}')
+                    logger.warning(
+                        f'User {request.user.id} tried to delete non-existent wishlist item for variant {variant_id}')
                     return JsonResponse({
                         'success': False,
                         'message': 'Item not found in your wishlist'
@@ -875,7 +876,8 @@ class DeleteWishlistItem(LoginRequiredMixin, View):
             }, status=200)
 
         except Exception as e:
-            logger.exception(f'Unexpected error deleting wishlist item for user {request.user.id}, variant {variant_id}: {str(e)}')
+            logger.exception(
+                f'Unexpected error deleting wishlist item for user{request.user.id}, variant {variant_id}: {str(e)}')
             return JsonResponse({
                 'success': False,
                 'message': 'Something went wrong while deleting wishlist item. Please try again later.'
