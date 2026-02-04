@@ -906,6 +906,28 @@ class AddtoCartWishlistItem(LoginRequiredMixin, View):
                 return redirect('wishlist')
 
             with transaction.atomic():
+
+                qty = 1
+
+                cart_item, created = Cart.objects.get_or_create(
+                    user=request.user,
+                    product_variant=variant,
+                )
+
+                new_quantity = qty if created else cart_item.quantity + qty
+
+                if new_quantity > variant.stock:
+                    messages.error(request, 'Insuffisent stock..!')
+                    return redirect('wishlist')
+
+                if new_quantity > 5:
+                    messages.error(request, 'Maximum 5 items allowed per product in cart.')
+                    return redirect('wishlist')
+
+                cart_item.quantity = new_quantity
+                cart_item.save()
+                logger.info(f'User {request.user.id} added variant {variant_id} from wishlist to Cart')
+
                 deleted_count, _ = Wishlist.objects.filter(
                     user=request.user,
                     product_variant=variant
@@ -918,28 +940,6 @@ class AddtoCartWishlistItem(LoginRequiredMixin, View):
                     return redirect('wishlist')
 
                 logger.info(f'User {request.user.id} deleted variant {variant_id} from wishlist for add to cart')
-
-                qty = 1
-
-                cart_item, created = Cart.objects.get_or_create(
-                    user=request.user,
-                    product_variant=variant,
-                )
-
-                new_quantity = qty if created else cart_item.quantity + qty
-
-                if new_quantity > variant.stock:
-                    messages.error(request, 'Insuffcient stock, Please try again')
-                    return redirect('wishlist')
-
-                if new_quantity > 5:
-                    messages.error(request, 'Maximum 5 items allowed per product in cart.')
-                    return redirect('wishlist')
-
-                cart_item.quantity = new_quantity
-                cart_item.save()
-
-            logger.info(f'User {request.user.id} added variant {variant_id} from wishlist to Cart')
 
             messages.success(request, 'Added to cart')
             return redirect('wishlist')
