@@ -823,6 +823,7 @@ class WishlistView(LoginRequiredMixin, ListView):
     model = Wishlist
     template_name = 'accounts/wishlist.html'
     context_object_name = 'wishlist_items'
+    paginate_by = 6
 
     def get_queryset(self):
         return Wishlist.objects.filter(user=self.request.user)
