@@ -302,6 +302,18 @@ class ToggleWishlistView(LoginRequiredMixin, View):
             raise Http404("Product variant not found")
 
         try:
+            cart = Cart.objects.filter(user=request.user, product_variant=variant)
+            if cart:
+
+                logger.warning(
+                    f"On wishlist toggle Variant is allredy present in cart for user {request.user.id}, "
+                    f"variant {variant_id}"
+                )
+                return JsonResponse({
+                        'success': False,
+                        'message': 'Product is already in Cart'
+                    })
+
             with transaction.atomic():
                 deleted_count, _ = Wishlist.objects.filter(
                     user=request.user,
