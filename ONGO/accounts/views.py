@@ -26,6 +26,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import User, Address, Wishlist
 from order.models import Order, OrderItem
 from products.models import ProductVariant
+from cart.models import Cart
 
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -875,6 +876,73 @@ class DeleteWishlistItem(LoginRequiredMixin, View):
                 'success': True,
                 'message': 'Removed from wishlist',
             }, status=200)
+
+        except Exception as e:
+            logger.exception(
+                f'Unexpected error deleting wishlist item for user{request.user.id}, variant {variant_id}: {str(e)}')
+            return JsonResponse({
+                'success': False,
+                'message': 'Something went wrong while deleting wishlist item. Please try again later.'
+            }, status=500)
+
+
+class AddtoCartWishlistItem(LoginRequiredMixin, View):
+
+    def post(self, request, variant_id):
+
+        try:
+            try:
+                variant_id = int(variant_id)
+            except (ValueError, TypeError):
+                logger.warning(f'User {request.user.id} provided invalid variant_id: {variant_id}')
+                messages.error(request, 'Invalid product identifier')
+                return redirect('wishlist')
+
+            try:
+                variant = get_object_or_404(ProductVariant, id=variant_id, product__is_active=True)
+            except ProductVariant.DoesNotExist:
+                logger.warning(f'User {request.user.id} attempted to delete non-existent variant {variant_id}')
+                messages.error(request, 'Variant is not found in Product')
+                return redirect('wishlist')
+
+            with transaction.atomic():
+                deleted_count, _ = Wishlist.objects.filter(
+                    user=request.user,
+                    product_variant=variant
+                ).delete()
+
+                if deleted_count == 0:
+                    logger.warning(
+                        f'User {request.user.id} tried to delete non-existent wishlist item for variant {variant_id}')
+                    messages.error(request, 'please tries to add existing wishlist item')
+                    return redirect('wishlist')
+
+                logger.info(f'User {request.user.id} deleted variant {variant_id} from wishlist for add to cart')
+
+                qty = 1
+
+                cart_item, created = Cart.objects.get_or_create(
+                    user=request.user,
+                    product_variant=variant,
+                )
+
+                new_quantity = qty if created else cart_item.quantity + qty
+
+                if new_quantity > variant.stock:
+                    messages.error(request, 'Insuffcient stock, Please try again')
+                    return redirect('wishlist')
+
+                if new_quantity > 5:
+                    messages.error(request, 'Maximum 5 items allowed per product in cart.')
+                    return redirect('wishlist')
+
+                cart_item.quantity = new_quantity
+                cart_item.save()
+
+            logger.info(f'User {request.user.id} added variant {variant_id} from wishlist to Cart')
+
+            messages.success(request, 'Added to cart')
+            return redirect('wishlist')
 
         except Exception as e:
             logger.exception(

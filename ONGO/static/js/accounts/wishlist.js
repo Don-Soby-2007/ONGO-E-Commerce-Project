@@ -1,17 +1,5 @@
 /* Wishlist Interactions */
 
-function addToCart(productId) {
-    // Determine product name based on ID for a better message (simulation)
-    let productName = "Product";
-    const productCard = document.getElementById(productId);
-    if (productCard) {
-        productName = productCard.querySelector('h3').innerText;
-    }
-
-    alert(`Added "${productName}" to your cart!`);
-    console.log(`Add to cart triggered for ${productId}`);
-}
-
 async function removeFromWishlist(productId) {
     // 1. SweetAlert confirmation (replaces native confirm)
     const result = await Swal.fire({

@@ -315,7 +315,19 @@
                 console.log(data.message); // or use a toast library
 
             } else {
-                throw new Error(data.message || 'Failed to update wishlist');
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    animation: true,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    icon: 'error',
+                    title: data.message || 'Failed to update wishlist. Please try again.',
+                    customClass: {
+                    popup: 'swal2-toast'
+                    }
+                });
             }
             } catch (error) {
             console.error('Wishlist toggle error:', error);
