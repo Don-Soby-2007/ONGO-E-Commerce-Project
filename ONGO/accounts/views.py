@@ -917,12 +917,12 @@ class AddtoCartWishlistItem(LoginRequiredMixin, View):
                 new_quantity = qty if created else cart_item.quantity + qty
 
                 if new_quantity > variant.stock:
-                    messages.error(request, 'Insuffisent stock..!')
-                    return redirect('wishlist')
+                    messages.error(request, f'Insuffisent stock.! Only {variant.stock} stock is remaining')
+                    return redirect('cart')
 
                 if new_quantity > 5:
                     messages.error(request, 'Maximum 5 items allowed per product in cart.')
-                    return redirect('wishlist')
+                    return redirect('cart')
 
                 cart_item.quantity = new_quantity
                 cart_item.save()

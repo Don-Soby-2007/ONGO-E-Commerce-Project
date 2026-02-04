@@ -93,9 +93,16 @@
                         <div onclick="window.location='{% url 'wishlist' %}'" class="flex items-center space-x-1">
                             <i data-lucide="heart"></i>
                         </div>
-                        <div class="flex items-center space-x-1">
-                            <div onclick="window.location'{% url 'cart' %}'">
+                        <div class="flex relative items-center space-x-1">
+                            <div onclick="window.location='{% url 'cart' %}'">
                                 <i data-lucide="shopping-cart"></i>
+                                {% if cart_count > 0 %}
+                                <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold 
+                                            rounded-full h-5 w-5 flex items-center justify-center shadow-sm
+                                            animate-fade-in">
+                                    {{ cart_count }}
+                                </span>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
