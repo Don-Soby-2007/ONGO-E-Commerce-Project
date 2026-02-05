@@ -4,6 +4,7 @@ from django.views.generic import ListView, DetailView
 from .models import Product, ProductVariant, ProductImage, Category
 from cart.models import Cart
 from accounts.models import Wishlist
+from accounts.views import DeleteWishlistItem
 
 from django.db.models import Prefetch, Min, Case, When, DecimalField
 from django.db.models.functions import Coalesce
@@ -236,6 +237,11 @@ class AddToCartView(LoginRequiredMixin, View):
             qty = data['quantity']
 
             variant = ProductVariant.objects.get(id=variant_id, product__is_active=True)
+
+            wishlist = Wishlist.objects.filter(user=request.user, product_variant=variant)
+            if wishlist:
+                obj = DeleteWishlistItem()
+                obj.post(request=request, variant_id=variant_id)
 
             cart_item, created = Cart.objects.get_or_create(
                 user=request.user,
