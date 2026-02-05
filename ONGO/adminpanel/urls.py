@@ -29,5 +29,10 @@ urlpatterns = [
     path('returns/<int:return_id>', views.ReturnDetailView.as_view(), name='returs_detail'),
     path('returns/<int:return_id>/action', views.ReturnStatusToggleView.as_view(), name='returns_status_toggle'),
 
+    # offers
+
+    path('offers/', views.ProductOfferList.as_view(), name='product_offer_list'),
+    path('offers/category-offers/', views.CategoryOfferList.as_view(), name='category_offer_list'),
+    path('offers/global-offers/', views.GlobalOfferList.as_view(), name='global_offer_list'),
 
 ]

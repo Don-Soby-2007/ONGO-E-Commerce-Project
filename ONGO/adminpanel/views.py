@@ -14,6 +14,7 @@ from accounts.models import User
 from products.models import Category, Product, ProductVariant, ProductImage
 from order.models import Order, OrderItem
 from returns.models import Return, ReturnItem
+from offers.models import ProductOffer, CategoryOffer, GlobalOffer
 
 from django.http import JsonResponse
 
@@ -1292,3 +1293,36 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
                 'error': 'Internal server error',
                 'details': str(e) if settings.DEBUG else 'An error occurred during processing'
             }, status=500)
+
+
+class ProductOfferList(LoginRequiredMixin, UserPassesTestMixin, ListView):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    template_name = 'offers/product_offerlist.html'
+    model = ProductOffer
+    context_object_name = 'product_offers'
+    paginate_by = 6
+
+
+class CategoryOfferList(LoginRequiredMixin, UserPassesTestMixin, ListView):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    template_name = 'offers/category_offerlist.html'
+    model = CategoryOffer
+    context_object_name = 'category_offers'
+    paginate_by = 6
+
+
+class GlobalOfferList(LoginRequiredMixin, UserPassesTestMixin, ListView):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    template_name = 'offers/global_offerlist.html'
+    model = GlobalOffer
+    context_object_name = 'global_offers'
+    paginate_by = 6
