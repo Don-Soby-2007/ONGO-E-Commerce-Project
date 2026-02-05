@@ -238,10 +238,15 @@ class AddToCartView(LoginRequiredMixin, View):
 
             variant = ProductVariant.objects.get(id=variant_id, product__is_active=True)
 
-            wishlist = Wishlist.objects.filter(user=request.user, product_variant=variant)
-            if wishlist:
-                obj = DeleteWishlistItem()
-                obj.post(request=request, variant_id=variant_id)
+            try:
+                deleted_count, _ = Wishlist.objects.filter(
+                    user=request.user,
+                    product_variant_id=variant_id
+                ).delete()
+            except Exception as e:
+                logger.exception(
+                    f"Failed to remove variant {variant_id} from wishlist for user {request.user.id} : {e}")
+                raise
 
             cart_item, created = Cart.objects.get_or_create(
                 user=request.user,
