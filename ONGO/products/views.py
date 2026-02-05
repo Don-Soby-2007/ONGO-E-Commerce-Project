@@ -4,7 +4,6 @@ from django.views.generic import ListView, DetailView
 from .models import Product, ProductVariant, ProductImage, Category
 from cart.models import Cart
 from accounts.models import Wishlist
-from accounts.views import DeleteWishlistItem
 
 from django.db.models import Prefetch, Min, Case, When, DecimalField
 from django.db.models.functions import Coalesce
