@@ -16,8 +16,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.4/dist/sweetalert2.min.css"
         integrity="sha256-VqBagSPahwzjkw8/E0KAY23AmFZuYBxX6f6uVDgY1rg=" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{% static 'css/adminpanel/customerse.css' %}" rel="stylesheet">
     {% block style %}
-    <link href="{% static 'css/adminpanel/customerse.css' %}" rel="stylesheet">{% endblock style %}
+    {% endblock style %}
 </head>
 
 <body>
@@ -53,23 +54,23 @@
                         <i data-lucide="bar-chart-2" class="icon w-5 h-5 mr-3"></i>
                         <h2>Analytics</h2>
                     </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'orders' %}active{% endif %}"
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if 'order' in request.resolver_match.url_name %}active{% endif %}"
                         href="{% url 'admin_orders' %}" data-page="orders">
                         <i data-lucide="package" class="icon w-5 h-5 mr-3"></i>
                         <h2>Orders</h2>
                     </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'categories' %}active{% endif %}"
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if 'categor' in request.resolver_match.url_name %}active{% endif %}"
                         href="{% url 'categories' %}" data-page="categories">
                         <i data-lucide="grip" class="icon w-5 h-5 mr-3"></i>
                         <h2>Categories</h2>
                     </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'products' %}active{% endif %}"
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if 'product' in request.resolver_match.url_name %}active{% endif %}"
                         href='{% url "products" %}' data-page="products">
                         <i data-lucide="list-checks" class="icon w-5 h-5 mr-3"></i>
                         <h2>Products</h2>
                     </a>
                     <!-- Active Link -->
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'customers' %}active{% endif %}"
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if 'customers' in request.resolver_match.url_name %}active{% endif %}"
                         href="{% url 'customers' %}" data-page="customers">
                         <i data-lucide="users" class="icon w-5 h-5 mr-3"></i>
                         <h2>Customers</h2>
@@ -79,11 +80,11 @@
                         <h2>Coupons</h2>
                     </a>
                     <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if 'offer_list' in request.resolver_match.url_name %}active{% endif %}"
-                        href="{% url 'product_offer_list' %}" data-page="offer">
+                        href="{% url 'produc_offer_list' %}" data-page="offer">
                         <i data-lucide="gift" class="icon w-5 h-5 mr-3"></i>
                         <h2>Offers</h2>
                     </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'returns_list' or request.resolver_match.url_name == 'returs_detail' %}active{% endif %}"
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if 'returns_' in request.resolver_match.url_name %}active{% endif %}"
                         href="{% url 'returns_list' %}" data-page="returns">
                         <i data-lucide="corner-down-left" class="icon w-5 h-5 mr-3"></i>
                         <h2>Returns</h2>

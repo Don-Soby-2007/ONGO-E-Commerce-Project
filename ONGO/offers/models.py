@@ -22,7 +22,7 @@ class TimedModel(models.Model):
 
 
 class ProductOffer(TimedModel):
-    product = models.OneToOneField(
+    product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
         related_name='active_offer'
