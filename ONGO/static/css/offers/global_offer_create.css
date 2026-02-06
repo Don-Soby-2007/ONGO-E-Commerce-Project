@@ -1,0 +1,15 @@
+/* Global Offer Create CSS */
+
+.help-text {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.error-list {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    list-style-type: none;
+    padding: 0;
+}

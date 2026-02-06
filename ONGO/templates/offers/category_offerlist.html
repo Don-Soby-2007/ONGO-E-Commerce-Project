@@ -17,8 +17,7 @@ Category Offers | Admin
             <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Offers Management</h1>
             <p class="text-gray-500 mt-1 text-sm">Manage category-wide discounts</p>
         </div>
-        <a href="javascript:void(0)"
-            onclick="Swal.fire('Not Implemented', 'Add Offer URL missing in backend context', 'info')"
+        <a href='{% url "catego_offer_create" %}'
             class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg shadow-sm font-medium transition-all duration-200 flex items-center gap-2 transform hover:scale-105">
             <i data-lucide="plus" class="w-5 h-5"></i>
             <span>Add Category Offer</span>

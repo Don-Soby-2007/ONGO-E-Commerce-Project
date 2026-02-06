@@ -1,0 +1,178 @@
+{% extends "common/base_admin_list.html" %}
+{% load static %}
+
+{% block title %}
+Create Global Offer | Admin
+{% endblock %}
+
+{% block style %}
+<link href="{% static 'css/offers/global_offer_create.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+
+    <!-- Top Bar -->
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'global_offer_list' %}"
+                class="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            </a>
+            <div>
+                <nav class="text-sm text-gray-500 mb-1">
+                    <a href="{% url 'global_offer_list' %}" class="hover:text-blue-600 transition">Offers</a>
+                    <span class="mx-2">/</span> Global Offers
+                </nav>
+                <h1 class="text-2xl font-bold text-gray-800">Create Global Offer</h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden form-card">
+        <form method="post" class="p-8">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                <p class="text-red-700 font-medium">Please correct the errors below:</p>
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <!-- Section 1: Basic Info -->
+            <div class="mb-10">
+                <h3
+                    class="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-3 mb-6 flex items-center gap-2">
+                    <i data-lucide="info" class="w-5 h-5 text-blue-500"></i> Basic Information
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group col-span-2">
+                        <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Offer Name <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.name }}
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.name.errors }}</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.priority.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-2">
+                            Priority
+                        </label>
+                        {{ form.priority }}
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.priority.errors }}</div>
+                    </div>
+
+                    <div class="form-group flex items-center pt-6">
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            {{ form.active }}
+                            <span class="text-gray-700 font-medium">Active Status</span>
+                        </label>
+                        <div class="error-list text-red-500 text-sm mt-1 ml-4">{{ form.active.errors }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Time Window -->
+            <div class="mb-10">
+                <h3
+                    class="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-3 mb-6 flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-5 h-5 text-purple-500"></i> Time Window
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label for="{{ form.start_date.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-2">
+                            Start Date <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.start_date }}
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.start_date.errors }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.end_date.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-2">
+                            End Date
+                        </label>
+                        {{ form.end_date }}
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.end_date.errors }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Cart Conditions -->
+            <div class="mb-10">
+                <h3
+                    class="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-3 mb-6 flex items-center gap-2">
+                    <i data-lucide="shopping-cart" class="w-5 h-5 text-yellow-500"></i> Cart Conditions
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label for="{{ form.min_cart_value.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-2">
+                            Minimum Cart Value
+                        </label>
+                        {{ form.min_cart_value }}
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.min_cart_value.errors }}</div>
+                        <p class="help-text">Minimum subtotal required to apply this offer</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Discount Rules -->
+            <div class="mb-10">
+                <h3
+                    class="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-3 mb-6 flex items-center gap-2">
+                    <i data-lucide="percent" class="w-5 h-5 text-green-500"></i> Discount Rules
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="form-group">
+                        <label for="{{ form.discount_type.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-2">
+                            Discount Type
+                        </label>
+                        {{ form.discount_type }}
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.discount_type.errors }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.value.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Value
+                        </label>
+                        {{ form.value }}
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.value.errors }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.max_discount.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-2">
+                            Max Discount Limit
+                        </label>
+                        {{ form.max_discount }}
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.max_discount.errors }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-end gap-4 pt-6 border-t border-gray-100">
+                <a href="{% url 'global_offer_list' %}"
+                    class="px-6 py-3 border border-gray-200 rounded-lg text-gray-600 font-medium hover:bg-gray-50 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit"
+                    class="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium shadow-sm hover:bg-blue-700 transform hover:-translate-y-0.5 transition-all duration-200">
+                    Create Offer
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="{% static 'js/offers/global_offer_create.js' %}"></script>
+{% endblock %}
