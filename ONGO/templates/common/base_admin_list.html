@@ -78,9 +78,10 @@
                         <i data-lucide="tag" class="icon w-5 h-5 mr-3"></i>
                         <h2>Coupons</h2>
                     </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="offer">
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if 'offer_list' in request.resolver_match.url_name %}active{% endif %}"
+                        href="{% url 'product_offer_list' %}" data-page="offer">
                         <i data-lucide="gift" class="icon w-5 h-5 mr-3"></i>
-                        <h2> Offer</h2>
+                        <h2>Offers</h2>
                     </a>
                     <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if request.resolver_match.url_name == 'returns_list' or request.resolver_match.url_name == 'returs_detail' %}active{% endif %}"
                         href="{% url 'returns_list' %}" data-page="returns">
