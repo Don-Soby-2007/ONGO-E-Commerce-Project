@@ -34,5 +34,8 @@ urlpatterns = [
     path('offers/', views.ProductOfferList.as_view(), name='produc_offer_list'),
     path('offers/category-offers/', views.CategoryOfferList.as_view(), name='catego_offer_list'),
     path('offers/global-offers/', views.GlobalOfferList.as_view(), name='global_offer_list'),
+    path('offers/create', views.ProductOfferCreateView.as_view(), name='produc_offer_create'),
+    path('offers/category-offers/create', views.CategoryOfferCreateView.as_view(), name='catego_offer_create'),
+    path('offers/global-offers/create', views.GlobalOfferCreateView.as_view(), name='global_offer_create'),
 
 ]

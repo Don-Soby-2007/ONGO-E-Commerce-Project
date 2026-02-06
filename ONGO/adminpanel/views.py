@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views import View
 from django.db.models import Q, Count, Case, When, Value, IntegerField, Sum
-from django.views.generic import ListView
-from django.views.generic import DetailView
+from django.views.generic import ListView, DetailView
+from django.views.generic.edit import CreateView
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
@@ -1326,3 +1327,84 @@ class GlobalOfferList(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = GlobalOffer
     context_object_name = 'global_offers'
     paginate_by = 6
+
+
+class ProductOfferCreateView(CreateView):
+    model = ProductOffer
+    fields = [
+        'name', 'start_date', 'end_date', 'priority',
+        'product', 'discount_type', 'value', 'max_discount_amount'
+    ]
+    template_name = 'offers/product_offer_create.html'
+    success_url = reverse_lazy('offer_list')
+
+    @transaction.atomic
+    def form_valid(self, form):
+
+        ProductOffer.objects.filter(
+            product=form.cleaned_data['product'],
+            active=True
+        ).update(active=False)
+
+        form.instance.active = True
+
+        response = super().form_valid(form)
+
+        messages.success(
+            self.request,
+            f"✅ Product offer '{form.instance.name}' activated for '{form.instance.product.name}'. "
+            f"All previous active offers deactivated."
+        )
+        return response
+
+    def get_initial(self):
+        return {'start_date': timezone.now(), 'priority': 10}
+
+
+class CategoryOfferCreateView(CreateView):
+    model = CategoryOffer
+    fields = [
+        'name', 'start_date', 'end_date', 'priority',
+        'category', 'discount_type', 'value', 'min_items'
+    ]
+    template_name = 'offers/category_offer_create.html'
+    success_url = reverse_lazy('offer_list')
+
+    @transaction.atomic
+    def form_valid(self, form):
+
+        CategoryOffer.objects.filter(
+            category=form.cleaned_data['category'],
+            active=True
+        ).update(active=False)
+
+        form.instance.active = True
+        response = super().form_valid(form)
+
+        messages.success(
+            self.request,
+            f"✅ Category offer '{form.instance.name}' activated for '{form.instance.category.name}'. "
+            f"All previous active offers deactivated."
+        )
+        return response
+
+    def get_initial(self):
+        return {'start_date': timezone.now(), 'priority': 10, 'min_items': 1}
+
+
+class GlobalOfferCreateView(CreateView):
+    model = GlobalOffer
+    fields = [
+        'name', 'active', 'start_date', 'end_date', 'priority',
+        'discount_type', 'value', 'min_cart_value', 'max_discount'
+    ]
+    template_name = 'offers/global_offer_create.html'
+    success_url = reverse_lazy('offer_list')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f"✅ Global offer '{form.instance.name}' created.")
+        return response
+
+    def get_initial(self):
+        return {'start_date': timezone.now(), 'priority': 10, 'min_cart_value': 0}
