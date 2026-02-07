@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.views import View
 from django.db.models import Q, Count, Case, When, Value, IntegerField, Sum
 from django.views.generic import ListView, DetailView
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
@@ -1329,7 +1329,12 @@ class GlobalOfferList(LoginRequiredMixin, UserPassesTestMixin, ListView):
     paginate_by = 6
 
 
-class ProductOfferCreateView(CreateView):
+@method_decorator(never_cache, name='dispatch')
+class ProductOfferCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
     model = ProductOffer
     fields = [
         'name', 'start_date', 'end_date', 'priority',
@@ -1361,7 +1366,12 @@ class ProductOfferCreateView(CreateView):
         return {'start_date': timezone.now(), 'priority': 10}
 
 
-class CategoryOfferCreateView(CreateView):
+@method_decorator(never_cache, name='dispatch')
+class CategoryOfferCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
     model = CategoryOffer
     fields = [
         'name', 'start_date', 'end_date', 'priority',
@@ -1392,7 +1402,12 @@ class CategoryOfferCreateView(CreateView):
         return {'start_date': timezone.now(), 'priority': 10, 'min_items': 1}
 
 
-class GlobalOfferCreateView(CreateView):
+@method_decorator(never_cache, name='dispatch')
+class GlobalOfferCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
     model = GlobalOffer
     fields = [
         'name', 'active', 'start_date', 'end_date', 'priority',
@@ -1408,3 +1423,101 @@ class GlobalOfferCreateView(CreateView):
 
     def get_initial(self):
         return {'start_date': timezone.now(), 'priority': 10, 'min_cart_value': 0}
+
+
+@method_decorator(never_cache, name='dispatch')
+class ProductOfferUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    model = ProductOffer
+    fields = [
+        'name', 'active', 'start_date', 'end_date', 'priority',
+        'product', 'discount_type', 'value', 'max_discount_amount'
+    ]
+    template_name = 'offers/product_offer_edit.html'
+    success_url = reverse_lazy('produc_offer_list')
+    pk_url_kwarg = 'pk'
+
+    @transaction.atomic
+    def form_valid(self, form):
+        current_offer = self.get_object()
+
+        new_product = form.cleaned_data['product']
+        new_active = form.cleaned_data['active']
+
+        if new_active:
+            ProductOffer.objects.filter(
+                product=new_product,
+                active=True
+            ).exclude(pk=current_offer.pk).update(active=False)
+
+        response = super().form_valid(form)
+
+        messages.success(
+            self.request,
+            f"✅ Product offer '{form.instance.name}' updated successfully."
+        )
+        return response
+
+
+@method_decorator(never_cache, name='dispatch')
+class CategoryOfferUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    model = CategoryOffer
+    fields = [
+        'name', 'active', 'start_date', 'end_date', 'priority',
+        'category', 'discount_type', 'value', 'min_items'
+    ]
+    template_name = 'offers/category_offer_edit.html'
+    success_url = reverse_lazy('catego_offer_list')
+    pk_url_kwarg = 'pk'
+
+    @transaction.atomic
+    def form_valid(self, form):
+        current_offer = self.get_object()
+
+        new_category = form.cleaned_data['category']
+        new_active = form.cleaned_data['active']
+
+        if new_active:
+            CategoryOffer.objects.filter(
+                category=new_category,
+                active=True
+            ).exclude(pk=current_offer.pk).update(active=False)
+
+        response = super().form_valid(form)
+
+        messages.success(
+            self.request,
+            f"✅ Category offer '{form.instance.name}' updated successfully."
+        )
+        return response
+
+
+@method_decorator(never_cache, name='dispatch')
+class GlobalOfferUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    model = GlobalOffer
+    fields = [
+        'name', 'active', 'start_date', 'end_date', 'priority',
+        'discount_type', 'value', 'min_cart_value', 'max_discount'
+    ]
+    template_name = 'offers/global_offer_edit.html'
+    success_url = reverse_lazy('global_offer_list')
+    pk_url_kwarg = 'pk'
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(
+            self.request,
+            f"✅ Global offer '{form.instance.name}' updated successfully."
+        )
+        return response
