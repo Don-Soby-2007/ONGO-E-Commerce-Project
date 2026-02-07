@@ -1343,6 +1343,11 @@ class ProductOfferCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView
     template_name = 'offers/product_offer_create.html'
     success_url = reverse_lazy('produc_offer_list')
 
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['product'].queryset = Product.objects.filter(is_active=True)
+        return form
+
     @transaction.atomic
     def form_valid(self, form):
 
@@ -1379,6 +1384,11 @@ class CategoryOfferCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVie
     ]
     template_name = 'offers/category_offer_create.html'
     success_url = reverse_lazy('catego_offer_list')
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['category'].queryset = Category.objects.filter(is_active=True)
+        return form
 
     @transaction.atomic
     def form_valid(self, form):
@@ -1440,6 +1450,17 @@ class ProductOfferUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView
     success_url = reverse_lazy('produc_offer_list')
     pk_url_kwarg = 'pk'
 
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+
+        if self.object.product_id:
+            form.fields['product'].queryset = Product.objects.filter(
+                Q(is_active=True) | Q(pk=self.object.product_id)
+            )
+        else:
+            form.fields['product'].queryset = Product.objects.filter(is_active=True)
+        return form
+
     @transaction.atomic
     def form_valid(self, form):
         current_offer = self.get_object()
@@ -1476,6 +1497,17 @@ class CategoryOfferUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateVie
     template_name = 'offers/category_offer_edit.html'
     success_url = reverse_lazy('catego_offer_list')
     pk_url_kwarg = 'pk'
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+
+        if self.object.category_id:
+            form.fields['category'].queryset = Category.objects.filter(
+                Q(is_active=True) | Q(pk=self.object.category_id)
+            )
+        else:
+            form.fields['category'].queryset = Category.objects.filter(is_active=True)
+        return form
 
     @transaction.atomic
     def form_valid(self, form):
@@ -1521,3 +1553,125 @@ class GlobalOfferUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView)
             f"✅ Global offer '{form.instance.name}' updated successfully."
         )
         return response
+
+
+class ToggleProductOfferStatus(LoginRequiredMixin, UserPassesTestMixin, View):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    @transaction.atomic
+    def post(self, request, offer_id):
+
+        try:
+            offer = get_object_or_404(ProductOffer, id=offer_id)
+
+            new_status = not offer.active
+
+            if new_status:
+                ProductOffer.objects.filter(product=offer.product, active=True).exclude(
+                    id=offer_id
+                ).update(active=False)
+
+            offer.active = new_status
+
+            offer.save(update_fields=["active"])
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Status changed Succesfully',
+                'status': 'Active' if offer.active else 'Inactive'
+            })
+
+        except DatabaseError as e:
+            logger.error(request, f'Some database error occurd while toggling Product offer status : {e}')
+            return JsonResponse({
+                'success': False,
+                'message': 'Database Error occured ..'
+            })
+
+        except Exception as e:
+            logger.error(request, f'Something went wrong while toggling Product Offer Status {offer_id}: {e}')
+            return JsonResponse({
+                'success': False,
+                'message': 'Something went wrong while changing the offer status ...'
+            })
+
+
+class ToggleCategoryOfferStatus(LoginRequiredMixin, UserPassesTestMixin, View):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    @transaction.atomic
+    def post(self, request, offer_id):
+
+        try:
+            offer = get_object_or_404(CategoryOffer, id=offer_id)
+
+            new_status = not offer.active
+
+            if new_status:
+                CategoryOffer.objects.filter(category=offer.category, active=True).exclude(
+                    id=offer_id
+                ).update(active=False)
+
+            offer.active = new_status
+
+            offer.save(update_fields=["active"])
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Status changed Succesfully',
+                'status': 'Active' if offer.active else 'Inactive'
+            })
+
+        except DatabaseError as e:
+            logger.error(request, f'Some database error occurd while toggling Category offer status : {e}')
+            return JsonResponse({
+                'success': False,
+                'message': 'Database Error occured ..'
+            })
+
+        except Exception as e:
+            logger.error(request, f'Something went wrong while toggling Category Offer Status {offer_id}: {e}')
+            return JsonResponse({
+                'success': False,
+                'message': 'Something went wrong while changing the offer status ...'
+            })
+
+
+class ToggleGlobalOfferStatus(LoginRequiredMixin, UserPassesTestMixin, View):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    @transaction.atomic
+    def post(self, request, offer_id):
+
+        try:
+            offer = get_object_or_404(GlobalOffer, id=offer_id)
+
+            offer.active = not offer.active
+
+            offer.save(update_fields=["active"])
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Status changed Succesfully',
+                'status': 'Active' if offer.active else 'Inactive'
+            })
+
+        except DatabaseError as e:
+            logger.error(request, f'Some database error occurd while toggling Global offer status : {e}')
+            return JsonResponse({
+                'success': False,
+                'message': 'Database Error occured ..'
+            })
+
+        except Exception as e:
+            logger.error(request, f'Something went wrong while toggling Global Offer Status {offer_id}: {e}')
+            return JsonResponse({
+                'success': False,
+                'message': 'Something went wrong while changing the offer status ...'
+            })

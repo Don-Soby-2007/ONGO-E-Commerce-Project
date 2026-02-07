@@ -56,4 +56,10 @@ urlpatterns = [
     path('offers/category-offers/edit/<int:pk>/', views.CategoryOfferUpdateView.as_view(), name='catego_offer_edit'),
     path('offers/global-offers/edit/<int:pk>/', views.GlobalOfferUpdateView.as_view(), name='global_offer_edit'),
 
+    path('offers/toggle-status/<int:offer_id>/', views.ToggleProductOfferStatus.as_view(), name='produc_offer_toggle'),
+    path('offers/category-offers/toggle-status/<int:offer_id>/', views.ToggleCategoryOfferStatus.as_view(),
+         name='catego_offer_toggle'),
+    path('offers/global-offers/toggle-status/<int:offer_id>/', views.ToggleGlobalOfferStatus.as_view(),
+         name='global_offer_toggle'),
+
 ]
