@@ -131,18 +131,14 @@ Global Offers | Admin
                                     <i data-lucide="edit-3" class="w-4 h-4"></i>
                                 </a>
                                 <button type="button"
-                                    class="p-1.5 bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors toggle-status-btn"
-                                    data-offer-id="{{ offer.id }}" data-status="{{ offer.active }}">
+                                    class="p-1.5 bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors toggle-status-btn offer-toggle-btn"
+                                    data-offer-id="{{ offer.id }}" data-status="{{ offer.active }}"
+                                    data-toggle-url="{% url 'global_offer_toggle' offer.id %}">
                                     {% if offer.active %}
                                     <i data-lucide="eye" class="w-4 h-4"></i>
                                     {% else %}
                                     <i data-lucide="eye-off" class="w-4 h-4"></i>
                                     {% endif %}
-                                </button>
-                                <button type="button"
-                                    class="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors delete-offer-btn"
-                                    data-offer-id="{{ offer.id }}">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
                             </div>
                         </td>
@@ -157,8 +153,7 @@ Global Offers | Admin
                                 <h3 class="text-lg font-medium text-gray-900 mb-1">No Global Offers Found</h3>
                                 <p class="text-gray-500 text-sm mb-4">Create store-wide offers like "Summer Sale" or
                                     "Free Shipping".</p>
-                                <a href="javascript:void(0)"
-                                    onclick="Swal.fire('Not Implemented', 'Add Offer URL missing', 'info')"
+                                <a href="{% url 'global_offer_create' %}"
                                     class="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1">
                                     Create Global Offer <i data-lucide="arrow-right" class="w-4 h-4"></i>
                                 </a>
