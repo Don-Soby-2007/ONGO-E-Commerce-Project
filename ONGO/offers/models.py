@@ -17,8 +17,16 @@ class TimedModel(models.Model):
         ordering = ['-priority', '-start_date']
 
     def is_active_now(self):
-        now = timezone.now()
-        return self.active and self.start_date <= now and (self.end_date is None or now <= self.end_date)
+        now = timezone.localtime()
+
+        start = timezone.localtime(self.start_date)
+        end = timezone.localtime(self.end_date) if self.end_date else None
+
+        return (
+            self.active
+            and start <= now
+            and (end is None or now <= end)
+        )
 
 
 class ProductOffer(TimedModel):
@@ -70,7 +78,7 @@ class GlobalOffer(TimedModel):
         ('free_shipping', 'Free shipping'),
     ]
     discount_type = models.CharField(max_length=20, choices=DISCOUNT_CHOICES, default='percent')
-    value = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
+    value = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)], default=0)
 
     min_cart_value = models.DecimalField(
         max_digits=12, decimal_places=2, default=0,

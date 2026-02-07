@@ -1336,7 +1336,7 @@ class ProductOfferCreateView(CreateView):
         'product', 'discount_type', 'value', 'max_discount_amount'
     ]
     template_name = 'offers/product_offer_create.html'
-    success_url = reverse_lazy('offer_list')
+    success_url = reverse_lazy('produc_offer_list')
 
     @transaction.atomic
     def form_valid(self, form):
@@ -1368,7 +1368,7 @@ class CategoryOfferCreateView(CreateView):
         'category', 'discount_type', 'value', 'min_items'
     ]
     template_name = 'offers/category_offer_create.html'
-    success_url = reverse_lazy('offer_list')
+    success_url = reverse_lazy('catego_offer_list')
 
     @transaction.atomic
     def form_valid(self, form):
@@ -1399,7 +1399,7 @@ class GlobalOfferCreateView(CreateView):
         'discount_type', 'value', 'min_cart_value', 'max_discount'
     ]
     template_name = 'offers/global_offer_create.html'
-    success_url = reverse_lazy('offer_list')
+    success_url = reverse_lazy('global_offer_list')
 
     def form_valid(self, form):
         response = super().form_valid(form)

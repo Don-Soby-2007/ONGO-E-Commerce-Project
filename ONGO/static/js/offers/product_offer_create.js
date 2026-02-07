@@ -47,13 +47,22 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Initialize Flatpickr for Date Fields
-    flatpickr("input[name*='date']", {
+    flatpickr("input#id_start_date", {
         enableTime: true,
         dateFormat: "Y-m-d H:i",
         time_24hr: true,
-        allowInput: true,
-        altInput: true,
-        altFormat: "F j, Y at H:i",
+        // Removed allowInput/altInput to rely on single input masking or manual control if needed
+        // But to fix "two input box" issue (which often happens if the original input isn't hidden properly or if we want to force single input mode):
+        // We will try without altInput first, or Ensure Django's widget rendering doesn't conflict.
+        // Usually altInput: true creates a second input. If the user dislikes that, we turn it off.
+        defaultDate: new Date(),
+        minDate: "today"
+    });
+
+    flatpickr("input#id_end_date", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        time_24hr: true,
         minDate: "today"
     });
 });

@@ -57,13 +57,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Initialize Flatpickr for Date Fields
-    flatpickr("input[name*='date']", {
+    flatpickr("input#id_start_date", {
         enableTime: true,
         dateFormat: "Y-m-d H:i",
         time_24hr: true,
-        allowInput: true,
-        altInput: true,
-        altFormat: "F j, Y at H:i",
+        defaultDate: new Date(),
+        minDate: "today"
+    });
+
+    flatpickr("input#id_end_date", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        time_24hr: true,
         minDate: "today"
     });
 });
