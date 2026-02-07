@@ -1,0 +1,59 @@
+/* Category Offer Edit CSS */
+
+.help-text {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.error-list {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    list-style-type: none;
+    padding: 0;
+}
+
+/* === Custom Toggle Switch Styles === */
+.toggle-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-label {
+    display: block;
+    overflow: hidden;
+    cursor: pointer;
+    width: 3rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    background-color: #e5e7eb;
+    transition: background-color 0.2s ease-in;
+    position: relative;
+}
+
+.toggle-label:before {
+    content: "";
+    display: block;
+    width: 1.5rem;
+    height: 1.5rem;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease-in;
+    border: 2px solid #e5e7eb;
+}
+
+.toggle-checkbox:checked+.toggle-label {
+    background-color: #3b82f6;
+}
+
+.toggle-checkbox:checked+.toggle-label:before {
+    transform: translateX(100%);
+    border-color: #3b82f6;
+}

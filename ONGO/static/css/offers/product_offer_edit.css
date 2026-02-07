@@ -1,0 +1,76 @@
+/* Product Offer Edit CSS */
+
+/* Custom styling to supplement Tailwind */
+.form-card {
+    transition: all 0.3s ease;
+}
+
+.help-text {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.error-list {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    list-style-type: none;
+    padding: 0;
+}
+
+/* === Custom Toggle Switch Styles === */
+/* Hide the original checkbox but keep it functional */
+.toggle-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* The slider background */
+.toggle-label {
+    display: block;
+    overflow: hidden;
+    cursor: pointer;
+    width: 3rem;
+    /* w-12 equivalent */
+    height: 1.5rem;
+    /* h-6 equivalent */
+    border-radius: 9999px;
+    background-color: #e5e7eb;
+    /* bg-gray-200 */
+    transition: background-color 0.2s ease-in;
+    position: relative;
+}
+
+/* The slider circle (knob) */
+.toggle-label:before {
+    content: "";
+    display: block;
+    width: 1.5rem;
+    /* h-6 */
+    height: 1.5rem;
+    /* h-6 */
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease-in;
+    border: 2px solid #e5e7eb;
+    /* match inactive bg for seamless look */
+}
+
+/* Checked State */
+.toggle-checkbox:checked+.toggle-label {
+    background-color: #3b82f6;
+    /* bg-blue-500 */
+}
+
+.toggle-checkbox:checked+.toggle-label:before {
+    transform: translateX(100%);
+    /* Move to right */
+    border-color: #3b82f6;
+}

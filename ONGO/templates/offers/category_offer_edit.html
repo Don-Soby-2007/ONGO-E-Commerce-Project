@@ -1,0 +1,184 @@
+{% extends "common/base_admin_list.html" %}
+{% load static %}
+
+{% block title %}
+Edit Category Offer | Admin
+{% endblock %}
+
+{% block style %}
+<link href="{% static 'css/offers/category_offer_edit.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+
+    <!-- Top Bar -->
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'catego_offer_list' %}"
+                class="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            </a>
+            <div>
+                <nav class="text-sm text-gray-500 mb-1">
+                    <a href="{% url 'catego_offer_list' %}" class="hover:text-blue-600 transition">Offers</a>
+                    <span class="mx-2">/</span> Category Offers <span class="mx-2">/</span> Edit
+                </nav>
+                <div class="flex items-center gap-3">
+                    <h1 class="text-2xl font-bold text-gray-800">Edit Category Offer</h1>
+                    <span class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-500 font-mono">ID: {{ object.pk
+                        }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden form-card">
+        <form method="post" class="p-8">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                <p class="text-red-700 font-medium">Please correct the errors below:</p>
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <!-- Section 1: Basic Info -->
+            <div class="mb-10">
+                <h3
+                    class="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-3 mb-6 flex items-center gap-2">
+                    <i data-lucide="info" class="w-5 h-5 text-blue-500"></i> Basic Information
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group col-span-2">
+                        <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Offer Name <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.name }}
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.name.errors }}</div>
+                    </div>
+
+                    <!-- Active Toggle -->
+                    <div class="form-group border border-gray-100 rounded-lg p-4 bg-gray-50">
+                        <label class="flex items-center justify-between cursor-pointer w-full">
+                            <span class="text-sm font-medium text-gray-700 select-none">Active Status</span>
+
+                            <div class="relative inline-block w-12 align-middle select-none">
+                                {{ form.active }}
+                                <label for="{{ form.active.id_for_label }}" class="toggle-label"></label>
+                            </div>
+                        </label>
+                        <p class="help-text mt-2">Only one active offer per category will apply.</p>
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.active.errors }}</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.priority.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-2">
+                            Priority
+                        </label>
+                        {{ form.priority }}
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.priority.errors }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Time Window -->
+            <div class="mb-10">
+                <h3
+                    class="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-3 mb-6 flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-5 h-5 text-purple-500"></i> Time Window
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label for="{{ form.start_date.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-2">
+                            Start Date <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.start_date }}
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.start_date.errors }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.end_date.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-2">
+                            End Date
+                        </label>
+                        {{ form.end_date }}
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.end_date.errors }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Target -->
+            <div class="mb-10">
+                <h3
+                    class="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-3 mb-6 flex items-center gap-2">
+                    <i data-lucide="layers" class="w-5 h-5 text-red-500"></i> Target Category
+                </h3>
+                <div class="form-group">
+                    <label for="{{ form.category.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Select Category <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.category }}
+                    <div class="error-list text-red-500 text-sm mt-1">{{ form.category.errors }}</div>
+                </div>
+            </div>
+
+            <!-- Section 4: Discount Rules -->
+            <div class="mb-10">
+                <h3
+                    class="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-3 mb-6 flex items-center gap-2">
+                    <i data-lucide="percent" class="w-5 h-5 text-green-500"></i> Discount Rules
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="form-group">
+                        <label for="{{ form.discount_type.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-2">
+                            Discount Type
+                        </label>
+                        {{ form.discount_type }}
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.discount_type.errors }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.value.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Value <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.value }}
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.value.errors }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.min_items.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-2">
+                            Min Items in Cart
+                        </label>
+                        {{ form.min_items }}
+                        <div class="error-list text-red-500 text-sm mt-1">{{ form.min_items.errors }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-end gap-4 pt-6 border-t border-gray-100">
+                <a href="{% url 'catego_offer_list' %}"
+                    class="px-6 py-3 border border-gray-200 rounded-lg text-gray-600 font-medium hover:bg-gray-50 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit"
+                    class="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium shadow-sm hover:bg-blue-700 transform hover:-translate-y-0.5 transition-all duration-200">
+                    Save Changes
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="{% static 'js/offers/category_offer_edit.js' %}"></script>
+{% endblock %}

@@ -138,8 +138,7 @@ Product Offers | Admin
                         <td class="px-6 py-4 text-center">
                             <div
                                 class="flex items-center justify-center gap-3 opacity-80 group-hover:opacity-100 transition-opacity">
-                                <a href="javascript:void(0)"
-                                    onclick="Swal.fire('Not Implemented', 'Edit URL missing', 'info')"
+                                <a href="{% url 'produc_offer_edit' offer.id %}"
                                     class="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors tooltip"
                                     title="Edit">
                                     <i data-lucide="edit-3" class="w-4 h-4"></i>
