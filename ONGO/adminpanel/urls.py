@@ -62,4 +62,12 @@ urlpatterns = [
     path('offers/global-offers/toggle-status/<int:offer_id>/', views.ToggleGlobalOfferStatus.as_view(),
          name='global_offer_toggle'),
 
+    # Coupon Management
+
+    path('coupons/', views.CouponListView.as_view(), name='coupon_list'),
+    path('coupon/create/', views.CouponCreateView.as_view(), name='coupon_create'),
+    path('coupon/edit/<int:coupon_id>/', views.CouponEditView.as_view(), name='coupon_edit'),
+    path('coupon/toggle-status/<int:coupon_id>/', views.ToggleCouponStatusView.as_view(), name='coupon_toggle'),
+
+
 ]
