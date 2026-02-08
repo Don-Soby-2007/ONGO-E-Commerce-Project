@@ -36,9 +36,10 @@ class Coupon(models.Model):
 
     def is_active(self):
         now = timezone.now()
+        total_used = self.usage.count()
         return (
             self.active
-            and self.max_limit > 0
+            and total_used < self.usage_limit
             and self.start_date <= now
             and (self.end_date is None or self.end_date >= now)
         )
@@ -51,7 +52,7 @@ class Coupon(models.Model):
             raise ValidationError("Free shipping coupon should not have a value")
 
     def __str__(self):
-        return f"{self.code}, {self.max_limit}"
+        return f"{self.coupon_code}, {self.usage_limit}"
 
 
 class CouponUsage(models.Model):

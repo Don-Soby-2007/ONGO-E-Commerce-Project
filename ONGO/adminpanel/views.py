@@ -16,6 +16,7 @@ from products.models import Category, Product, ProductVariant, ProductImage
 from order.models import Order, OrderItem
 from returns.models import Return, ReturnItem
 from offers.models import ProductOffer, CategoryOffer, GlobalOffer
+from coupons.models import Coupon
 
 from django.http import JsonResponse
 
@@ -1674,4 +1675,121 @@ class ToggleGlobalOfferStatus(LoginRequiredMixin, UserPassesTestMixin, View):
             return JsonResponse({
                 'success': False,
                 'message': 'Something went wrong while changing the offer status ...'
+            })
+
+
+class CouponListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    template_name = 'coupon/coupon_list.html'
+
+    model = Coupon
+    context_object_name = 'coupon_list'
+    paginate_by = 6
+
+
+class CouponCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    model = Coupon
+    template_name = 'coupon/coupon_create.html'
+    success_url = reverse_lazy('coupon_list')
+
+    fields = [
+        "coupon_code",
+        "discount_type",
+        "value",
+        "max_discount",
+        "min_order_amount",
+        "usage_limit",
+        "per_user_limit",
+        "active",
+        "start_date",
+        "end_date",
+    ]
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        messages.success(self.request, f'Coupon created Successfully..{form.instance.coupon_code}')
+
+        return response
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['start_date'] = timezone.now()
+        return initial
+
+
+class CouponEditView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    model = Coupon
+    template_name = 'coupon/coupon_create.html'
+    success_url = reverse_lazy('coupon_list')
+    pk_url_kwarg = 'coupon_id'
+
+    fields = [
+        "coupon_code",
+        "discount_type",
+        "value",
+        "max_discount",
+        "min_order_amount",
+        "usage_limit",
+        "per_user_limit",
+        "active",
+        "start_date",
+        "end_date",
+    ]
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        messages.success(self.request, f'Coupon Edited Successfully..{form.instance.coupon_code}')
+
+        return response
+
+
+class ToggleCouponStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def post(self, request, coupon_id):
+
+        try:
+            coupon = get_object_or_404(Coupon, id=coupon_id)
+
+            new_status = not coupon.active
+
+            coupon.active = new_status
+            coupon.save(update_fields=['active'])
+
+            status = 'Active' if coupon.active else 'Inactive'
+
+            return JsonResponse({
+                'success': True,
+                'message': f"{coupon.coupon_code} is now {status}",
+                'status': status
+            })
+
+        except DatabaseError as e:
+
+            logger.error(f'Database error occured while coupon status changeing: {e}')
+            return JsonResponse({
+                'success': False,
+                'message': f'Database error occured while changing status of {coupon.coupon_code}'
+            })
+
+        except Exception as e:
+            logger.error(f'Something went wrong while changing status of coupon{coupon.id} : {e}')
+            return JsonResponse({
+                'success': False,
+                'message': f'Something went wrong while changing status of {coupon.coupon_code}'
             })
