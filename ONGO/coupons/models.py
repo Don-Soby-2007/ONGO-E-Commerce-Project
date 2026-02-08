@@ -15,7 +15,7 @@ class Coupon(models.Model):
         ('free_shipping', 'Free shipping'),
     ]
 
-    code = models.CharField(max_length=180, unique=True, db_index=True)
+    coupon_code = models.CharField(max_length=180, unique=True, db_index=True)
     discount_type = models.CharField(max_length=20, choices=DISCOUNT_CHOICES, default='percent')
     value = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)], default=0)
     max_discount = models.DecimalField(
