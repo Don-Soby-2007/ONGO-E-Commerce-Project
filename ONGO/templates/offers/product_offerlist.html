@@ -18,7 +18,7 @@ Product Offers | Admin
             <p class="text-gray-500 mt-1 text-sm">Manage discounts and product offers</p>
         </div>
         <a href="{% url 'produc_offer_create' %}"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg shadow-sm font-medium transition-all duration-200 flex items-center gap-2 transform hover:scale-105">
+            class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg shadow-sm font-medium transition-all duration-200 flex items-center gap-2 transform hover:scale-105">
             <i data-lucide="plus" class="w-5 h-5"></i>
             <span>Add Product Offer</span>
         </a>
@@ -30,7 +30,7 @@ Product Offers | Admin
         <!-- Logic: If on this page, highlight this tab -->
 
         <a href="{% url 'produc_offer_list' %}"
-            class="relative z-10 flex-1 md:flex-none text-center px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 shadow-sm bg-white text-blue-600">
+            class="relative z-10 flex-1 md:flex-none text-center px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 shadow-sm bg-white text-red-600">
             Product Offers
         </a>
 
@@ -104,7 +104,7 @@ Product Offers | Admin
                         </td>
                         <td class="px-6 py-4">
                             <div
-                                class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800">
                                 {% if offer.discount_type == 'percent' %}
                                 {{ offer.value }}% OFF
                                 {% else %}
@@ -144,7 +144,7 @@ Product Offers | Admin
                                     <i data-lucide="edit-3" class="w-4 h-4"></i>
                                 </a>
                                 <button type="button"
-                                    class="p-1.5 bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors toggle-status-btn offer-toggle-btn"
+                                    class="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors toggle-status-btn offer-toggle-btn"
                                     data-offer-id="{{ offer.id }}" data-status="{{ offer.active }}"
                                     data-toggle-url="{% url 'produc_offer_toggle' offer.id %}">
                                     {% if offer.active %}
@@ -167,7 +167,7 @@ Product Offers | Admin
                                 <p class="text-gray-500 text-sm mb-4">Get started by creating a new offer for your
                                     products.</p>
                                 <a href="{% url 'produc_offer_create' %}"
-                                    class="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1">
+                                    class="text-red-600 hover:text-red-700 font-medium text-sm flex items-center gap-1">
                                     Create New Offer <i data-lucide="arrow-right" class="w-4 h-4"></i>
                                 </a>
                             </div>

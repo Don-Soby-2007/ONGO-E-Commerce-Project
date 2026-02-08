@@ -65,12 +65,12 @@
 
 /* Checked State */
 .toggle-checkbox:checked+.toggle-label {
-    background-color: #3b82f6;
+    background-color: #f6483b;
     /* bg-blue-500 */
 }
 
 .toggle-checkbox:checked+.toggle-label:before {
     transform: translateX(100%);
     /* Move to right */
-    border-color: #3b82f6;
+    border-color: #f6483b;
 }

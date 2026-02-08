@@ -50,10 +50,10 @@
 }
 
 .toggle-checkbox:checked+.toggle-label {
-    background-color: #3b82f6;
+    background-color: #f6513b;
 }
 
 .toggle-checkbox:checked+.toggle-label:before {
     transform: translateX(100%);
-    border-color: #3b82f6;
+    border-color: #f6513b;
 }
