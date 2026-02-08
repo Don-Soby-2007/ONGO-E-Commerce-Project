@@ -1,0 +1,227 @@
+{% extends 'common/base_admin_list.html' %}
+{% load static %}
+
+{% block title %}Coupon Management{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/coupon/coupon_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Coupon Management</h1>
+            <p class="text-gray-500 mt-1">Manage discount coupons and promotions</p>
+        </div>
+        <a href="{% url 'coupon_create' %}"
+            class="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-2.5 rounded-lg shadow-sm transition-colors duration-200 flex items-center">
+            <i data-lucide="plus" class="w-5 h-5 mr-2"></i>
+            Create Coupon
+        </a>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6">
+        <form method="GET" class="flex flex-col md:flex-row gap-4">
+            <div class="relative flex-1">
+                <i data-lucide="search"
+                    class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                <input type="text" name="q" value="{{ request.GET.q|default:'' }}"
+                    placeholder="Search by coupon code..."
+                    class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all">
+            </div>
+            <button type="submit"
+                class="bg-gray-800 hover:bg-gray-900 text-white px-6 py-2.5 rounded-lg font-medium transition-colors">
+                Search
+            </button>
+            {% if request.GET.q %}
+            <a href="{% url 'coupon_list' %}"
+                class="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2.5 rounded-lg font-medium transition-colors">
+                Clear
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Coupons Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold">
+                        <th class="px-6 py-4">Code</th>
+                        <th class="px-6 py-4">Discount</th>
+                        <th class="px-6 py-4">Limits (Total/User)</th>
+                        <th class="px-6 py-4">Usage</th>
+                        <th class="px-6 py-4">Validity</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    {% now "Y-m-d" as today_str %}
+                    {% for coupon in coupon_list %}
+                    <tr class="hover:bg-gray-50 transition-colors group">
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-800">{{ coupon.coupon_code }}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">
+                                Min Order: ₹{{ coupon.min_order_amount|default:"0" }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if coupon.discount_type == 'percent' %}
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                {{ coupon.value}}% OFF
+                            </span>
+                            {% if coupon.max_discount %}
+                            <div class="text-xs text-gray-500 mt-1">Max: ₹{{ coupon.max_discount }}</div>
+                            {% endif %}
+                            {% elif coupon.discount_type == 'fixed' %}
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                ₹{{ coupon.value }} OFF
+                            </span>
+                            {% elif coupon.discount_type == 'free_shipping' %}
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+                                Free Shipping
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-700">
+                                <span class="font-medium">{{ coupon.usage_limit }}</span> total
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                {{ coupon.per_user_limit }} per user
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <span class="text-sm font-medium text-gray-700">{{ coupon.usage.count }}</span>
+                                <span class="text-xs text-gray-400 ml-1">used</span>
+                            </div>
+                            <!-- Simple progress bar -->
+                            <div class="w-24 h-1.5 bg-gray-100 rounded-full mt-1.5 overflow-hidden">
+                                <div class="h-full bg-red-500 rounded-full"
+                                    style="width: {% widthratio coupon.usage.count coupon.usage_limit 100 %}%"></div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-xs text-gray-700">
+                                <div class="flex items-center mb-1">
+                                    <span class="text-gray-400 w-12">Start:</span>
+                                    <span>{{ coupon.start_date|date:"M d, Y" }}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-gray-400 w-12">End:</span>
+                                    <span>{{ coupon.end_date|date:"M d, Y"|default:"No Expiry" }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if not coupon.active %}
+                            <span
+                                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                Inactive
+                            </span>
+                            {% elif coupon.end_date and coupon.end_date|date:"Y-m-d" < today_str %} <span
+                                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                                Expired
+                                </span>
+                                {% else %}
+                                <span
+                                    class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                    Active
+                                </span>
+                                {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end space-x-2">
+                                <button type="button"
+                                    class="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                                    title="Edit Coupon" onclick="location.href='{% url 'coupon_edit' coupon.id %}'">
+                                    <i data-lucide="pen-line" class="w-4 h-4"></i>
+                                </button>
+
+                                {% if coupon.active %}
+                                <button type="button"
+                                    class="coupon-toggle-btn p-2 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                                    title="Deactivate" data-coupon-id="{{ coupon.id }}"
+                                    data-toggle-url="{% url 'coupon_toggle' coupon.id %}" data-current-status="active">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                                {% else %}
+                                <button type="button"
+                                    class="coupon-toggle-btn p-2 text-gray-400 hover:text-green-600 transition-colors rounded-lg hover:bg-green-50"
+                                    title="Activate" data-coupon-id="{{ coupon.id }}"
+                                    data-toggle-url="{% url 'coupon_toggle' coupon.id %}"
+                                    data-current-status="inactive">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                            <div class="flex flex-col items-center justify-center">
+                                <div class="bg-gray-100 p-4 rounded-full mb-3">
+                                    <i data-lucide="tag" class="w-8 h-8 text-gray-400"></i>
+                                </div>
+                                <p class="text-lg font-medium text-gray-800">No coupons found</p>
+                                <p class="text-sm mt-1">Get started by creating a new coupon.</p>
+                                <a href="{% url 'coupon_create' %}"
+                                    class="mt-4 text-blue-600 hover:underline text-sm font-medium">Create Coupon</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <span class="text-sm text-gray-500">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            <div class="flex space-x-2">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+                    class="px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    Previous
+                </a>
+                {% else %}
+                <span
+                    class="px-3 py-1.5 border border-gray-200 rounded-md text-sm font-medium text-gray-400 bg-gray-50 cursor-not-allowed">
+                    Previous
+                </span>
+                {% endif %}
+
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+                    class="px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    Next
+                </a>
+                {% else %}
+                <span
+                    class="px-3 py-1.5 border border-gray-200 rounded-md text-sm font-medium text-gray-400 bg-gray-50 cursor-not-allowed">
+                    Next
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/coupon/coupon_list.js' %}"></script>
+{% endblock %}

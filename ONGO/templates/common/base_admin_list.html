@@ -75,7 +75,8 @@
                         <i data-lucide="users" class="icon w-5 h-5 mr-3"></i>
                         <h2>Customers</h2>
                     </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="coupons">
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if 'coupon' in request.resolver_match.url_name %}active{% endif %}"
+                        href="{% url 'coupon_list' %}" data-page="coupons">
                         <i data-lucide="tag" class="icon w-5 h-5 mr-3"></i>
                         <h2>Coupons</h2>
                     </a>

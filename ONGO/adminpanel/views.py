@@ -1690,6 +1690,7 @@ class CouponListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     paginate_by = 6
 
 
+@method_decorator(never_cache, name='dispatch')
 class CouponCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
     def test_func(self):
@@ -1731,7 +1732,7 @@ class CouponEditView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return self.request.user.is_staff
 
     model = Coupon
-    template_name = 'coupon/coupon_create.html'
+    template_name = 'coupon/coupon_edit.html'
     success_url = reverse_lazy('coupon_list')
     pk_url_kwarg = 'coupon_id'
 

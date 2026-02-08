@@ -1,0 +1,244 @@
+{% extends 'common/base_admin_list.html' %}
+{% load static %}
+
+{% block title %}Create Coupon | Admin Panel{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/coupon/coupon_create.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <!-- Header -->
+    <div class="flex-1 items-center justify-between mb-8">
+        <a href="{% url 'coupon_list' %}" class="flex items-center text-gray-600 hover:text-red-500 transition-colors mb-5">
+            <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i>
+            Back to List
+        </a>
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Create New Coupon</h1>
+            <p class="text-gray-500 mt-1">Configure discount rules and validity</p>
+        </div>
+        
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <form method="POST" class="p-6 md:p-8" id="couponForm">
+            {% csrf_token %}
+
+            {% if messages %}
+            {% for message in messages %}
+            <div
+                class="mb-6 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% if form.errors %}
+            <div class="mb-6 p-4 rounded-lg bg-red-50 text-red-700 border border-red-200">
+                <p class="font-medium">Please correct the errors below:</p>
+                <ul class="list-disc list-inside mt-2 text-sm">
+                    {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                    <li><span class="capitalize">{{ field }}:</span> {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Section: Basic Info -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <i data-lucide="info"
+                        class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-sm mr-3">1</i>
+                    Basic Information
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pl-11">
+                    <!-- Coupon Code -->
+                    <div class="col-span-1">
+                        <label for="{{ form.coupon_code.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1">Coupon Code *</label>
+                        <input type="text" name="{{ form.coupon_code.name }}" id="{{ form.coupon_code.id_for_label }}"
+                            value="{{ form.coupon_code.value|default:'' }}"
+                            class="w-full px-4 py-2.5 rounded-lg border {% if form.coupon_code.errors %}border-red-300 focus:ring-red-200 focus:border-red-400{% else %}border-gray-300 focus:ring-blue-100 focus:border-blue-400{% endif %} outline-none transition-all uppercase"
+                            placeholder="e.g. SUMMER2024">
+                        {% if form.coupon_code.help_text %}
+                        <p class="mt-1 text-xs text-gray-500">{{ form.coupon_code.help_text }}</p>
+                        {% endif %}
+                        {% for error in form.coupon_code.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Active Status -->
+                    <div class="col-span-1 flex flex-col justify-center">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="{{ form.active.name }}" id="{{ form.active.id_for_label }}"
+                                class="sr-only peer" {% if form.active.value %}checked{% endif %}>
+                            <div
+                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none ring-4 ring-transparent peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                            </div>
+                            <span class="ml-3 text-sm font-medium text-gray-700" id="statusLabel">Active</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="border-gray-100 my-8">
+
+            <!-- Section: Discount Details -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <i data-lucide="badge-percent"
+                        class="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-sm mr-3"></i>
+                    Discount Details
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 pl-11">
+                    <!-- Discount Type -->
+                    <div class="md:col-span-4">
+                        <label for="{{ form.discount_type.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                        <select name="{{ form.discount_type.name }}" id="{{ form.discount_type.id_for_label }}"
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all bg-white">
+                            {% for value, label in form.discount_type.field.choices %}
+                            <option value="{{ value }}" {% if form.discount_type.value == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Value -->
+                    <div class="md:col-span-4" id="valueField">
+                        <label for="{{ form.value.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1">Value *</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                                id="valuePrefix"></span>
+                            <input type="number" name="{{ form.value.name }}" id="{{ form.value.id_for_label }}"
+                                value="{{ form.value.value|default:'0' }}" step="0.01"
+                                class="w-full pl-8 pr-4 py-2.5 rounded-lg border {% if form.value.errors %}border-red-300{% else %}border-gray-300{% endif %} focus:ring-blue-100 focus:border-blue-400 outline-none transition-all">
+                            <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                                id="valueSuffix">%</span>
+                        </div>
+                        {% for error in form.value.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Max Discount -->
+                    <div class="md:col-span-4" id="maxDiscountField">
+                        <label for="{{ form.max_discount.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1">Max Discount Amount (Optional)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
+                            <input type="number" name="{{ form.max_discount.name }}"
+                                id="{{ form.max_discount.id_for_label }}"
+                                value="{{ form.max_discount.value|default:'' }}" step="0.01"
+                                class="w-full pl-7 pr-4 py-2.5 rounded-lg border border-gray-300 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all">
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Maximum discount cap for percentage based coupons.</p>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="border-gray-100 my-8">
+
+            <!-- Section: Conditions & Limits -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <span class="rounded-full bg-teal-50 mr-3"><i data-lucide="hand-coins"
+                        class="w-8 h-8 text-teal-600 flex items-center justify-center text-sm"></i></span>
+                    Usage Conditions
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pl-11">
+                    <!-- Min Order Amount -->
+                    <div>
+                        <label for="{{ form.min_order_amount.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1">Min Order Amount</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
+                            <input type="number" name="{{ form.min_order_amount.name }}"
+                                id="{{ form.min_order_amount.id_for_label }}"
+                                value="{{ form.min_order_amount.value|default:'' }}" step="0.01"
+                                class="w-full pl-7 pr-4 py-2.5 rounded-lg border border-gray-300 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all">
+                        </div>
+                    </div>
+
+                    <!-- Usage Limit -->
+                    <div>
+                        <label for="{{ form.usage_limit.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1">Total Usage Limit</label>
+                        <input type="number" name="{{ form.usage_limit.name }}" id="{{ form.usage_limit.id_for_label }}"
+                            value="{{ form.usage_limit.value|default:'100' }}" min="1"
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all">
+                    </div>
+
+                    <!-- Per User Limit -->
+                    <div>
+                        <label for="{{ form.per_user_limit.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1">Limit Per User</label>
+                        <input type="number" name="{{ form.per_user_limit.name }}"
+                            id="{{ form.per_user_limit.id_for_label }}"
+                            value="{{ form.per_user_limit.value|default:'1' }}" min="1"
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all">
+                    </div>
+                </div>
+            </div>
+
+            <hr class="border-gray-100 my-8">
+
+            <!-- Section: Validity -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <span class="rounded-full bg-orange-50 mr-3">
+                    <i data-lucide="calendar-days"
+                        class="w-8 h-8 text-orange-600 flex items-center justify-center text-sm">4</i>
+                    </span>
+                    Validity Period
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pl-11">
+                    <!-- Start Date -->
+                    <div>
+                        <label for="{{ form.start_date.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
+                        <input type="datetime-local" name="{{ form.start_date.name }}"
+                            id="{{ form.start_date.id_for_label }}" {% if form.start_date.value %}
+                            value="{{ form.start_date.value|date:'Y-m-d\TH:i' }}" {% endif %}
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all">
+                    </div>
+
+                    <!-- End Date -->
+                    <div>
+                        <label for="{{ form.end_date.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1">End Date (Optional)</label>
+                        <input type="datetime-local" name="{{ form.end_date.name }}"
+                            id="{{ form.end_date.id_for_label }}" {% if form.end_date.value %}
+                            value="{{ form.end_date.value|date:'Y-m-d\TH:i' }}" {% endif %}
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all">
+                        <p class="mt-1 text-xs text-gray-500">Leave blank for no expiration.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-100">
+                <a href="{% url 'coupon_list' %}"
+                    class="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all">
+                    Cancel
+                </a>
+                <button type="submit"
+                    class="px-8 py-2.5 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-all shadow-lg shadow-blue-200">
+                    Create Coupon
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/coupon/coupon_create.js' %}"></script>
+{% endblock %}
