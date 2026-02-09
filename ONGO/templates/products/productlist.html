@@ -124,39 +124,61 @@
 
             <!-- Product Grid -->
             <div class="product-grid flex-1 p-4">
-
-                <!-- Products -->
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    <!-- Product 1 -->
                     {% for product in products %}
-
                     <div onclick="window.location='{% url 'product_detail' product.id %}'"
-                        class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
+                        class="product-card group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                         <div class="relative">
-                            <img src="{{product.get_thumbnail_url}}" alt="URB_N Men Geometric Print Regular Fit Shirt"
-                                class="w-full h-80 object-cover">
+                            <!-- Discount Badge -->
+                            {% if product.offer_price and product.get_display_price and product.offer_price < product.get_display_price %}
+                                {% if product.offer_type == "percent" %}
+                                <span class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
+                                    {{ product.offer_value|floatformat:"0" }}% OFF
+                                </span>
+                                {% elif product.offer_type == "fixed" %}
+                                    <span class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
+                                    ₹{{ product.offer_value|floatformat:"0" }} OFF
+                                    </span>
+                                {% endif %}
+                            {% endif %}
+
+                            <!-- Image -->
+                            <img src="{{ product.get_thumbnail_url }}"
+                                alt="{{ product.name }}"
+                                class="w-full h-80 object-cover transition-transform duration-300 group-hover:scale-105">
+
+                            <!-- Wishlist Button -->
+                            <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                             {% if product.rep_variant_id %}
-                                <button type='button' data-url='{% url "toggle_wishlist" product.rep_variant_id %}'
-                                        class="toggleWishlist absolute top-2 right-2 p-2 rounded-full bg-white shadow hover:text-red-500 transition-colors"
+                                <button type="button"
+                                        data-url="{% url 'toggle_wishlist' product.rep_variant_id %}"
+                                        class="toggleWishlist p-2 rounded-full bg-white shadow-md hover:text-red-500 transition-colors"
                                         aria-label="{% if product.in_wishlist %}Remove from wishlist{% else %}Add to wishlist{% endif %}">
-                                    {% if product.in_wishlist %}
-                                        <i data-lucide="heart" class="text-red-500 fill-current"></i>
-                                    {% else %}
-                                        <i data-lucide="heart" class="text-gray-500 hover:text-red-500 transition-colors"></i>
-                                    {% endif %}
+                                {% if product.in_wishlist %}
+                                    <i data-lucide="heart" class="text-red-500 fill-current w-5 h-5"></i>
+                                {% else %}
+                                    <i data-lucide="heart" class="text-gray-600 w-5 h-5"></i>
+                                {% endif %}
                                 </button>
                             {% else %}
-                                <button class="absolute top-2 right-2 p-2 rounded-full bg-white shadow hover:text-red-500 transition-colors">
-                                    <i data-lucide="heart" class="text-gray-500 hover:text-red-500 transition-colors"></i>
+                                <button class="p-2 rounded-full bg-white shadow-md" disabled>
+                                <i data-lucide="heart" class="text-gray-400 w-5 h-5"></i>
                                 </button>
                             {% endif %}
+                            </div>
                         </div>
+
+                        <!-- Product Info -->
                         <div class="p-4">
-                            <h3 class="font-semibold text-gray-800">{{product.name}}</h3>
-                            <p class="text-gray-600 mt-2"> ₹{{product.get_display_price}}</p>
+                            <h3 class="font-semibold text-gray-800 line-clamp-2">{{ product.name }}</h3>
+                            <div class="mt-2 flex items-baseline gap-2">
+                            <span class="text-lg font-bold text-gray-900">₹{{ product.offer_price|floatformat:"0" }}</span>
+                            {% if product.offer_price < product.get_display_price %}
+                                <span class="text-sm text-gray-500 line-through">₹{{ product.get_display_price|floatformat:"0" }}</span>
+                            {% endif %}
+                            </div>
                         </div>
                     </div>
-
                     {% endfor %}
                 </div>
             </div>
