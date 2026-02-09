@@ -175,7 +175,7 @@ class ProductListView(ListView):
                 continue
 
             rep_variant = product.get_representative_variant()
-            base_price = Decimal(rep_variant.final_price())
+            base_price = Decimal(rep_variant.final_price)
             best_discount = {'price': base_price, 'type': None, 'value': None}
 
             if product.prefetched_product_offers:
