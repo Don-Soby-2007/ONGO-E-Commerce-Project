@@ -8,6 +8,8 @@ from cart.models import Cart
 from accounts.models import Wishlist
 from offers.models import ProductOffer, CategoryOffer
 
+from django.contrib.auth.models import AnonymousUser
+
 from django.db.models import Prefetch, Min, Case, When, DecimalField
 from django.db.models.functions import Coalesce
 from django.db import transaction
@@ -125,12 +127,12 @@ class ProductListView(ListView):
 
         queryset = queryset.prefetch_related(
             Prefetch(
-                'active_offer',
+                'offer',
                 queryset=ProductOffer.objects.filter(active_offer_filter).order_by('-priority'),
                 to_attr='prefetched_product_offers'
             ),
             Prefetch(
-                'category__active_offer',
+                'category__offer',
                 queryset=CategoryOffer.objects.filter(active_offer_filter, min_items=1).order_by('-priority'),
                 to_attr='prefetched_category_offers'
             )
@@ -235,6 +237,21 @@ class ProductDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         product = self.object
+        category = product.category
+        request = self.request
+        user = request.user if request else AnonymousUser()
+        product_offer = (
+                product.offer
+                .filter(active=True)
+                .order_by('-priority')
+                .first()
+            )
+        category_offer = (
+                category.offer
+                .filter(active=True, min_items=1)
+                .order_by('-priority')
+                .first()
+            )
 
         # Fetch all variants with images
         variants = product.variants.filter(
@@ -247,21 +264,66 @@ class ProductDetailView(DetailView):
             )
         )
 
+        user_wishlist_variant_ids = set()
+        if user.is_authenticated:
+            user_wishlist_variant_ids = set(
+                Wishlist.objects.filter(user=user, product_variant__product=product)
+                .values_list('product_variant_id', flat=True)
+            )
+
         # Build raw data structures (no UX decisions)
         variants_by_color = {}
         images_by_color = {}
+        wishlist_status = {}  # Track wishlist per variant
 
         for variant in variants:
             color = variant.color
 
+            # for offers
+            variant_price = float(variant.final_price) if variant.final_price else None
+            offer_price = variant_price
+            offer_type = None
+            offer_value = None
+            original_price = variant_price
+
+            if product_offer and product_offer.is_active_now():
+                offer_type = product_offer.discount_type
+                offer_value = float(product_offer.value)
+
+                if offer_type == 'percent':
+                    offer_price = variant_price * (1 - offer_value / 100)
+                elif offer_type == 'fixed':
+                    offer_price = max(0, variant_price - offer_value)
+
+            if category_offer and category_offer.is_active_now():
+
+                if offer_type == 'percent':
+                    category_offer_price = variant_price * (1 - offer_value / 100)
+                elif offer_type == 'fixed':
+                    category_offer_price = max(0, variant_price - offer_value)
+
+                if category_offer_price < offer_price:
+                    offer_price = category_offer_price
+
+                    offer_type = category_offer.discount_type
+                    offer_value = float(category_offer.value)
+
+            in_wishlist = variant.id in user_wishlist_variant_ids
+            wishlist_status[variant.id] = in_wishlist
+
             # Raw variant data (truth only)
             if color not in variants_by_color:
                 variants_by_color[color] = []
+
             variants_by_color[color].append({
                 'id': variant.id,
                 'size': variant.size,
                 'stock': variant.stock,
-                'price': float(variant.price) if variant.price else None,
+                'price': round(offer_price) if offer_price else None,
+                'original_price': round(original_price, 2) if original_price else None,
+                'offer_type': offer_type,
+                'offer_value': offer_value,
+                'in_wishlist': in_wishlist,
             })
 
             # All images for each color
@@ -280,6 +342,7 @@ class ProductDetailView(DetailView):
             'variants_by_color_json': variants_by_color,
             'images_by_color_json': images_by_color,
             'all_colors': list(variants_by_color.keys()),
+            'wishlist_status_json': wishlist_status,
             'display_price': product.get_display_price(),
         })
 

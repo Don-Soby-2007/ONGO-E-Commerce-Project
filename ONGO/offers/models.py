@@ -33,7 +33,7 @@ class ProductOffer(TimedModel):
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
-        related_name='active_offer'
+        related_name='offer'
     )
     discount_type = models.CharField(
         max_length=20,
@@ -57,7 +57,7 @@ class CategoryOffer(TimedModel):
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
-        related_name='active_offer'
+        related_name='offer'
     )
     discount_type = models.CharField(
         max_length=20,
