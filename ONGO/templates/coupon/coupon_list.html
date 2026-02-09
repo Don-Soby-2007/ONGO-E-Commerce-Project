@@ -23,25 +23,42 @@
     </div>
 
     <!-- Filters & Search -->
+    <!-- Filters & Search -->
     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6">
-        <form method="GET" class="flex flex-col md:flex-row gap-4">
-            <div class="relative flex-1">
+        <form method="GET" class="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <!-- Search -->
+            <div class="relative w-full md:w-96">
                 <i data-lucide="search"
-                    class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
-                <input type="text" name="q" value="{{ request.GET.q|default:'' }}"
+                    class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"></i>
+                <input type="text" name="search_query" value="{{ request.GET.search_query|default:'' }}"
                     placeholder="Search by coupon code..."
-                    class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all">
+                    class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all">
             </div>
-            <button type="submit"
-                class="bg-gray-800 hover:bg-gray-900 text-white px-6 py-2.5 rounded-lg font-medium transition-colors">
-                Search
-            </button>
-            {% if request.GET.q %}
-            <a href="{% url 'coupon_list' %}"
-                class="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2.5 rounded-lg font-medium transition-colors">
-                Clear
-            </a>
-            {% endif %}
+
+            <!-- Filters & Actions -->
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <!-- Status Filter -->
+                <select name="status"
+                    class="bg-gray-50 border border-gray-200 text-gray-600 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 p-2.5">
+                    <option value="" {% if not request.GET.status %}selected{% endif %}>All Status</option>
+                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive
+                    </option>
+                </select>
+
+                <!-- Buttons -->
+                <button type="submit"
+                    class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm">
+                    Apply Filter
+                </button>
+
+                {% if request.GET.search_query or request.GET.status %}
+                <a href="{% url 'coupon_list' %}"
+                    class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium transition-colors">
+                    Clear
+                </a>
+                {% endif %}
+            </div>
         </form>
     </div>
 
@@ -173,10 +190,19 @@
                                 <div class="bg-gray-100 p-4 rounded-full mb-3">
                                     <i data-lucide="tag" class="w-8 h-8 text-gray-400"></i>
                                 </div>
+                                {% if request.GET.search_query or request.GET.status %}
+                                <h3 class="text-lg font-medium text-gray-800">No Coupons Found</h3>
+                                <p class="text-sm mt-1 mb-4">No coupons match your current filters.</p>
+                                <a href="{% url 'coupon_list' %}"
+                                    class="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1">
+                                    Clear Filters
+                                </a>
+                                {% else %}
                                 <p class="text-lg font-medium text-gray-800">No coupons found</p>
                                 <p class="text-sm mt-1">Get started by creating a new coupon.</p>
                                 <a href="{% url 'coupon_create' %}"
                                     class="mt-4 text-blue-600 hover:underline text-sm font-medium">Create Coupon</a>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
@@ -186,34 +212,27 @@
         </div>
 
         <!-- Pagination -->
+
         {% if is_paginated %}
-        <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
             <span class="text-sm text-gray-500">
                 Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
             </span>
-            <div class="flex space-x-2">
+            <div class="flex gap-2">
                 {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
-                    class="px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                    Previous
-                </a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search_query %}&search_query={{ request.GET.search_query }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}"
+                    class="px-3 py-1 bg-white border border-gray-200 rounded text-sm text-gray-600 hover:bg-gray-50 transition">Previous</a>
                 {% else %}
-                <span
-                    class="px-3 py-1.5 border border-gray-200 rounded-md text-sm font-medium text-gray-400 bg-gray-50 cursor-not-allowed">
-                    Previous
-                </span>
+                <button disabled
+                    class="px-3 py-1 bg-gray-100 border border-gray-200 rounded text-sm text-gray-400 cursor-not-allowed">Previous</button>
                 {% endif %}
 
                 {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
-                    class="px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                    Next
-                </a>
+                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search_query %}&search_query={{ request.GET.search_query }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}"
+                    class="px-3 py-1 bg-white border border-gray-200 rounded text-sm text-gray-600 hover:bg-gray-50 transition">Next</a>
                 {% else %}
-                <span
-                    class="px-3 py-1.5 border border-gray-200 rounded-md text-sm font-medium text-gray-400 bg-gray-50 cursor-not-allowed">
-                    Next
-                </span>
+                <button disabled
+                    class="px-3 py-1 bg-gray-100 border border-gray-200 rounded text-sm text-gray-400 cursor-not-allowed">Next</button>
                 {% endif %}
             </div>
         </div>

@@ -1793,6 +1793,32 @@ class CouponListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     context_object_name = 'coupon_list'
     paginate_by = 6
 
+    def get_queryset(self):
+        queryset = Coupon.objects.all()
+
+        # SEARCH
+        search_query = self.request.GET.get('search_query')
+        if search_query:
+            queryset = queryset.filter(
+                Q(coupon_code__icontains=search_query)
+            )
+
+        # STATUS FILTER
+        status = self.request.GET.get('status')
+        if status == 'active':
+            queryset = queryset.filter(active=True)
+        elif status == 'inactive':
+            queryset = queryset.filter(active=False)
+
+        queryset = queryset.order_by('-active')
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search_query', '')
+        return context
+
 
 @method_decorator(never_cache, name='dispatch')
 class CouponCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
