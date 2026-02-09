@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView
+from django.utils import timezone
+from django.db.models import Q
 
 from .models import Product, ProductVariant, ProductImage, Category
 from cart.models import Cart
 from accounts.models import Wishlist
+from offers.models import ProductOffer, CategoryOffer
 
 from django.db.models import Prefetch, Min, Case, When, DecimalField
 from django.db.models.functions import Coalesce
@@ -20,6 +23,10 @@ from django.views import View
 from django.http import JsonResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+
+from decimal import Decimal
+
+from .utils import calculate_discount
 
 # from django.shortcuts import get_object_or_404
 
@@ -109,6 +116,26 @@ class ProductListView(ListView):
             'z-a': ['-name'],
         }.get(sort, ['-created_at'])
 
+        now = timezone.now()
+        active_offer_filter = (
+            Q(active=True) &
+            Q(start_date__lte=now) &
+            (Q(end_date__isnull=True) | Q(end_date__gte=now))
+        )
+
+        queryset = queryset.prefetch_related(
+            Prefetch(
+                'active_offer',
+                queryset=ProductOffer.objects.filter(active_offer_filter).order_by('-priority'),
+                to_attr='prefetched_product_offers'
+            ),
+            Prefetch(
+                'category__active_offer',
+                queryset=CategoryOffer.objects.filter(active_offer_filter, min_items=1).order_by('-priority'),
+                to_attr='prefetched_category_offers'
+            )
+        )
+
         return queryset.order_by(*ordering)
 
     def get_context_data(self, **kwargs):
@@ -117,7 +144,7 @@ class ProductListView(ListView):
         products = context['products']
 
         rep_variant_ids = []
-        product_rep_map = {}  # product.id : variant_id
+        product_rep_map = {}
 
         for product in products:
             rep_variant = product.get_representative_variant()
@@ -140,6 +167,41 @@ class ProductListView(ListView):
             rep_id = product_rep_map[product.id]
             product.rep_variant_id = rep_id
             product.in_wishlist = (rep_id in wishlist_variant_ids)
+
+            if not rep_id:
+                product.offer_price = None
+                product.offer_type = None
+                product.offer_value = None
+                continue
+
+            rep_variant = product.get_representative_variant()
+            base_price = Decimal(rep_variant.final_price())
+            best_discount = {'price': base_price, 'type': None, 'value': None}
+
+            if product.prefetched_product_offers:
+                offer = product.prefetched_product_offers[0]
+                discounted = calculate_discount(base_price, offer)
+                if discounted < best_discount['price']:
+                    best_discount = {
+                        'price': discounted,
+                        'type': offer.discount_type,
+                        'value': offer.value
+                    }
+
+            cat_offers = getattr(product.category, 'prefetched_category_offers', [])
+            if cat_offers and cat_offers[0].min_items == 1:
+                offer = cat_offers[0]
+                discounted = calculate_discount(base_price, offer)
+                if discounted < best_discount['price']:
+                    best_discount = {
+                        'price': discounted,
+                        'type': offer.discount_type,
+                        'value': offer.value
+                    }
+
+            product.offer_price = best_discount['price']
+            product.offer_type = best_discount['type']
+            product.offer_value = best_discount['value']
 
         context['categories'] = Category.objects.filter(is_active=True).order_by('name')
 
