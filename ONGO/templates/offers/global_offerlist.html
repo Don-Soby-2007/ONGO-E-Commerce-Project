@@ -41,22 +41,53 @@ Global Offers | Admin
     </div>
 
     <!-- Search Bar -->
-    <div
-        class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div class="relative w-full md:w-80">
-            <i data-lucide="search"
-                class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"></i>
-            <input type="text" placeholder="Search global offers..."
-                class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all">
-        </div>
-        <div class="flex items-center gap-2">
-            <select
-                class="form-select bg-gray-50 border border-gray-200 text-gray-600 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
-                <option selected>All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-            </select>
-        </div>
+    <!-- Search & Filter Bar -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+        <form method="GET" class="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <!-- Search -->
+            <div class="relative w-full md:w-96">
+                <i data-lucide="search"
+                    class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"></i>
+                <input type="text" name="search_query" value="{{ request.GET.search_query|default:'' }}"
+                    placeholder="Search by offer name..."
+                    class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all">
+            </div>
+
+            <!-- Filters & Actions -->
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <!-- Status Filter -->
+                <select name="status"
+                    class="bg-gray-50 border border-gray-200 text-gray-600 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 p-2.5">
+                    <option value="" {% if not request.GET.status %}selected{% endif %}>All Status</option>
+                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive
+                    </option>
+                </select>
+
+                <!-- Sort Filter -->
+                <select name="sort"
+                    class="bg-gray-50 border border-gray-200 text-gray-600 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 p-2.5">
+                    <option value="start-date" {% if request.GET.sort == 'start-date' or not request.GET.sort %}selected{% endif %}>
+                        Start Date (Newest)</option>
+                    <option value="end-date" {% if request.GET.sort == 'end-date' %}selected{% endif %}>End Date</option>
+                    <option value="active-first" {% if request.GET.sort == 'active-first' %}selected{% endif %}>Active
+                        First</option>
+                </select>
+
+                <!-- Buttons -->
+                <button type="submit"
+                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm">
+                    Apply
+                </button>
+
+                {% if request.GET.search_query or request.GET.status or request.GET.sort %}
+                <a href="{% url 'global_offer_list' %}"
+                    class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium transition-colors">
+                    Clear
+                </a>
+                {% endif %}
+            </div>
+        </form>
     </div>
 
     <!-- Table -->
@@ -150,13 +181,22 @@ Global Offers | Admin
                                 <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                                     <i data-lucide="globe" class="w-8 h-8 text-gray-400"></i>
                                 </div>
-                                <h3 class="text-lg font-medium text-gray-900 mb-1">No Global Offers Found</h3>
+                                {% if request.GET.search_query or request.GET.status %}
+                                <h3 class="text-lg font-medium text-gray-900 mb-1">No Offers Found</h3>
+                                <p class="text-gray-500 text-sm mb-4">No global offers match your current filters.</p>
+                                <a href="{% url 'global_offer_list' %}"
+                                    class="text-red-600 hover:text-red-700 font-medium text-sm flex items-center gap-1">
+                                    Clear Filters
+                                </a>
+                                {% else %}
+                                <h3 class="text-lg font-medium text-gray-900 mb-1">No Global Offers Yet</h3>
                                 <p class="text-gray-500 text-sm mb-4">Create store-wide offers like "Summer Sale" or
                                     "Free Shipping".</p>
                                 <a href="{% url 'global_offer_create' %}"
                                     class="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1">
                                     Create Global Offer <i data-lucide="arrow-right" class="w-4 h-4"></i>
                                 </a>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
@@ -165,6 +205,7 @@ Global Offers | Admin
             </table>
         </div>
         <!-- Pagination -->
+        <!-- Pagination -->
         {% if is_paginated %}
         <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
             <span class="text-sm text-gray-500">
@@ -172,12 +213,19 @@ Global Offers | Admin
             </span>
             <div class="flex gap-2">
                 {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}"
+                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search_query %}&search_query={{ request.GET.search_query }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
                     class="px-3 py-1 bg-white border border-gray-200 rounded text-sm text-gray-600 hover:bg-gray-50 transition">Previous</a>
+                {% else %}
+                <button disabled
+                    class="px-3 py-1 bg-gray-100 border border-gray-200 rounded text-sm text-gray-400 cursor-not-allowed">Previous</button>
                 {% endif %}
+
                 {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}"
+                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search_query %}&search_query={{ request.GET.search_query }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
                     class="px-3 py-1 bg-white border border-gray-200 rounded text-sm text-gray-600 hover:bg-gray-50 transition">Next</a>
+                {% else %}
+                <button disabled
+                    class="px-3 py-1 bg-gray-100 border border-gray-200 rounded text-sm text-gray-400 cursor-not-allowed">Next</button>
                 {% endif %}
             </div>
         </div>

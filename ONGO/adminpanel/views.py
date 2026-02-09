@@ -1307,6 +1307,41 @@ class ProductOfferList(LoginRequiredMixin, UserPassesTestMixin, ListView):
     context_object_name = 'product_offers'
     paginate_by = 6
 
+    def get_queryset(self):
+        queryset = ProductOffer.objects.all()
+
+        # SEARCH
+        search_query = self.request.GET.get('search_query')
+        if search_query:
+            queryset = queryset.filter(
+                Q(name__icontains=search_query) |
+                Q(product__name__icontains=search_query)
+            )
+
+        # STATUS FILTER
+        status = self.request.GET.get('status')
+        if status == 'active':
+            queryset = queryset.filter(active=True)
+        elif status == 'inactive':
+            queryset = queryset.filter(active=False)
+
+        # SORTING
+        sort = self.request.GET.get('sort', 'start-date')
+
+        if sort == 'end-date':
+            queryset = queryset.order_by('end_date')
+        elif sort == 'active-first':
+            queryset = queryset.order_by('-active')
+        else:  # start-date
+            queryset = queryset.order_by('-start_date')
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search_query', '')
+        return context
+
 
 class CategoryOfferList(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
@@ -1318,6 +1353,41 @@ class CategoryOfferList(LoginRequiredMixin, UserPassesTestMixin, ListView):
     context_object_name = 'category_offers'
     paginate_by = 6
 
+    def get_queryset(self):
+        queryset = CategoryOffer.objects.all()
+
+        # SEARCH
+        search_query = self.request.GET.get('search_query')
+        if search_query:
+            queryset = queryset.filter(
+                Q(name__icontains=search_query) |
+                Q(category__name__icontains=search_query)
+            )
+
+        # STATUS FILTER
+        status = self.request.GET.get('status')
+        if status == 'active':
+            queryset = queryset.filter(active=True)
+        elif status == 'inactive':
+            queryset = queryset.filter(active=False)
+
+        # SORTING
+        sort = self.request.GET.get('sort', 'start-date')
+
+        if sort == 'end-date':
+            queryset = queryset.order_by('end_date')
+        elif sort == 'active-first':
+            queryset = queryset.order_by('-active')
+        else:  # start-date
+            queryset = queryset.order_by('-start_date')
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search_query', '')
+        return context
+
 
 class GlobalOfferList(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
@@ -1328,6 +1398,40 @@ class GlobalOfferList(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = GlobalOffer
     context_object_name = 'global_offers'
     paginate_by = 6
+
+    def get_queryset(self):
+        queryset = GlobalOffer.objects.all()
+
+        # SEARCH
+        search_query = self.request.GET.get('search_query')
+        if search_query:
+            queryset = queryset.filter(
+                Q(name__icontains=search_query)
+            )
+
+        # STATUS FILTER
+        status = self.request.GET.get('status')
+        if status == 'active':
+            queryset = queryset.filter(active=True)
+        elif status == 'inactive':
+            queryset = queryset.filter(active=False)
+
+        # SORTING
+        sort = self.request.GET.get('sort', 'start-date')
+
+        if sort == 'end-date':
+            queryset = queryset.order_by('end_date')
+        elif sort == 'active-first':
+            queryset = queryset.order_by('-active')
+        else:  # start-date
+            queryset = queryset.order_by('-start_date')
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search_query', '')
+        return context
 
 
 @method_decorator(never_cache, name='dispatch')
