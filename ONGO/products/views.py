@@ -284,11 +284,13 @@ class ProductDetailView(DetailView):
             offer_price = variant_price
             offer_type = None
             offer_value = None
+            has_offer = False
             original_price = variant_price
 
             if product_offer and product_offer.is_active_now():
                 offer_type = product_offer.discount_type
                 offer_value = float(product_offer.value)
+                has_offer = True
 
                 if offer_type == 'percent':
                     offer_price = variant_price * (1 - offer_value / 100)
@@ -307,6 +309,7 @@ class ProductDetailView(DetailView):
 
                     offer_type = category_offer.discount_type
                     offer_value = float(category_offer.value)
+                    has_offer = True
 
             in_wishlist = variant.id in user_wishlist_variant_ids
             wishlist_status[variant.id] = in_wishlist
@@ -324,6 +327,7 @@ class ProductDetailView(DetailView):
                 'offer_type': offer_type,
                 'offer_value': offer_value,
                 'in_wishlist': in_wishlist,
+                'has_offer': has_offer,
             })
 
             # All images for each color
