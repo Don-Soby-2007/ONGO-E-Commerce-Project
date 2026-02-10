@@ -84,12 +84,7 @@ class CartView(LoginRequiredMixin, ListView):
 
                 if offer_type == 'percent':
                     offer_price = variant_price * (1 - offer_value / 100)
-                    if offer_price > product_offer.max_discount_amount:
-                        offer_price = variant_price
-                        has_offer = False
-                        offer_type = None
-                        offer_value = None
-                        offer_scope = None
+                    offer_price = min(offer_price, product_offer.max_discount_amount)
                 elif offer_type == 'fixed':
                     offer_price = max(0, variant_price - offer_value)
 
