@@ -105,15 +105,16 @@ class CartView(LoginRequiredMixin, ListView):
             if category_offer and category_offer.is_active_now():
 
                 if category_eligible:
-                    if offer_type == 'percent':
+                    category_offer_type = category_offer.discount_type
+                    if category_offer_type == 'percent':
                         category_offer_price = variant_price * (1 - offer_value / 100)
-                    elif offer_type == 'fixed':
+                    elif category_offer_type == 'fixed_per_item':
                         category_offer_price = max(0, variant_price - offer_value)
 
                     if category_offer_price < offer_price:
                         offer_price = category_offer_price
 
-                        offer_type = category_offer.discount_type
+                        offer_type = category_offer_type
                         offer_value = float(category_offer.value)
                         has_offer = True
                         offer_scope = 'category'
