@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (response.ok && data.success) {
                 // Reload to update totals and UI from backend
-                location.reload();
+                window.location.reload();
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
-                    location.reload();
+                    window.location.reload();
                 });
             } else {
                 Swal.fire('Error', data.error || 'Failed to remove item.', 'error');
