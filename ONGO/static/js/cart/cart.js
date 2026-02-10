@@ -3,133 +3,52 @@ document.addEventListener('DOMContentLoaded', function () {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
-    if (document.querySelectorAll('.cart-item').length === 0) {
-        document.querySelector('.cart-grid').innerHTML = `
-                        <div class="col-span-full text-center py-20">
-                            <h2 class="text-2xl font-bold mb-4">Your cart is empty</h2>
-                            <a href="/product/listing" class="text-blue-600 hover:underline">Continue Shopping</a>
-                        </div>
-                    `;
-    }
 
-    //const cartItems = document.querySelectorAll('.cart-item');
-    const subtotalEl = document.getElementById('subtotal');
-    //const discountEl = document.getElementById('discount');
-    const totalEl = document.getElementById('total');
-    const itemCountEl = document.getElementById('item-count');
-
-
-    // Initial calculation
-    document.querySelectorAll('.cart-item').forEach(item => {
-        updateRowTotal(item);
-    });
-    updateCartTotals();
+    // Check for empty cart on load
+    checkEmptyCart();
 
     // Event Delegation for Quantity Buttons and Remove Buttons
-    document.querySelector('.cart-items').addEventListener('click', async function (e) {
-        // Increase Quantity
-        if (e.target.closest('.qty-btn.plus')) {
-            const row = e.target.closest('.cart-item');
-            const cartId = row.dataset.cartId;
-            await updateQuantity(cartId, 'increase', row);
-            updateCartTotals();
-            updateRowTotal(row)
-        }
+    const cartItemsContainer = document.querySelector('.cart-items');
+    if (cartItemsContainer) {
+        cartItemsContainer.addEventListener('click', async function (e) {
 
-        // Decrease Quantity
-        if (e.target.closest('.qty-btn.minus')) {
-            const row = e.target.closest('.cart-item');
-            const input = row.querySelector('.qty-input');
-            let val = parseInt(input.value)
-            const cartId = row.dataset.cartId;
-            if (val > 1) {
-                await updateQuantity(cartId, 'decrease', row);
-                updateCartTotals();
-                updateRowTotal(row)
+            // Quantity Increase
+            if (e.target.closest('.qty-btn.plus')) {
+                const btn = e.target.closest('.qty-btn.plus');
+                if (btn.disabled) return;
+
+                const row = btn.closest('.cart-item');
+                const cartId = row.dataset.cartId;
+                const updateUrl = cartItemsContainer.dataset.updateUrl;
+
+                await updateQuantity(updateUrl, cartId, 'increase');
             }
-        }
 
-        // Remove Item
-        if (e.target.closest('.remove-btn')) {
-            const row = e.target.closest('.cart-item');
-            const cartId = row.dataset.cartId;
+            // Quantity Decrease
+            if (e.target.closest('.qty-btn.minus')) {
+                const btn = e.target.closest('.qty-btn.minus');
+                if (btn.disabled) return;
 
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "Do you really want to remove this item from your cart?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, remove it!'
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    await removeCart(cartId, row)
-                    updateCartTotals();
-                    updateRowTotal(row)
-                    Swal.fire(
-                        'Removed!',
-                        'Item has been removed from your cart.',
-                        'success'
-                    )
-                }
-            })
-        }
-    });
+                const row = btn.closest('.cart-item');
+                const cartId = row.dataset.cartId;
+                const updateUrl = cartItemsContainer.dataset.updateUrl;
 
-    // Handle Manual Input Change
-    document.querySelectorAll('.qty-input').forEach(input => {
-        input.addEventListener('change', function (e) {
-            let val = parseInt(e.target.value);
-            if (isNaN(val) || val < 1) {
-                e.target.value = 1;
+                await updateQuantity(updateUrl, cartId, 'decrease');
             }
-            updateRowTotal(e.target.closest('.cart-item'));
-            updateCartTotals();
+
+            // Remove Item
+            if (e.target.closest('.remove-btn')) {
+                const btn = e.target.closest('.remove-btn');
+                const removeUrl = btn.dataset.removeUrl;
+
+                confirmRemove(removeUrl);
+            }
         });
-    });
-
-    function updateRowTotal(row) {
-        const price = parseFloat(row.dataset.price);
-        const qty = parseInt(row.querySelector('.qty-input').value);
-        let rowTotal = price * qty;
-
-        const priceEl = row.querySelector('.item-price');
-        if (priceEl) priceEl.textContent = `₹${rowTotal.toFixed(2)}`;
     }
 
-    function updateCartTotals() {
-        let subtotal = 0;
-        let count = 0;
-
-        document.querySelectorAll('.cart-item').forEach(item => {
-            const price = parseFloat(item.dataset.price);
-            const qty = parseInt(item.querySelector('.qty-input').value);
-            subtotal += price * qty;
-            count += qty
-        });
-
-        // Dummy discount logic (e.g., 10% if subtotal > 1000)
-        // let discount = 0;
-        // if (subtotal > 3000) {
-        //     discount = subtotal * 0.1;
-        // }
-
-        let total = subtotal // - discount;
-
-        // Update DOM
-        if (subtotalEl) subtotalEl.textContent = `₹${subtotal.toFixed(2)}`;
-        // if (discountEl) discountEl.textContent = `-₹${discount.toFixed(2)}`;
-        if (totalEl) totalEl.textContent = `₹${total.toFixed(2)}`;
-        if (itemCountEl) itemCountEl.textContent = `(${count} items)`;
-    }
-
-    async function updateQuantity(cartId, action, row) {
-        const input = row.querySelector('.qty-input');
-        const originalValue = input.value;
-
+    async function updateQuantity(url, cartId, action) {
         try {
-            const response = await fetch('/cart/update-quantity/', {
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -144,60 +63,94 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
 
             if (response.ok && data.success) {
-                // Update UI with new quantity
-                input.value = data.new_quantity;
+                // Reload to update totals and UI from backend
+                location.reload();
             } else {
-                // Revert on error
-                input.value = originalValue;
-                Swal.fire(
-                    'Max Limit achived',
-                    data.error,
-                    'error'
-                );
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: data.error || 'Cannot update quantity',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
             }
         } catch (error) {
-            input.value = originalValue;
             console.error('AJAX error:', error);
-            Swal.fire('Error!', 'Network error. Please try again.', 'error');
+            Swal.fire({
+                icon: 'error',
+                title: 'Network Error',
+                text: 'Please try again later.',
+            });
         }
     }
 
-    async function removeCart(cartId, row) {
+    function confirmRemove(url) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you really want to remove this item?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, remove it!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                await removeCartItem(url);
+            }
+        });
+    }
+
+    async function removeCartItem(url) {
         try {
-            const response = await fetch(`/cart/remove/${cartId}`, {
-                method: 'POST',
+            const response = await fetch(url, {
+                method: 'POST', // The view likely expects POST for deletion safety
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({
-                    cart_id: cartId,
-                })
+                body: JSON.stringify({})
             });
 
             const data = await response.json();
 
             if (response.ok && data.success) {
-                row.remove();
-                // Check if cart is empty
-                if (document.querySelectorAll('.cart-item').length === 0) {
-                    document.querySelector('.cart-grid').innerHTML = `
-                        <div class="col-span-full text-center py-20">
-                            <h2 class="text-2xl font-bold mb-4">Your cart is empty</h2>
-                            <a href="/auth/product/listing/" class="text-blue-600 hover:underline">Continue Shopping</a>
-                        </div>
-                    `;
-                }
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Removed!',
+                    text: 'Item has been removed.',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    location.reload();
+                });
             } else {
-                // Revert on error
-                input.value = originalValue;
-                alert(data.error || 'Failed to update quantity.');
+                Swal.fire('Error', data.error || 'Failed to remove item.', 'error');
             }
 
-        }
-        catch (error) {
+        } catch (error) {
             console.error('AJAX error:', error);
-            alert('Network error. Please try again.');
+            Swal.fire('Error', 'Network error. Please try again.', 'error');
+        }
+    }
+
+    function checkEmptyCart() {
+        if (document.querySelectorAll('.cart-item').length === 0) {
+            const grid = document.querySelector('.cart-grid');
+            if (grid) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-20">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Your cart is empty</h2>
+                        <a href="/product/listing" class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-2">
+                             Start Shopping
+                        </a>
+                    </div>
+                `;
+            }
+            // Hide order summary if cart is empty (optional, but good UX)
+            const summary = document.querySelector('.order-summary-container');
+            if (summary) summary.style.display = 'none';
         }
     }
 

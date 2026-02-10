@@ -228,11 +228,6 @@ class CartView(LoginRequiredMixin, ListView):
 
         context['summary'] = summary
 
-        # for items in cart_items:
-        #     print(items)
-        # print('////////////////////////////////////////////////////////////////////////////////////////')
-        # print(summary)
-
         return context
 
 
