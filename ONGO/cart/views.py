@@ -1,8 +1,9 @@
 # from django.shortcuts import redirect
 from django.views.generic import ListView
+from django.db.models import Q, F, Count
 from .models import Cart
 from offers.models import GlobalOffer
-# from coupons.models import Coupon
+from coupons.models import Coupon, CouponUsage
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from django.views.decorators.cache import never_cache
@@ -15,6 +16,11 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from django.contrib.auth.decorators import login_required
+
+from .utils import get_cart_base_total, validate_and_apply_coupon  # Ensure utils.py exists
+from django.views.decorators.http import require_http_methods
+from django.utils import timezone
+from decimal import Decimal
 
 import json
 
@@ -228,6 +234,62 @@ class CartView(LoginRequiredMixin, ListView):
             "applied_global_offers": applied_global_offers,
         }
 
+        # coupon integration
+
+        applied_coupon_details = None
+        coupon_discount = Decimal('0.00')
+        coupon_free_shipping = False
+
+        if 'applied_coupon' in self.request.session:
+            coupon_code = self.request.session['applied_coupon']
+            base_total_for_coupon = Decimal(str(summary['total_payable']))  # After global offers, before shipping
+
+            is_valid, discount, free_shipping, error_msg = validate_and_apply_coupon(
+                self.request.user,
+                coupon_code,
+                base_total_for_coupon
+            )
+
+            if is_valid:
+                coupon_discount = discount
+                coupon_free_shipping = free_shipping
+                applied_coupon_details = {
+                    'code': coupon_code,
+                    'discount_amount': float(discount),
+                    'type': 'percent' if discount > 0 else 'free_shipping',
+                    'free_shipping': free_shipping
+                }
+
+                # Apply discount to base total
+                summary['total_payable'] = float(base_total_for_coupon - discount)
+
+                # Override shipping if coupon provides free shipping
+                if coupon_free_shipping:
+                    summary['shipping'] = 0
+                    # Add to applied offers for UI consistency
+                    summary['applied_global_offers'].append({
+                        "id": None,
+                        "name": f"Coupon {coupon_code} - Free Shipping",
+                        "type": "free_shipping",
+                        "value": 0,
+                        "discount_amount": summary['shipping']
+                    })
+
+                # Track coupon discount separately
+                summary['coupon_discount'] = float(coupon_discount)
+            else:
+                # Coupon became invalid (cart changed) - remove from session
+                del self.request.session['applied_coupon']
+                self.request.session.modified = True
+                logger.warning(f"Coupon {coupon_code} invalidated for user {self.request.user.id}: {error_msg}")
+
+        # Update final total after coupon adjustments
+        summary['total_payable'] = round(
+            Decimal(str(summary['total_payable'])) + Decimal(str(summary['shipping'])),
+            2
+        )
+        summary['applied_coupon'] = applied_coupon_details
+
         context['summary'] = summary
 
         return context
@@ -289,3 +351,115 @@ def DeleteCartView(request, pk):
             return JsonResponse({'success': False, 'error': 'An error occurred while deleting the cart.'}, status=500)
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=400)
+
+
+@method_decorator([never_cache, login_required], name='dispatch')
+class ListCouponsView(View):
+    """
+    Returns coupons eligible for CURRENT USER (checks usage limits)
+    Does NOT filter by min_order_amount (handled at apply time)
+    """
+    def get(self, request):
+        now = timezone.now()
+        eligible_coupons = []
+
+        # Get coupons active in time window
+        coupons = Coupon.objects.filter(
+            active=True,
+            start_date__lte=now
+        ).filter(
+            Q(end_date__isnull=True) | Q(end_date__gte=now)
+        ).annotate(
+            total_usage=Count('usage')
+        ).filter(
+            total_usage__lt=F('usage_limit')
+        )
+
+        # Filter by user's remaining usage
+        for coupon in coupons:
+            user_usage = CouponUsage.objects.filter(
+                user=request.user,
+                coupon=coupon
+            ).count()
+
+            if user_usage < coupon.per_user_limit:
+                eligible_coupons.append({
+                    'code': coupon.coupon_code,
+                    'type': coupon.discount_type,
+                    'value': float(coupon.value),
+                    'min_order_amount': float(coupon.min_order_amount) if coupon.min_order_amount else None,
+                    'description': (
+                        f"{coupon.value}% OFF" if coupon.discount_type == 'percent'
+                        else f"₹{coupon.value} OFF" if coupon.discount_type == 'fixed'
+                        else "Free Shipping"
+                    ),
+                    'max_discount': float(coupon.max_discount) if coupon.max_discount else None
+                })
+
+        return JsonResponse({'coupons': eligible_coupons})
+
+
+# ====== APPLY COUPON VIEW ======
+@method_decorator([csrf_exempt, login_required, never_cache], name='dispatch')
+class ApplyCouponView(View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            coupon_code = data.get('coupon_code', '').strip()
+
+            if not coupon_code:
+                return JsonResponse({'error': 'Coupon code is required'}, status=400)
+
+            if request.session.applied_coupon:
+                return JsonResponse({
+                    'error': 'Coupon is alredy applied.. if you want to apply new coupon delete the applied coupon..'
+                })
+
+            # Get current cart state (matches CartView logic)
+            base_total, current_shipping, _ = get_cart_base_total(request.user)
+
+            # Validate and calculate discount
+            is_valid, discount, free_shipping, error_msg = validate_and_apply_coupon(
+                request.user,
+                coupon_code,
+                base_total
+            )
+
+            if not is_valid:
+                return JsonResponse({'error': error_msg}, status=400)
+
+            # Store in session (only coupon code - recalc on render for safety)
+            request.session['applied_coupon'] = coupon_code.upper()
+            request.session.modified = True
+
+            # Calculate new totals for immediate frontend update
+            new_base_total = base_total - discount
+            new_shipping = Decimal('0.00') if free_shipping else current_shipping
+            new_total = new_base_total + new_shipping
+
+            return JsonResponse({
+                'success': True,
+                'discount_amount': float(discount),
+                'new_base_total': float(new_base_total),
+                'new_shipping': float(new_shipping),
+                'new_total': float(new_total),
+                'free_shipping_applied': free_shipping,
+                'coupon_code': coupon_code.upper(),
+                'message': 'Coupon applied successfully!'
+            })
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON payload'}, status=400)
+        except Exception as e:
+            logger.error(f"Coupon apply error: {str(e)}", exc_info=True)
+            return JsonResponse({'error': 'Internal server error'}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+@never_cache
+def remove_coupon(request):
+    if 'applied_coupon' in request.session:
+        del request.session['applied_coupon']
+        request.session.modified = True
+    return JsonResponse({'success': True, 'message': 'Coupon removed'})
