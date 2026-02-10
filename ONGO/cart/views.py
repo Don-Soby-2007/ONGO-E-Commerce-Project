@@ -47,6 +47,7 @@ class CartView(LoginRequiredMixin, ListView):
 
         items_subtotal = 0
         total_payable = 0
+        shipping = 100
         applied_global_offers = []
 
         for cart_item in self.get_queryset():
@@ -154,22 +155,69 @@ class CartView(LoginRequiredMixin, ListView):
 
         context['cart_items'] = cart_items
 
-        global_offers = GlobalOffer.objects.filter(min_cart_value__gte=total_payable, active=True)
+        global_offers = GlobalOffer.objects.filter(min_cart_value__lte=total_payable, active=True).order_by('-priority')
+
+        for offer in global_offers:
+            if not offer.is_active_now():
+                continue
+
+            if offer.discount_type == 'percent':
+                discount_amount = round(
+                    total_payable * (offer.value / 100), 2
+                )
+
+                if offer.max_discount:
+                    discount_amount = min(discount_amount, offer.max_discount)
+
+                total_payable -= discount_amount
+
+                applied_global_offers.append({
+                    "id": offer.id,
+                    "name": f"Cart {offer.value}% OFF",
+                    "type": "percent",
+                    "value": offer.value,
+                    "discount_amount": discount_amount
+                })
+
+            elif offer.discount_type == 'fixed':
+                discount_amount = min(offer.value, total_payable)
+
+                total_payable -= discount_amount
+
+                applied_global_offers.append({
+                    "id": offer.id,
+                    "name": f"Cart ₹{offer.value} OFF",
+                    "type": "fixed",
+                    "value": offer.value,
+                    "discount_amount": discount_amount
+                })
+
+        for offer in global_offers:
+            if offer.discount_type == 'free_shipping' and offer.is_active_now():
+                shipping = 0
+                applied_global_offers.append({
+                    "id": offer.id,
+                    "name": "Free Shipping",
+                    "type": "free_shipping",
+                    "value": 0,
+                    "discount_amount": shipping
+                })
+                break
 
         summary = {
             "items_subtotal": round(items_subtotal, 2),
             "cart_discount": round(items_subtotal-total_payable, 2),
-            "shipping": 0,
+            "shipping": shipping,
             "tax": 0,
             "total_payable": total_payable,
             "applied_global_offers": applied_global_offers,
         }
 
         context['summary'] = summary
-        # for items in cart_items:
-        #     print(items)
-        # print('////////////////////////////////////////////////////////////////////////////////////////')
-        # print(summary)
+        for items in cart_items:
+            print(items)
+        print('////////////////////////////////////////////////////////////////////////////////////////')
+        print(summary)
 
         return context
 
