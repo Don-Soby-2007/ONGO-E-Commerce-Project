@@ -161,9 +161,11 @@ class CartView(LoginRequiredMixin, ListView):
             if not offer.is_active_now():
                 continue
 
+            offer_value = float(offer.value)
+
             if offer.discount_type == 'percent':
                 discount_amount = round(
-                    total_payable * (offer.value / 100), 2
+                    total_payable * (offer_value / 100), 2
                 )
 
                 if offer.max_discount:
@@ -173,22 +175,22 @@ class CartView(LoginRequiredMixin, ListView):
 
                 applied_global_offers.append({
                     "id": offer.id,
-                    "name": f"Cart {offer.value}% OFF",
+                    "name": f"Cart {offer_value}% OFF",
                     "type": "percent",
-                    "value": offer.value,
+                    "value": offer_value,
                     "discount_amount": discount_amount
                 })
 
             elif offer.discount_type == 'fixed':
-                discount_amount = min(offer.value, total_payable)
+                discount_amount = min(offer_value, total_payable)
 
                 total_payable -= discount_amount
 
                 applied_global_offers.append({
                     "id": offer.id,
-                    "name": f"Cart ₹{offer.value} OFF",
+                    "name": f"Cart ₹{offer_value} OFF",
                     "type": "fixed",
-                    "value": offer.value,
+                    "value": offer_value,
                     "discount_amount": discount_amount
                 })
 
@@ -214,10 +216,11 @@ class CartView(LoginRequiredMixin, ListView):
         }
 
         context['summary'] = summary
-        for items in cart_items:
-            print(items)
-        print('////////////////////////////////////////////////////////////////////////////////////////')
-        print(summary)
+
+        # for items in cart_items:
+        #     print(items)
+        # print('////////////////////////////////////////////////////////////////////////////////////////')
+        # print(summary)
 
         return context
 
