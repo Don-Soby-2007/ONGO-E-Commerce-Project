@@ -2,6 +2,7 @@
 from django.views.generic import ListView
 from .models import Cart
 from offers.models import GlobalOffer
+# from coupons.models import Coupon
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from django.views.decorators.cache import never_cache
@@ -49,6 +50,7 @@ class CartView(LoginRequiredMixin, ListView):
         total_payable = 0
         shipping = 100
         applied_global_offers = []
+        applicable_global_offers = []
 
         from collections import defaultdict
         category_quantities = defaultdict(int)
@@ -182,9 +184,7 @@ class CartView(LoginRequiredMixin, ListView):
                 if offer.max_discount:
                     discount_amount = min(discount_amount, offer.max_discount)
 
-                total_payable -= discount_amount
-
-                applied_global_offers.append({
+                applicable_global_offers.append({
                     "id": offer.id,
                     "name": f"Cart {offer_value}% OFF",
                     "type": "percent",
@@ -195,9 +195,7 @@ class CartView(LoginRequiredMixin, ListView):
             elif offer.discount_type == 'fixed':
                 discount_amount = min(offer_value, total_payable)
 
-                total_payable -= discount_amount
-
-                applied_global_offers.append({
+                applicable_global_offers.append({
                     "id": offer.id,
                     "name": f"Cart ₹{offer_value} OFF",
                     "type": "fixed",
@@ -216,6 +214,10 @@ class CartView(LoginRequiredMixin, ListView):
                     "discount_amount": shipping
                 })
                 break
+
+        top_global_offer = max(applicable_global_offers, key=lambda x: x['value'])
+        total_payable -= top_global_offer['value']
+        applied_global_offers.append(top_global_offer)
 
         summary = {
             "items_subtotal": round(items_subtotal, 2),
@@ -247,7 +249,7 @@ class QtyChangeView(LoginRequiredMixin, View):
                     cart_item.quantity += 1
                 else:
                     return JsonResponse({
-                        'error': 'Max quantity reached or insufficient stock.'
+                        'error': 'Insufficient stock or ............. Max quantity reached'
                     }, status=400)
             elif action == 'decrease':
                 if cart_item.quantity > 1:
