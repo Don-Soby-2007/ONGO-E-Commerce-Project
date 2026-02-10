@@ -50,6 +50,13 @@ class CartView(LoginRequiredMixin, ListView):
         shipping = 100
         applied_global_offers = []
 
+        from collections import defaultdict
+        category_quantities = defaultdict(int)
+
+        for cart_item in self.get_queryset():
+            cat_id = cart_item.product_variant.product.category.id
+            category_quantities[cat_id] += cart_item.quantity
+
         for cart_item in self.get_queryset():
             variant = cart_item.product_variant
             product = variant.product
@@ -71,10 +78,17 @@ class CartView(LoginRequiredMixin, ListView):
             )
             category_offer = (
                     product.category.offer
-                    .filter(active=True, min_items=1)
+                    .filter(active=True)
                     .order_by('-priority')
                     .first()
                 )
+
+            category_eligible = False
+            if category_offer and category_offer.is_active_now():
+                required_min = category_offer.min_items
+                actual_in_cart = category_quantities.get(product.category.id, 0)
+                if actual_in_cart >= required_min:
+                    category_eligible = True
 
             if product_offer and product_offer.is_active_now():
                 offer_type = product_offer.discount_type
@@ -90,18 +104,19 @@ class CartView(LoginRequiredMixin, ListView):
 
             if category_offer and category_offer.is_active_now():
 
-                if offer_type == 'percent':
-                    category_offer_price = variant_price * (1 - offer_value / 100)
-                elif offer_type == 'fixed':
-                    category_offer_price = max(0, variant_price - offer_value)
+                if category_eligible:
+                    if offer_type == 'percent':
+                        category_offer_price = variant_price * (1 - offer_value / 100)
+                    elif offer_type == 'fixed':
+                        category_offer_price = max(0, variant_price - offer_value)
 
-                if category_offer_price < offer_price:
-                    offer_price = category_offer_price
+                    if category_offer_price < offer_price:
+                        offer_price = category_offer_price
 
-                    offer_type = category_offer.discount_type
-                    offer_value = float(category_offer.value)
-                    has_offer = True
-                    offer_scope = 'category'
+                        offer_type = category_offer.discount_type
+                        offer_value = float(category_offer.value)
+                        has_offer = True
+                        offer_scope = 'category'
 
             image_obj = variant.images.filter(is_primary=True).first()
             if not image_obj:
