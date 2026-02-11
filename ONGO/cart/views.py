@@ -16,7 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from django.contrib.auth.decorators import login_required
 
-from .utils import get_cart_details, validate_and_apply_coupon  # Ensure utils.py exists
+from .utils import get_cart_items_for_user, validate_and_apply_coupon  # Ensure utils.py exists
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from decimal import Decimal
@@ -38,7 +38,7 @@ class CartView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        cart_items, summary = get_cart_details(self.request.user)
+        cart_items, summary = get_cart_items_for_user(self.request.user)
 
         context['summary'] = summary
         context['cart_items'] = cart_items
