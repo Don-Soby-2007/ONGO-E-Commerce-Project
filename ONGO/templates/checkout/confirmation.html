@@ -76,27 +76,78 @@
         </div>
 
         <!-- Items Review -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-            <h2 class="text-lg font-semibold mb-4 text-gray-900">Items (3)</h2>
-            <div class="space-y-6">
-                {% for item in cart_items %}
-                <!-- Item -->
-                <div class="cart-items flex gap-4 border-b border-gray-100 pb-4 last:border-0 last:pb-0" data-price='{{item.price}}' data-quantity='{{item.quantity}}'>
-                    <div class="w-20 h-20 bg-gray-100 rounded-md flex-shrink-0 overflow-hidden">
-                        <img src="{{item.image_url}}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="flex-1">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="font-medium text-gray-900">{{item.product_name}}</h3>
-                                <p class="text-sm text-gray-500 mt-1">Size: {{item.size}} | Color: {{item.color}}</p>
-                            </div>
-                            <p class="font-semibold text-gray-900">₹{{item.price}}</p>
-                        </div>
-                        <p class="text-sm text-gray-500 mt-2">Qty: {{item.quantity}}</p>
-                    </div>
-                </div>
-                {% endfor %}
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+            <h2 class="text-lg font-semibold mb-4 text-gray-900">Items ({{ cart_items|length }})</h2>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Product</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Variant</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Unit Price</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Qty</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Discount</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Line Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for item in cart_items %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="h-10 w-10 flex-shrink-0">
+                                        <img class="h-10 w-10 rounded-full object-cover border border-gray-200"
+                                            src="{{ item.image_url }}" alt="{{ item.product_name }}">
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900 truncate max-w-xs"
+                                            title="{{ item.product_name }}">{{ item.product_name }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-500">
+                                    {% if item.color %}<span
+                                        class="inline-block px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800">
+                                        {{ item.color }}</span>{% endif %}
+                                    {% if item.size %}<span
+                                        class="inline-block px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800 ml-1">
+                                        {{ item.size }}</span>{% endif %}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+                                ₹{{ item.unit_price }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                {{ item.quantity }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-green-600 font-medium">
+                                {% if item.total_discount > 0 %}
+                                -₹{{ item.total_discount }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900">
+                                ₹{{ item.line_total }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -117,23 +168,30 @@
             <div class="space-y-3 text-sm text-gray-600">
                 <div class="flex justify-between">
                     <span>Subtotal</span>
-                    <span id='subtotal'>₹0.00</span>
+                    <span class="font-medium text-gray-900">₹{{ cart_summary.items_subtotal }}</span>
                 </div>
+
+                {% if cart_summary.cart_discount > 0 %}
+                <div class="flex justify-between text-green-600">
+                    <span>Discount</span>
+                    <span>-₹{{ cart_summary.cart_discount }}</span>
+                </div>
+                {% endif %}
+
                 <div class="flex justify-between">
                     <span>Shipping</span>
-                    <span class="text-green-600">Free</span>
+                    <span class="text-green-600 font-medium">{% if cart_summary.shipping == 0 %}Free{% else %}
+                        ₹{{ cart_summary.shipping }}{% endif %}</span>
                 </div>
+
                 <div class="flex justify-between">
                     <span>Tax</span>
-                    <span id='tax'>₹0.00</span>
+                    <span>₹{{ cart_summary.tax }}</span>
                 </div>
-                {% comment %} <div class="flex justify-between text-green-600 font-medium">
-                    <span>Coupon (WELCOME10)</span>
-                    <span>-₹0.00</span>
-                </div> {% endcomment %}
+
                 <div class="flex justify-between text-lg font-bold text-gray-900 pt-4 border-t border-gray-100 mt-2">
                     <span>Total Amount</span>
-                    <span id='total'>₹0.00</span>
+                    <span>₹{{ cart_summary.total_payable }}</span>
                 </div>
             </div>
 
