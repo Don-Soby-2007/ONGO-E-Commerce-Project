@@ -131,6 +131,7 @@ def get_cart_items_for_user(user):
             "quantity": cart_item.quantity,
             "max_qty_allowed": 5,
             "in_stock": variant.is_in_stock,
+            "stock": variant.stock,
             # Pricing (unit-level) - ROUNDED FOR DISPLAY
             "unit_price": float(_round_currency(original_price)),
             "offer_price": float(_round_currency(offer_price)),

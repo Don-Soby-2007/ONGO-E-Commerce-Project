@@ -2,34 +2,8 @@ import weasyprint
 from django.template.loader import render_to_string
 from django.core.files.base import ContentFile
 from .models import Invoice
-from cart.models import Cart
 
 from django.contrib.staticfiles import finders
-
-
-def get_cart_items_for_user(user):
-    cart_items = []
-    cart = Cart.objects.filter(user=user).select_related(
-        'product_variant__product'
-    ).prefetch_related('product_variant__images')
-
-    for item in cart:
-        variant = item.product_variant
-        product = variant.product
-        image_obj = variant.images.filter(is_primary=True).first() or variant.images.first()
-        image_url = image_obj.image_url if image_obj else "https://via.placeholder.com/150?text=No+Image"
-        cart_items.append({
-            'id': item.id,
-            'product_name': product.name,
-            'price': float(variant.final_price),
-            'quantity': item.quantity,
-            'image_url': image_url,
-            'size': variant.size,
-            'color': variant.color,
-            'stock': variant.stock,
-            'in_stock': variant.is_in_stock,
-        })
-    return cart_items
 
 
 def generate_invoice_pdf(order):
