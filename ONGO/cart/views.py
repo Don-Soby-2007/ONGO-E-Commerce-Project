@@ -16,10 +16,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 from django.contrib.auth.decorators import login_required
 
-from .utils import get_cart_items_for_user, validate_and_apply_coupon  # Ensure utils.py exists
-from django.views.decorators.http import require_http_methods
+from .utils import get_cart_items_for_user
 from django.utils import timezone
-from decimal import Decimal
 
 import json
 
@@ -149,68 +147,66 @@ class ListCouponsView(View):
 
         return JsonResponse({'coupons': eligible_coupons})
 
+# @method_decorator([csrf_exempt, login_required, never_cache], name='dispatch')
+# class ApplyCouponView(View):
+#     def post(self, request):
+#         try:
+#             data = json.loads(request.body)
+#             coupon_code = data.get('coupon_code', '').strip()
 
-# ====== APPLY COUPON VIEW ======
-@method_decorator([csrf_exempt, login_required, never_cache], name='dispatch')
-class ApplyCouponView(View):
-    def post(self, request):
-        try:
-            data = json.loads(request.body)
-            coupon_code = data.get('coupon_code', '').strip()
+#             if not coupon_code:
+#                 return JsonResponse({'error': 'Coupon code is required'}, status=400)
 
-            if not coupon_code:
-                return JsonResponse({'error': 'Coupon code is required'}, status=400)
+#             if request.session.applied_coupon:
+#                 return JsonResponse({
+#                     'error': 'Coupon is alredy applied.. if you want to apply new coupon delete the applied coupon..'
+#                 })
 
-            if request.session.applied_coupon:
-                return JsonResponse({
-                    'error': 'Coupon is alredy applied.. if you want to apply new coupon delete the applied coupon..'
-                })
+#             # Get current cart state (matches CartView logic)
+#             base_total, current_shipping, _ = get_cart_base_total(request.user)
 
-            # Get current cart state (matches CartView logic)
-            base_total, current_shipping, _ = get_cart_base_total(request.user)
+#             # Validate and calculate discount
+#             is_valid, discount, free_shipping, error_msg = validate_and_apply_coupon(
+#                 request.user,
+#                 coupon_code,
+#                 base_total
+#             )
 
-            # Validate and calculate discount
-            is_valid, discount, free_shipping, error_msg = validate_and_apply_coupon(
-                request.user,
-                coupon_code,
-                base_total
-            )
+#             if not is_valid:
+#                 return JsonResponse({'error': error_msg}, status=400)
 
-            if not is_valid:
-                return JsonResponse({'error': error_msg}, status=400)
+#             # Store in session (only coupon code - recalc on render for safety)
+#             request.session['applied_coupon'] = coupon_code.upper()
+#             request.session.modified = True
 
-            # Store in session (only coupon code - recalc on render for safety)
-            request.session['applied_coupon'] = coupon_code.upper()
-            request.session.modified = True
+#             # Calculate new totals for immediate frontend update
+#             new_base_total = base_total - discount
+#             new_shipping = Decimal('0.00') if free_shipping else current_shipping
+#             new_total = new_base_total + new_shipping
 
-            # Calculate new totals for immediate frontend update
-            new_base_total = base_total - discount
-            new_shipping = Decimal('0.00') if free_shipping else current_shipping
-            new_total = new_base_total + new_shipping
+#             return JsonResponse({
+#                 'success': True,
+#                 'discount_amount': float(discount),
+#                 'new_base_total': float(new_base_total),
+#                 'new_shipping': float(new_shipping),
+#                 'new_total': float(new_total),
+#                 'free_shipping_applied': free_shipping,
+#                 'coupon_code': coupon_code.upper(),
+#                 'message': 'Coupon applied successfully!'
+#             })
 
-            return JsonResponse({
-                'success': True,
-                'discount_amount': float(discount),
-                'new_base_total': float(new_base_total),
-                'new_shipping': float(new_shipping),
-                'new_total': float(new_total),
-                'free_shipping_applied': free_shipping,
-                'coupon_code': coupon_code.upper(),
-                'message': 'Coupon applied successfully!'
-            })
-
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON payload'}, status=400)
-        except Exception as e:
-            logger.error(f"Coupon apply error: {str(e)}", exc_info=True)
-            return JsonResponse({'error': 'Internal server error'}, status=500)
+#         except json.JSONDecodeError:
+#             return JsonResponse({'error': 'Invalid JSON payload'}, status=400)
+#         except Exception as e:
+#             logger.error(f"Coupon apply error: {str(e)}", exc_info=True)
+#             return JsonResponse({'error': 'Internal server error'}, status=500)
 
 
-@require_http_methods(["POST"])
-@login_required
-@never_cache
-def remove_coupon(request):
-    if 'applied_coupon' in request.session:
-        del request.session['applied_coupon']
-        request.session.modified = True
-    return JsonResponse({'success': True, 'message': 'Coupon removed'})
+# @require_http_methods(["POST"])
+# @login_required
+# @never_cache
+# def remove_coupon(request):
+#     if 'applied_coupon' in request.session:
+#         del request.session['applied_coupon']
+#         request.session.modified = True
+#     return JsonResponse({'success': True, 'message': 'Coupon removed'})

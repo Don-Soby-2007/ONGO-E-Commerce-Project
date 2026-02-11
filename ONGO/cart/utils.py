@@ -191,7 +191,10 @@ def get_cart_items_for_user(user):
         total_payable_exact = _round_currency(total_payable_exact)
 
     for offer in global_offers:
-        if (offer.discount_type == 'free_shipping' and offer.is_active_now() and _to_decimal(offer.min_cart_value) <= total_payable_exact):
+        if (
+            offer.discount_type == 'free_shipping' and offer.is_active_now()
+            and _to_decimal(offer.min_cart_value) <= total_payable_exact
+        ):
             shipping = Decimal('0')
             applied_global_offers.append({
                 "id": offer.id,
@@ -232,7 +235,8 @@ def validate_and_apply_coupon(user, coupon_code, base_total):
     # Check user-specific usage limit
     user_usage = CouponUsage.objects.filter(user=user, coupon=coupon).count()
     if user_usage >= coupon.per_user_limit:
-        return False, Decimal('0.00'), False, f"You've used this coupon {user_usage} times (limit: {coupon.per_user_limit})"
+        return (False, Decimal('0.00'), False,
+                f"You've used this coupon {user_usage} times (limit: {coupon.per_user_limit})")
 
     # Check min order amount against BASE TOTAL (after other discounts)
     if coupon.min_order_amount and base_total < coupon.min_order_amount:
