@@ -125,14 +125,21 @@
                 </div>
 
                 <!-- Coupon Code -->
-                <div class="mb-6">
+                <div class="flex flex-col gap-3">
+                    <!-- Coupon Input -->
                     <div class="flex gap-2">
-                        <input type="text" placeholder="Coupon Code"
-                            class="flex-1 border-gray-300 rounded-md text-sm py-2 px-3 focus:ring-red-500 focus:border-red-500">
-                        <button type="button"
-                            class="bg-gray-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition-colors">
-                            Apply
-                        </button>
+                        <input 
+                        type="text" 
+                        placeholder="Coupon Code" 
+                        class="flex-1 border border-gray-300 rounded-md text-sm py-2 px-3 focus:ring-red-500 focus:border-red-500 outline-none"
+                        />
+                        <button class="bg-red-500 text-white text-sm py-2 px-4 rounded-md hover:bg-red-600">Apply</button>
+                    </div>
+
+                    <!-- Find Coupons Link with Smaller Icon -->
+                    <div class="flex items-center gap-2 mb-3  [&_svg]:w-4 [&_svg]:h-4">
+                        <i data-lucide="squares-exclude" data-lucide-size="14" class="text-orange-400"></i>
+                        <a href="#" class="text-sm text-orange-500 hover:text-orange-600">Find coupons?...</a>
                     </div>
                 </div>
 
