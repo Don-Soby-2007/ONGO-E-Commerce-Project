@@ -18,7 +18,7 @@ def _round_currency(value):
     return value.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
 
-def get_cart_items_for_user(user):
+def get_cart_items_for_user(request, user):
     cart = Cart.objects.filter(user=user).select_related(
         'product_variant',
         'product_variant__product',
@@ -204,14 +204,32 @@ def get_cart_items_for_user(user):
             })
             break
 
+    if 'applied_coupon' in request.session:
+        applied_coupon = request.session.get('applied_coupon')
+        coupon_discount_exact = Decimal('0.00')
+
+        if applied_coupon:
+
+            discount_str = applied_coupon.get('discount_amount', '0.00')
+            coupon_discount_exact = _to_decimal(discount_str)
+
+            if applied_coupon.get('free_shipping'):
+                shipping = Decimal('0.00')
+
+            coupon_discount_exact = min(coupon_discount_exact, total_payable_exact)
+            total_payable_exact -= coupon_discount_exact
+            total_payable_exact = max(total_payable_exact, Decimal('0.00'))
+
     cart_discount_exact = items_subtotal_exact - total_payable_exact
+
     summary = {
         "items_subtotal": float(_round_currency(items_subtotal_exact)),
         "cart_discount": float(_round_currency(cart_discount_exact)),
         "shipping": float(_round_currency(shipping)),
         "tax": 0.0,
-        "total_payable": float(_round_currency(total_payable_exact)),
+        "total_payable": float(_round_currency(total_payable_exact + shipping)),
         "applied_global_offers": applied_global_offers,
+        "applied_coupon": request.session.get('applied_coupon', {})
     }
 
     return cart_items, summary
