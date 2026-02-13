@@ -1,8 +1,8 @@
 # from django.shortcuts import redirect
 from django.views.generic import TemplateView
-from django.db.models import Q, F, Count
+# from django.db.models import Q, F, Count
 from .models import Cart
-from coupons.models import Coupon, CouponUsage
+# from coupons.models import Coupon, CouponUsage
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from django.views.decorators.cache import never_cache
@@ -17,7 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 
 from .utils import get_cart_items_for_user
-from django.utils import timezone
+# from django.utils import timezone
 
 import json
 
@@ -102,50 +102,50 @@ def DeleteCartView(request, pk):
     return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=400)
 
 
-@method_decorator([never_cache, login_required], name='dispatch')
-class ListCouponsView(View):
-    """
-    Returns coupons eligible for CURRENT USER (checks usage limits)
-    Does NOT filter by min_order_amount (handled at apply time)
-    """
-    def get(self, request):
-        now = timezone.now()
-        eligible_coupons = []
+# @method_decorator([never_cache, login_required], name='dispatch')
+# class ListCouponsView(View):
+#     """
+#     Returns coupons eligible for CURRENT USER (checks usage limits)
+#     Does NOT filter by min_order_amount (handled at apply time)
+#     """
+#     def get(self, request):
+#         now = timezone.now()
+#         eligible_coupons = []
 
-        # Get coupons active in time window
-        coupons = Coupon.objects.filter(
-            active=True,
-            start_date__lte=now
-        ).filter(
-            Q(end_date__isnull=True) | Q(end_date__gte=now)
-        ).annotate(
-            total_usage=Count('usage')
-        ).filter(
-            total_usage__lt=F('usage_limit')
-        )
+#         # Get coupons active in time window
+#         coupons = Coupon.objects.filter(
+#             active=True,
+#             start_date__lte=now
+#         ).filter(
+#             Q(end_date__isnull=True) | Q(end_date__gte=now)
+#         ).annotate(
+#             total_usage=Count('usage')
+#         ).filter(
+#             total_usage__lt=F('usage_limit')
+#         )
 
-        # Filter by user's remaining usage
-        for coupon in coupons:
-            user_usage = CouponUsage.objects.filter(
-                user=request.user,
-                coupon=coupon
-            ).count()
+#         # Filter by user's remaining usage
+#         for coupon in coupons:
+#             user_usage = CouponUsage.objects.filter(
+#                 user=request.user,
+#                 coupon=coupon
+#             ).count()
 
-            if user_usage < coupon.per_user_limit:
-                eligible_coupons.append({
-                    'code': coupon.coupon_code,
-                    'type': coupon.discount_type,
-                    'value': float(coupon.value),
-                    'min_order_amount': float(coupon.min_order_amount) if coupon.min_order_amount else None,
-                    'description': (
-                        f"{coupon.value}% OFF" if coupon.discount_type == 'percent'
-                        else f"₹{coupon.value} OFF" if coupon.discount_type == 'fixed'
-                        else "Free Shipping"
-                    ),
-                    'max_discount': float(coupon.max_discount) if coupon.max_discount else None
-                })
+#             if user_usage < coupon.per_user_limit:
+#                 eligible_coupons.append({
+#                     'code': coupon.coupon_code,
+#                     'type': coupon.discount_type,
+#                     'value': float(coupon.value),
+#                     'min_order_amount': float(coupon.min_order_amount) if coupon.min_order_amount else None,
+#                     'description': (
+#                         f"{coupon.value}% OFF" if coupon.discount_type == 'percent'
+#                         else f"₹{coupon.value} OFF" if coupon.discount_type == 'fixed'
+#                         else "Free Shipping"
+#                     ),
+#                     'max_discount': float(coupon.max_discount) if coupon.max_discount else None
+#                 })
 
-        return JsonResponse({'coupons': eligible_coupons})
+#         return JsonResponse({'coupons': eligible_coupons})
 
 # @method_decorator([csrf_exempt, login_required, never_cache], name='dispatch')
 # class ApplyCouponView(View):
