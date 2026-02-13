@@ -21,11 +21,16 @@ from accounts.utils import create_address_from_request
 
 from decimal import Decimal
 from django.db import transaction
+from django.db.models import Q, F, Count
+from django.utils import timezone
 
 from cart.models import Cart
 from .models import Order, OrderItem
 from products.models import ProductVariant
 from accounts.models import Address
+from coupons.models import Coupon
+
+from .utils import validate_and_apply_coupon
 
 import logging
 
@@ -52,9 +57,24 @@ class CheckoutInformation(LoginRequiredMixin, View):
                 messages.error(request, f'Insufficient Stock for {item.get('product_name')}')
                 return redirect('cart')
 
+        min_order_amount = cart_summary['total_payable']
+        now = timezone.now
+
+        coupons = Coupon.objects.filter(
+                active=True,
+                start_date__lte=now
+            ).filter(
+                (Q(end_date__isnull=True) | Q(end_date__gte=now)) & Q(min_order_amount__lte=min_order_amount)
+            ).annotate(
+                total_usage=Count('usage')
+            ).filter(
+                total_usage__lt=F('usage_limit')
+            )
+
         return render(request, self.template_name, {'addresses': address,
                                                     'cart_items': cart_items,
-                                                    'cart_summary': cart_summary})
+                                                    'cart_summary': cart_summary,
+                                                    'coupons': coupons})
 
     def post(self, request):
 
@@ -355,3 +375,42 @@ def download_invoice(request, order_id):
         return FileResponse(order.invoice.pdf_file.open('rb'), content_type='application/pdf')
     except FileNotFoundError:
         raise Http404("Invoice file missing")
+
+
+class ApplyCouponView(LoginRequiredMixin, View):
+
+    def post(self, request):
+
+        coupon_code = request.POST.get('coupon_code')
+
+        if not coupon_code:
+            messages.error(request, 'Enter a coupon code...')
+            return redirect('checkout_information')
+
+        if 'applied_coupon' in request.session:
+            messages.error(request, 'Coupon is alredy applied')
+            return redirect('checkout_information')
+
+        _, summary = get_cart_items_for_user(request.user)
+
+        min_order_amount = summary['total_payable']
+
+        is_valid, discount, free_shipping, error_msg = validate_and_apply_coupon(
+                request.user,
+                coupon_code,
+                min_order_amount
+            )
+
+        if not is_valid:
+            messages.error(request, error_msg)
+            return redirect('checkout_information')
+
+        request.session['applied_coupon'] = {
+            'coupon_code': coupon_code.upper(),
+            'discount_amount': str(discount),
+            'free_shipping': free_shipping,
+        }
+        request.session.modified = True
+
+        messages.success(request, 'Coupon applied successfully..')
+        return redirect('checkout_information')

@@ -1,5 +1,4 @@
 from decimal import Decimal, ROUND_HALF_UP
-from coupons.models import Coupon, CouponUsage
 from cart.models import Cart
 from offers.models import GlobalOffer
 from collections import defaultdict
@@ -216,46 +215,3 @@ def get_cart_items_for_user(user):
     }
 
     return cart_items, summary
-
-
-def validate_and_apply_coupon(user, coupon_code, base_total):
-    """
-    Validate coupon against current cart state and calculate discount.
-    Returns: (is_valid: bool, discount: Decimal, free_shipping: bool, error_msg: str)
-    """
-    try:
-        coupon = Coupon.objects.get(coupon_code__iexact=coupon_code.strip())
-    except Coupon.DoesNotExist:
-        return False, Decimal('0.00'), False, "Invalid coupon code"
-
-    # Check coupon active status (time, total usage, active flag)
-    if not coupon.is_active():
-        return False, Decimal('0.00'), False, "Coupon is expired or inactive"
-
-    # Check user-specific usage limit
-    user_usage = CouponUsage.objects.filter(user=user, coupon=coupon).count()
-    if user_usage >= coupon.per_user_limit:
-        return (False, Decimal('0.00'), False,
-                f"You've used this coupon {user_usage} times (limit: {coupon.per_user_limit})")
-
-    # Check min order amount against BASE TOTAL (after other discounts)
-    if coupon.min_order_amount and base_total < coupon.min_order_amount:
-        return False, Decimal('0.00'), False, (
-            f"Minimum order amount ₹{coupon.min_order_amount} not met. "
-            f"Your eligible cart total is ₹{base_total}"
-        )
-
-    # Calculate discount
-    discount = Decimal('0.00')
-    free_shipping = False
-
-    if coupon.discount_type == 'percent':
-        discount = base_total * (coupon.value / Decimal('100'))
-        if coupon.max_discount:
-            discount = min(discount, coupon.max_discount)
-    elif coupon.discount_type == 'fixed':
-        discount = min(coupon.value, base_total)
-    elif coupon.discount_type == 'free_shipping':
-        free_shipping = True
-
-    return True, discount, free_shipping, ""
