@@ -50,6 +50,10 @@ class Order(models.Model):
     def __str__(self):
         return f"Order {self.order_id} - {self.user.email}"
 
+    @property
+    def applied_coupon(self):
+        return self.used_coupon.first()
+
     class Meta:
         ordering = ['-created_at']
 

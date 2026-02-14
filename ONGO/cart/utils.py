@@ -204,6 +204,8 @@ def get_cart_items_for_user(request, user):
             })
             break
 
+    cart_discount_exact = items_subtotal_exact - total_payable_exact
+
     if 'applied_coupon' in request.session:
         applied_coupon = request.session.get('applied_coupon')
         coupon_discount_exact = Decimal('0.00')
@@ -219,8 +221,6 @@ def get_cart_items_for_user(request, user):
             coupon_discount_exact = min(coupon_discount_exact, total_payable_exact)
             total_payable_exact -= coupon_discount_exact
             total_payable_exact = max(total_payable_exact, Decimal('0.00'))
-
-    cart_discount_exact = items_subtotal_exact - total_payable_exact
 
     summary = {
         "items_subtotal": float(_round_currency(items_subtotal_exact)),
