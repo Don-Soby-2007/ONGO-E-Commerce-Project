@@ -28,7 +28,7 @@ from cart.models import Cart
 from .models import Order, OrderItem
 from products.models import ProductVariant
 from accounts.models import Address
-from coupons.models import Coupon
+from coupons.models import Coupon, CouponUsage
 
 from .utils import validate_and_apply_coupon
 
@@ -207,129 +207,115 @@ class PlaceOrder(LoginRequiredMixin, View):
 
     @transaction.atomic
     def post(self, request):
-
-        checkout_information = request.session.get('checkout_information')
-
+        checkout_information = request.session.get('checkout_information', {})
         address_id = checkout_information.get('address_id')
         payment_methode = checkout_information.get('payment_methode')
         user = request.user
-
         checkout_step = request.session.get('checkout_step')
 
-        if not address_id or not payment_methode or not checkout_step == 'confirmation':
+        if not address_id or not payment_methode or checkout_step != 'confirmation':
             return JsonResponse({
                 'error': 'Incomplete checkout. Please go through all steps'
             }, status=400)
 
         address = get_object_or_404(Address, id=address_id, user=user)
 
-        cart_items = Cart.objects.filter(user=request.user).select_related(
-            'product_variant__product'
-        ).prefetch_related(
-            'product_variant__images'
-        )
+        cart_list, summary = get_cart_items_for_user(request, user)
 
-        if not cart_items.exists():
-            return JsonResponse({
-                'error': 'Your Cart is Empty'
-            }, status=400)
+        if not cart_list:
+            return JsonResponse({'error': 'Your Cart is Empty'}, status=400)
 
-        variant_ids = [item.product_variant_id for item in cart_items]
-
+        variant_ids = [item['variant_id'] for item in cart_list]
         locked_variants = {
             v.id: v for v in ProductVariant.objects.select_for_update().filter(id__in=variant_ids)
         }
 
-        if len(variant_ids) != len(locked_variants):
-            return JsonResponse({
-                'error': 'One or more items are no longer available.'
-            }, status=400)
+        for item in cart_list:
+            variant = locked_variants.get(item['variant_id'])
+            if not variant:
+                return JsonResponse({'error': f"Item {item['product_name']} is no longer available."}, status=400)
 
-        subtotal = Decimal('0.00')
-
-        for cart_item in cart_items:
-
-            variant = locked_variants[cart_item.product_variant_id]
-
-            if variant.stock < cart_item.quantity:
+            if variant.stock < item['quantity']:
                 return JsonResponse({
-                    'error': f'Insufficient stock for {variant.product.name} ({variant.size}/{variant.color})'
+                    'error': f"Insufficient stock for {item['product_name']} ({item['size']}/{item['color']})"
                 }, status=400)
 
-            subtotal += variant.final_price * cart_item.quantity
+        total_payable = Decimal(str(summary['total_payable']))
+        items_subtotal = Decimal(str(summary['items_subtotal']))
+        discount_amount = Decimal(str(summary['cart_discount']))
+        coupon_code = summary.get('applied_coupon', {}).get('coupon_code')
 
         if payment_methode == 'online':
             return JsonResponse({
                 'initiate_razorpay': True,
-                'amount': float(subtotal),  # Frontend will use this
+                'amount': float(total_payable),
                 'currency': 'INR',
                 'message': 'Redirecting to payment gateway...'
             })
 
-        elif payment_methode == 'wallet':
-            pass
+        self._create_order_and_deduct_stock(
+            user, address, cart_list, locked_variants,
+            items_subtotal, total_payable, discount_amount,
+            payment_methode, coupon_code
+        )
 
-        elif payment_methode == 'card':
-            pass
+        request.session.pop('checkout_information', None)
+        request.session.pop('checkout_step', None)
+        request.session.pop('applied_coupon', None)
 
-        else:
-            self._create_order_and_deduct_stock(
-                user, address, cart_items, locked_variants, subtotal, payment_methode
-            )
+        return JsonResponse({
+            'success': True,
+            'order_placed': True,
+            'redirect_url': '/checkout/order-success/'
+        })
 
-            request.session.pop('checkout_information')
-            request.session.pop('checkout_step')
-
-            return JsonResponse({
-                'success': True,
-                'order_placed': True,
-                'redirect_url': '/checkout/order-success/'
-            })
-
-    def _create_order_and_deduct_stock(self, user, address, cart_items, locked_variants, sub_total, payment_method):
-
-        for item in cart_items:
-            variant = locked_variants[item.product_variant_id]
-            variant.stock -= item.quantity
-            variant.save(update_fields=['stock'])
+    def _create_order_and_deduct_stock(self, user, address, cart_list, locked_variants,
+                                       sub_total, total_amount, discount, payment_method, coupon_code):
 
         order = Order.objects.create(
             user=user,
             address=address,
             sub_total=sub_total,
-            total_amount=sub_total,
-            status='confirmed' if sub_total > 0 else 'pending',
-            payment_method=payment_method
+            discount_amount=discount,
+            total_amount=total_amount,
+            status='confirmed' if payment_method == 'cod' else 'pending',
+            payment_method=payment_method,
+            coupon_code=coupon_code
+        )
+
+        coupon = Coupon.objects.get(coupon_code=coupon_code)
+
+        CouponUsage.objects.create(
+            coupon=coupon,
+            user=user,
+            order=order,
         )
 
         order_items = []
 
-        for item in cart_items:
-            variant = locked_variants[item.product_variant_id]
-            image_obj = variant.images.filter(is_primary=True).first()
+        for item in cart_list:
+            variant = locked_variants[item['variant_id']]
 
-            if not image_obj:
-                image_obj = variant.images.first()
-
-            image_url = image_obj.image_url if image_obj else "https://via.placeholder.com/150?text=No+Image"
+            variant.stock -= item['quantity']
+            variant.save(update_fields=['stock'])
 
             order_items.append(
                 OrderItem(
                     order=order,
                     product_variant=variant,
-                    product_name=variant.product.name,
-                    variant_options={'size': variant.size, 'color': variant.color},
-                    image_url=image_url,
-                    price_at_time_of_order=variant.final_price,
-                    quantity=item.quantity,
-                    total_price=variant.final_price*item.quantity,
+                    product_name=item['product_name'],
+                    variant_options={'size': item['size'], 'color': item['color']},
+                    image_url=item['image_url'],
+                    price_at_time_of_order=Decimal(str(item['offer_price'])),
+                    quantity=item['quantity'],
+                    total_price=Decimal(str(item['line_total'])),
                     status='confirmed'
                 )
             )
 
         OrderItem.objects.bulk_create(order_items)
 
-        cart_items.delete()
+        Cart.objects.filter(user=user).delete()
 
 
 @method_decorator(never_cache, name='dispatch')
