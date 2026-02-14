@@ -243,6 +243,7 @@ class PlaceOrder(LoginRequiredMixin, View):
         total_payable = Decimal(str(summary['total_payable']))
         items_subtotal = Decimal(str(summary['items_subtotal']))
         discount_amount = Decimal(str(summary['cart_discount']))
+        shipping = Decimal(str(summary['shipping']))
         coupon_code = summary.get('applied_coupon', {}).get('coupon_code')
 
         if payment_methode == 'online':
@@ -256,7 +257,7 @@ class PlaceOrder(LoginRequiredMixin, View):
         self._create_order_and_deduct_stock(
             user, address, cart_list, locked_variants,
             items_subtotal, total_payable, discount_amount,
-            payment_methode, coupon_code
+            payment_methode, coupon_code, shipping
         )
 
         request.session.pop('checkout_information', None)
@@ -270,7 +271,8 @@ class PlaceOrder(LoginRequiredMixin, View):
         })
 
     def _create_order_and_deduct_stock(self, user, address, cart_list, locked_variants,
-                                       sub_total, total_amount, discount, payment_method, coupon_code):
+                                       sub_total, total_amount, discount, payment_method,
+                                       coupon_code, shipping):
 
         order = Order.objects.create(
             user=user,
@@ -280,16 +282,18 @@ class PlaceOrder(LoginRequiredMixin, View):
             total_amount=total_amount,
             status='confirmed' if payment_method == 'cod' else 'pending',
             payment_method=payment_method,
-            coupon_code=coupon_code
+            coupon_code=coupon_code,
+            shipping=shipping
         )
 
-        coupon = Coupon.objects.get(coupon_code=coupon_code)
+        if coupon_code:
+            coupon = Coupon.objects.get(coupon_code=coupon_code)
 
-        CouponUsage.objects.create(
-            coupon=coupon,
-            user=user,
-            order=order,
-        )
+            CouponUsage.objects.create(
+                coupon=coupon,
+                user=user,
+                order=order,
+            )
 
         order_items = []
 
