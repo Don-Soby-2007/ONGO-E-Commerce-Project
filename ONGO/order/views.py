@@ -406,7 +406,10 @@ class ApplyCouponView(LoginRequiredMixin, View):
             messages.error(request, error_msg)
             return redirect('checkout_information')
 
-        if free_shipping and any(global_offer['name'] == 'Free Shipping' for global_offer in summary['applied_offer']):
+        if (
+            free_shipping and
+            any(global_offer['name'] == 'Free Shipping' for global_offer in summary['applied_global_offers'])
+        ):
             messages.error(request,
                            "Free shiping global offer alredy existing.. so you can't apply free shipping coupon")
             return redirect('checkout_information')

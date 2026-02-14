@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial setup
     setupAddressSelection();
     setupModal();
+    setupCouponModal();
     setupCheckoutValidation();
 });
 
@@ -300,5 +301,77 @@ function setupModal() {
             errorContainer.textContent = 'Network error. Please try again.';
             errorContainer.classList.remove('hidden');
         }
+    });
+}
+
+function setupCouponModal() {
+    const modal = document.getElementById('coupon-modal');
+    const openBtn = document.getElementById('open-coupon-modal');
+    const closeBtn = document.getElementById('close-coupon-modal');
+    const backdrop = document.getElementById('coupon-modal-backdrop');
+    const couponInput = document.getElementById('coupon-input-field');
+
+    if (!modal) return;
+
+    // Open
+    if (openBtn) {
+        openBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            modal.classList.remove('hidden');
+        });
+    }
+
+    // Close
+    const closeCouponModal = () => {
+        modal.classList.add('hidden');
+    };
+
+    if (closeBtn) closeBtn.addEventListener('click', closeCouponModal);
+    if (backdrop) backdrop.addEventListener('click', closeCouponModal);
+
+    // Copy Functionality
+    const copyButtons = document.querySelectorAll('.copy-coupon-btn');
+
+    copyButtons.forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const code = btn.dataset.couponCode;
+            if (!code) return;
+
+            try {
+                await navigator.clipboard.writeText(code);
+
+                // Auto-fill input
+                if (couponInput) {
+                    couponInput.value = code;
+                    // Flash input to indicate fill
+                    couponInput.classList.add('ring-2', 'ring-red-500', 'bg-red-50');
+                    setTimeout(() => {
+                        couponInput.classList.remove('ring-2', 'ring-red-500', 'bg-red-50');
+                    }, 500);
+                }
+
+                // Update Button UI
+                const originalHtml = btn.innerHTML;
+
+                // Change style to Success
+                btn.classList.remove('bg-gray-50', 'text-gray-700', 'hover:bg-gray-100', 'border-gray-200');
+                btn.classList.add('bg-green-100', 'text-green-700', 'border-green-200');
+                btn.innerHTML = `<i data-lucide="check" class="w-3 h-3"></i> <span>Copied</span>`;
+
+                // Re-init lucide icons for the new icon
+                if (window.lucide) window.lucide.createIcons();
+
+                // Revert after 2 seconds
+                setTimeout(() => {
+                    btn.classList.remove('bg-green-100', 'text-green-700', 'border-green-200');
+                    btn.classList.add('bg-gray-50', 'text-gray-700', 'hover:bg-gray-100', 'border-gray-200');
+                    btn.innerHTML = originalHtml;
+                    if (window.lucide) window.lucide.createIcons();
+                }, 2000);
+
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+        });
     });
 }
