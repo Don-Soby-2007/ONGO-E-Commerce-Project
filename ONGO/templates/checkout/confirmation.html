@@ -178,6 +178,22 @@
                 </div>
                 {% endif %}
 
+                {% if cart_summary.applied_coupon %}
+                <div class="flex justify-between text-green-600 font-medium">
+                    <div class="flex items-center gap-1.5">
+                        <i data-lucide="ticket" class="w-3.5 h-3.5"></i>
+                        <span>Coupon ({{ cart_summary.applied_coupon.coupon_code }})</span>
+                    </div>
+                    <span>
+                        {% if cart_summary.applied_coupon.free_shipping %}
+                        Free Shipping
+                        {% else %}
+                        -₹{{ cart_summary.applied_coupon.discount_amount }}
+                        {% endif %}
+                    </span>
+                </div>
+                {% endif %}
+
                 <div class="flex justify-between">
                     <span>Shipping</span>
                     <span class="text-green-600 font-medium">{% if cart_summary.shipping == 0 %}Free{% else %}

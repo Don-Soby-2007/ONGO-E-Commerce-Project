@@ -160,6 +160,22 @@
                 </div>
                 {% endif %}
 
+                {% if cart_summary.applied_coupon %}
+                <div class="flex justify-between text-green-600 font-medium">
+                    <div class="flex items-center gap-1.5">
+                        <i data-lucide="ticket" class="w-3.5 h-3.5"></i>
+                        <span>Coupon ({{ cart_summary.applied_coupon.coupon_code }})</span>
+                    </div>
+                    <span>
+                        {% if cart_summary.applied_coupon.free_shipping %}
+                        Free Shipping
+                        {% else %}
+                        -₹{{ cart_summary.applied_coupon.discount_amount }}
+                        {% endif %}
+                    </span>
+                </div>
+                {% endif %}
+
                 <div class="flex justify-between">
                     <span>Shipping</span>
                     <span class="text-green-600 font-medium">{% if cart_summary.shipping == 0 %}Free{% else %}
@@ -367,7 +383,8 @@
                         <!-- Left: Info -->
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-1">
-                                <span class="font-mono font-bold text-lg text-gray-900 tracking-wide uppercase">{{ coupon.coupon_code }}</span>
+                                <span class="font-mono font-bold text-lg text-gray-900 tracking-wide uppercase">{{
+                                    coupon.coupon_code }}</span>
                                 <!-- Badge -->
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
                                         {% if coupon.discount_type == 'percent' %} bg-green-100 text-green-700
