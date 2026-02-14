@@ -36,7 +36,7 @@ class CartView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        cart_items, summary = get_cart_items_for_user(self.request.user)
+        cart_items, summary = get_cart_items_for_user(self.request, self.request.user)
 
         context['summary'] = summary
         context['cart_items'] = cart_items

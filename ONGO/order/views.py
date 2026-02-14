@@ -50,25 +50,26 @@ class CheckoutInformation(LoginRequiredMixin, View):
 
         address = Address.objects.filter(user=user)
 
-        cart_items, cart_summary = get_cart_items_for_user(user)
+        cart_items, cart_summary = get_cart_items_for_user(request, user)
 
         for item in cart_items:
             if item.get('stock') < item.get('quantity'):
                 messages.error(request, f'Insufficient Stock for {item.get('product_name')}')
                 return redirect('cart')
 
-        min_order_amount = cart_summary['total_payable']
-        now = timezone.now
+        total_payable = cart_summary['total_payable']
+        now = timezone.now()
 
         coupons = Coupon.objects.filter(
                 active=True,
                 start_date__lte=now
             ).filter(
-                (Q(end_date__isnull=True) | Q(end_date__gte=now)) & Q(min_order_amount__lte=min_order_amount)
+                Q(end_date__isnull=True) | Q(end_date__gte=now)
             ).annotate(
                 total_usage=Count('usage')
             ).filter(
-                total_usage__lt=F('usage_limit')
+                total_usage__lt=F('usage_limit'),
+                min_order_amount__lte=total_payable
             )
 
         return render(request, self.template_name, {'addresses': address,
@@ -139,7 +140,7 @@ class PaymentMethode(LoginRequiredMixin, View):
 
         address = Address.objects.get(user=user, id=address_id)
 
-        cart_items, cart_summary = get_cart_items_for_user(user)
+        cart_items, cart_summary = get_cart_items_for_user(request, user)
 
         for item in cart_items:
             if item.get('stock') < item.get('quantity'):
@@ -186,7 +187,7 @@ class OrderConfirmation(LoginRequiredMixin, View):
 
         address = Address.objects.get(user=user, id=address_id)
 
-        cart_items, cart_summary = get_cart_items_for_user(user)
+        cart_items, cart_summary = get_cart_items_for_user(request, user)
 
         for item in cart_items:
             if item.get('stock') < item.get('quantity'):
@@ -391,7 +392,7 @@ class ApplyCouponView(LoginRequiredMixin, View):
             messages.error(request, 'Coupon is alredy applied')
             return redirect('checkout_information')
 
-        _, summary = get_cart_items_for_user(request.user)
+        _, summary = get_cart_items_for_user(request, request.user)
 
         min_order_amount = summary['total_payable']
 
