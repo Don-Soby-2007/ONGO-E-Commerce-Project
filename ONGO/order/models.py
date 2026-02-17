@@ -37,12 +37,27 @@ class Order(models.Model):
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
     coupon_code = models.CharField(max_length=50, blank=True, null=True)
+    coupon_discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
     payment_method = models.CharField(
         max_length=50,
         choices=PAYMENT_METHOD_CHOICE,
         default='COD',
     )
     shipping = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+
+    razorpay_order_id = models.CharField(max_length=255, blank=True, null=True)
+    razorpay_payment_id = models.CharField(max_length=255, blank=True, null=True)
+    razorpay_signature = models.CharField(max_length=255, blank=True, null=True)
+    payment_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', 'Pending'),
+            ('paid', 'Paid'),
+            ('failed', 'Failed')
+        ],
+        default='pending'
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
