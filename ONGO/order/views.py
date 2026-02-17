@@ -267,7 +267,7 @@ class PlaceOrder(LoginRequiredMixin, View):
                     'amount_pisa': int(total_payable*100),
                     'amount_inr': float(total_payable),
                     'currency': 'INR',
-                    'key_id': settings.RAZORPAYZ_KEY_ID,
+                    'key_id': settings.RAZORPAY_KEY_ID,
                     'internal_order_id': order.id,
                     'message': 'procceding to secure payment gateway'
                 })

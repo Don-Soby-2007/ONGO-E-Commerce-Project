@@ -101,7 +101,6 @@ def create_razorpay_order(amount_inr: Decimal) -> dict:
     return razorpay_client.order.create({
         'amount': int(amount_inr * 100),
         'currency': 'INR',
-        'payment_capture': '1'
     })
 
 

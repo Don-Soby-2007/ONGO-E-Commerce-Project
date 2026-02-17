@@ -15,51 +15,142 @@ document.addEventListener('DOMContentLoaded', () => {
                         'X-CSRFToken': getCookie('csrftoken'),
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({}) // No payload needed — all in session
+                    body: JSON.stringify({})
                 });
 
                 const data = await response.json();
 
-                console.log(data)
-
-                if (response.ok) {
-                    if (data.initiate_razorpay) {
-                        // 🚧 Phase 1: Just show alert (replace later with Razorpay SDK)
-                        Swal.fire({
-                            title: 'Payment Required',
-                            text: `Please complete payment of ₹${data.amount.toFixed(2)} via Razorpay.`,
-                            icon: 'info',
-                            confirmButtonColor: '#3b82f6',
-                            confirmButtonText: 'Proceed to Payment'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                // In future: open Razorpay checkout here
-                                alert('Razorpay integration placeholder. Redirecting...');
-                                window.location.href = '/checkout/success/'; // temporary
-                            }
-                        });
-                    } else if (data.success) {
-
-                        window.location.href = data.redirect_url || '/checkout/order-success/';
-
-                    }
-                } else {
-                    window.location.href = '/checkout/order-failed'
+                if (!response.ok){
+                    throw new Error(data.error || 'Something went wrong');
                 }
+
+                if (data.intilaize_razorpay){
+                    console.log("called razorpay");
+                    
+                    loadRazorpayScript().then(() => {
+                        openRazorpayCheckout(data);
+                    });
+                }
+                else if(data.success){
+                    window.location.href = data.redirect_url;
+                }
+
+
+
+                // if (response.ok) {
+                //     if (data.initiate_razorpay) {
+                //         // 🚧 Phase 1: Just show alert (replace later with Razorpay SDK)
+                //         Swal.fire({
+                //             title: 'Payment Required',
+                //             text: `Please complete payment of ₹${data.amount.toFixed(2)} via Razorpay.`,
+                //             icon: 'info',
+                //             confirmButtonColor: '#3b82f6',
+                //             confirmButtonText: 'Proceed to Payment'
+                //         }).then((result) => {
+                //             if (result.isConfirmed) {
+                //                 // In future: open Razorpay checkout here
+                //                 alert('Razorpay integration placeholder. Redirecting...');
+                //                 window.location.href = '/checkout/success/'; // temporary
+                //             }
+                //         });
+                //     } else if (data.success) {
+
+                //         window.location.href = data.redirect_url || '/checkout/order-success/';
+
+                //     }
+                // } else {
+                //     window.location.href = '/checkout/order-failed'
+                // }
             } catch (error) {
                 console.error('Order error:', error);
-                Swal.fire('Network Error', 'Please try again.', 'error');
+                Swal.fire('Network Error', error.message || 'Please try again.', 'error');
                 resetButton();
             }
         });
     }
-
+    
+    function openRazorpayCheckout(data) {
+        const options = {
+            key: data.key_id,
+            amount: data.amount_paisa,
+            currency: data.currency,
+            name: 'Ongo Store',
+            description: 'Order Payment',
+            order_id: data.razorpay_order_id,
+            handler: function(response) {
+                
+                verifyPayment({
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature,
+                    internal_order_id: data.internal_order_id
+                });
+            },
+            prefill: {
+                name: document.querySelector('[data-user-name]')?.textContent || '',
+                email: document.querySelector('[data-user-email]')?.textContent || '',
+                contact: document.querySelector('[data-user-phone]')?.textContent || ''
+            },
+            theme: {
+                color: '#dc2626'
+            },
+            modal: {
+                ondismiss: function() {
+                    Swal.fire('Cancelled', 'Payment was cancelled.', 'info');
+                    resetButton();
+                }
+            }
+        };
+        
+        const rzp = new Razorpay(options);
+        rzp.open();
+    }
+    
+    async function verifyPayment(paymentData) {
+        try {
+            const response = await fetch('/checkout/verify-payment/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(paymentData)
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                throw new Error(data.error || 'Verification failed');
+            }
+            
+        } catch (error) {
+            console.error('Verification error:', error);
+            Swal.fire('Payment Failed', error.message, 'error');
+            resetButton();
+        }
+    }
+    
+    function loadRazorpayScript() {
+        return new Promise((resolve) => {
+            if (window.Razorpay) {
+                resolve();
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = resolve;
+            document.body.appendChild(script);
+        });
+    }
+    
     function resetButton() {
         placeOrderBtn.innerHTML = 'Place Order';
         placeOrderBtn.disabled = false;
         placeOrderBtn.classList.remove('opacity-75', 'cursor-not-allowed');
     }
-
+    
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -74,5 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return cookieValue;
     }
+
 });
 
