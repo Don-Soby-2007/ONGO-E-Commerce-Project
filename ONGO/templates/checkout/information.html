@@ -170,7 +170,7 @@
                         {% if cart_summary.applied_coupon.free_shipping %}
                         Free Shipping
                         {% else %}
-                        -₹{{ cart_summary.applied_coupon.discount_amount }}
+                        -₹{{ cart_summary.applied_coupon.discount_amount|floatformat:1 }}
                         {% endif %}
                     </span>
                 </div>
