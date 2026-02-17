@@ -154,16 +154,19 @@ AUTH_USER_MODEL = 'accounts.User'
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-#  "django.core.mail.backends.smtp.EmailBackend" for production
-# EMAIL_HOST = "smtp.gmail.com"
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
+if os.getenv('PROJECT_STATUS') == 'DEVELOPMENT':
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-# EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-# EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+elif os.getenv('PROJECT_STATUS') == 'TESTING':
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp.gmail.com"
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
 
-# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+
+    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME')
 CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
@@ -234,3 +237,6 @@ SOCIALACCOUNT_PROVIDERS = {
         'OAUTH_PKCE_ENABLED': True,
     }
 }
+
+RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
