@@ -400,8 +400,8 @@
                             <p class="text-sm text-gray-600 leading-snug">
                                 {% if coupon.discount_type == 'percent' %}
                                 Get {{ coupon.value|floatformat:0 }}% off your order
-                                {% if coupon.max_discount %} <span class="text-gray-400 text-xs">(Max ₹{{
-                                    coupon.max_discount }})</span>{% endif %}
+                                {% if coupon.max_discount %} <span class="text-gray-400 text-xs">
+                                    (Max ₹{{ coupon.max_discount }})</span>{% endif %}
                                 {% elif coupon.discount_type == 'fixed' %}
                                 Flat ₹{{ coupon.value|floatformat:0 }} discount
                                 {% elif coupon.discount_type == 'free_shipping' %}
