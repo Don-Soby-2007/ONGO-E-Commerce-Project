@@ -5,6 +5,9 @@ from .models import Invoice
 from coupons.models import Coupon, CouponUsage
 from decimal import Decimal
 
+import razorpay
+from django.conf import settings
+
 
 from django.contrib.staticfiles import finders
 
@@ -46,10 +49,6 @@ def generate_invoice_pdf(order):
 
 
 def validate_and_apply_coupon(user, coupon_code, base_total):
-    """
-    Validate coupon against current cart state and calculate discount.
-    Returns: (is_valid: bool, discount: Decimal, free_shipping: bool, error_msg: str)
-    """
     try:
         coupon = Coupon.objects.get(coupon_code__iexact=coupon_code.strip())
     except Coupon.DoesNotExist:
@@ -87,3 +86,32 @@ def validate_and_apply_coupon(user, coupon_code, base_total):
         free_shipping = True
 
     return True, discount, free_shipping, ""
+
+
+razorpay_client = razorpay.Client(
+    auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+)
+
+
+def create_razorpay_order(amount_inr: Decimal) -> dict:
+    """
+    Create Razorpay order (amount in INR, converted to paisa)
+    Returns: {'id': 'order_xxx', 'amount': 50000, 'currency': 'INR', ...}
+    """
+    return razorpay_client.order.create({
+        'amount': int(amount_inr * 100),
+        'currency': 'INR',
+        'payment_capture': '1'
+    })
+
+
+def verify_razorpay_signature(params_dict: dict) -> bool:
+    """
+    Verify Razorpay payment signature
+    params_dict should contain: razorpay_order_id, razorpay_payment_id, razorpay_signature
+    """
+    try:
+        razorpay_client.utility.verify_payment_signature(params_dict)
+        return True
+    except Exception:
+        return False

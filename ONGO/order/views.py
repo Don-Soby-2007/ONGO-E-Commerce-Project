@@ -23,6 +23,7 @@ from decimal import Decimal
 from django.db import transaction
 from django.db.models import Q, F, Count
 from django.utils import timezone
+from django.conf import settings
 
 from cart.models import Cart
 from .models import Order, OrderItem
@@ -30,7 +31,7 @@ from products.models import ProductVariant
 from accounts.models import Address
 from coupons.models import Coupon, CouponUsage
 
-from .utils import validate_and_apply_coupon
+from .utils import validate_and_apply_coupon, create_razorpay_order, verify_razorpay_signature
 
 import logging
 
@@ -247,12 +248,35 @@ class PlaceOrder(LoginRequiredMixin, View):
         coupon_code = summary.get('applied_coupon', {}).get('coupon_code')
 
         if payment_methode == 'online':
-            return JsonResponse({
-                'initiate_razorpay': True,
-                'amount': float(total_payable),
-                'currency': 'INR',
-                'message': 'Redirecting to payment gateway...'
-            })
+            try:
+
+                order = self._create_pending_order(
+                    user, address, cart_list, locked_variants,
+                    items_subtotal, total_payable, discount_amount,
+                    payment_methode, coupon_code, shipping
+                )
+
+                rzp_order = create_razorpay_order(total_payable)
+
+                order.razorpay_order_id = rzp_order['id']
+                order.save(update_fields=['razorpay_order_id'])
+
+                return JsonResponse({
+                    'intilaize_razorpay': True,
+                    'razorpay_order_id': rzp_order['id'],
+                    'amount_pisa': int(total_payable*100),
+                    'amount_inr': float(total_payable),
+                    'currency': 'INR',
+                    'key_id': settings.RAZORPAYZ_KEY_ID,
+                    'internal_order_id': order.id,
+                    'message': 'procceding to secure payment gateway'
+                })
+
+            except Exception as e:
+                logger.exception(f"Razorpay order creation failed: {e}")
+                return JsonResponse({
+                    'error': 'Payment gateway unavailable. Please try COD.'
+                }, status=500)
 
         self._create_order_and_deduct_stock(
             user, address, cart_list, locked_variants,
@@ -320,6 +344,120 @@ class PlaceOrder(LoginRequiredMixin, View):
         OrderItem.objects.bulk_create(order_items)
 
         Cart.objects.filter(user=user).delete()
+
+    def _create_pending_order(
+            self, user, address, cart_list, locked_variants, sub_total,
+            total_amount, discount, payment_method, coupon_code, shipping):
+
+        order = Order.objects.create(
+            user=user,
+            address=address,
+            sub_total=sub_total,
+            discount_amount=discount,
+            total_amount=total_amount,
+            status='pending',
+            payment_status='pending',
+            payment_method=payment_method,
+            coupon_code=coupon_code,
+            shipping=shipping,
+        )
+
+        items = [
+            OrderItem(
+                order=order,
+                product_variant=locked_variants[item['variant_id']],
+                product_name=item['product_name'],
+                variant_options={'size': item['size'], 'color': item['color']},
+                image_url=item['image_url'],
+                price_at_time_of_order=Decimal(str(item['offer_price'])),
+                quantity=item['quantity'],
+                total_price=Decimal(str(item['line_total'])),
+                status='pending'
+            )
+            for item in cart_list
+        ]
+        OrderItem.objects.bulk_create(items)
+
+        return order
+
+
+@method_decorator(never_cache, name='dispatch')
+class VerifyRazorpayPayment(LoginRequiredMixin, View):
+    @transaction.atomic
+    def post(self, request):
+        rzp_order_id = request.POST.get('razorpay_order_id')
+        rzp_payment_id = request.POST.get('razorpay_payment_id')
+        rzp_signature = request.POST.get('razorpay_signature')
+        internal_order_id = request.POST.get('internal_order_id')
+
+        try:
+            order = Order.objects.select_for_update().get(
+                id=internal_order_id,
+                user=request.user,
+                status='pending',
+                payment_status='pending',
+                razorpay_order_id=rzp_order_id
+            )
+        except Order.DoesNotExist:
+            logger.warning(f"Invalid verification attempt for order {internal_order_id}")
+            return JsonResponse({'error': 'Invalid payment session'}, status=400)
+
+        # Verify signature
+
+        params = {
+            'razorpay_order_id': rzp_order_id,
+            'razorpay_payment_id': rzp_payment_id,
+            'razorpay_signature': rzp_signature
+        }
+        if not verify_razorpay_signature(params):
+            order.status = 'failed'
+            order.payment_status = 'failed'
+            order.save(update_fields=['status', 'payment_status'])
+            return JsonResponse({'error': 'Payment verification failed'}, status=400)
+
+        # stock validation & deduction
+        try:
+            for item in order.items.select_related('product_variant'):
+                variant = item.product_variant
+                if variant.stock < item.quantity:
+                    raise Exception(f"Insufficient stock for {item.product_name}")
+                variant.stock -= item.quantity
+                variant.save(update_fields=['stock'])
+        except Exception as e:
+            order.status = 'failed'
+            order.payment_status = 'failed'
+            order.save(update_fields=['status', 'payment_status'])
+            logger.error(f"Stock deduction failed: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=400)
+
+        # Finalize order
+        order.status = 'confirmed'
+        order.payment_status = 'paid'
+        order.razorpay_payment_id = rzp_payment_id
+        order.razorpay_signature = rzp_signature
+        order.save(update_fields=[
+            'status', 'payment_status',
+            'razorpay_payment_id', 'razorpay_signature'
+        ])
+
+        # Apply coupon usage successful payment
+        if order.coupon_code:
+            try:
+                coupon = Coupon.objects.get(coupon_code=order.coupon_code)
+                CouponUsage.objects.create(coupon=coupon, user=request.user, order=order)
+            except Coupon.DoesNotExist:
+                logger.warning(f"Coupon {order.coupon_code} missing during verification")
+
+        # Cleanup
+        Cart.objects.filter(user=request.user).delete()
+        request.session.pop('checkout_information', None)
+        request.session.pop('checkout_step', None)
+        request.session.pop('applied_coupon', None)
+
+        return JsonResponse({
+            'success': True,
+            'redirect_url': '/checkout/order-success/'
+        })
 
 
 @method_decorator(never_cache, name='dispatch')
