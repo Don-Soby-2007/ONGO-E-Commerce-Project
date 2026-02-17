@@ -77,6 +77,7 @@ def validate_and_apply_coupon(user, coupon_code, base_total):
     free_shipping = False
 
     if coupon.discount_type == 'percent':
+        print(type(coupon.value))
         discount = base_total * (coupon.value / Decimal('100'))
         if coupon.max_discount:
             discount = min(discount, coupon.max_discount)

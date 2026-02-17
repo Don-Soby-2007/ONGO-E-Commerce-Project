@@ -389,7 +389,7 @@ class ApplyCouponView(LoginRequiredMixin, View):
         is_valid, discount, free_shipping, error_msg = validate_and_apply_coupon(
                 request.user,
                 coupon_code,
-                min_order_amount
+                Decimal(str(min_order_amount))
             )
 
         if not is_valid:
