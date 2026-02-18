@@ -238,7 +238,6 @@ class OrderConfirmation(LoginRequiredMixin, View):
 
 class PlaceOrder(LoginRequiredMixin, View):
 
-    @transaction.atomic
     def post(self, request):
         checkout_information = request.session.get("checkout_information", {})
         address_id = checkout_information.get("address_id")
@@ -259,22 +258,14 @@ class PlaceOrder(LoginRequiredMixin, View):
         if not cart_list:
             return JsonResponse({"error": "Your Cart is Empty"}, status=400)
 
-        variant_ids = [item["variant_id"] for item in cart_list]
-        locked_variants = {
-            v.id: v
-            for v in ProductVariant.objects.select_for_update().filter(
-                id__in=variant_ids
-            )
-        }
-
+        # Check stock WITHOUT locking (read-only check for online payment initiation)
         for item in cart_list:
-            variant = locked_variants.get(item["variant_id"])
+            variant = ProductVariant.objects.filter(id=item["variant_id"]).first()
             if not variant:
                 return JsonResponse(
                     {"error": f"Item {item['product_name']} is no longer available."},
                     status=400,
                 )
-
             if variant.stock < item["quantity"]:
                 return JsonResponse(
                     {
@@ -289,6 +280,7 @@ class PlaceOrder(LoginRequiredMixin, View):
         shipping = Decimal(str(summary["shipping"]))
         coupon_code = summary.get("applied_coupon", {}).get("coupon_code")
 
+        # --- Online Payment: Create Razorpay order and return (NO DB locks held) ---
         if payment_methode == "online":
             try:
                 razorpay_order = create_razorpay_order(float(total_payable))
@@ -303,20 +295,48 @@ class PlaceOrder(LoginRequiredMixin, View):
                     }
                 )
             except Exception as e:
+                logger.error(f"Razorpay order creation failed: {e}")
                 return JsonResponse({"error": str(e)}, status=500)
 
-        self._create_order_and_deduct_stock(
-            user,
-            address,
-            cart_list,
-            locked_variants,
-            items_subtotal,
-            total_payable,
-            discount_amount,
-            payment_methode,
-            coupon_code,
-            shipping,
-        )
+        # --- COD / Wallet: Lock variants and create order atomically ---
+        with transaction.atomic():
+            variant_ids = [item["variant_id"] for item in cart_list]
+            locked_variants = {
+                v.id: v
+                for v in ProductVariant.objects.select_for_update().filter(
+                    id__in=variant_ids
+                )
+            }
+
+            for item in cart_list:
+                variant = locked_variants.get(item["variant_id"])
+                if not variant:
+                    return JsonResponse(
+                        {
+                            "error": f"Item {item['product_name']} is no longer available."
+                        },
+                        status=400,
+                    )
+                if variant.stock < item["quantity"]:
+                    return JsonResponse(
+                        {
+                            "error": f"Insufficient stock for {item['product_name']} ({item['size']}/{item['color']})"
+                        },
+                        status=400,
+                    )
+
+            self._create_order_and_deduct_stock(
+                user,
+                address,
+                cart_list,
+                locked_variants,
+                items_subtotal,
+                total_payable,
+                discount_amount,
+                payment_methode,
+                coupon_code,
+                shipping,
+            )
 
         request.session.pop("checkout_information", None)
         request.session.pop("checkout_step", None)
