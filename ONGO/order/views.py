@@ -20,6 +20,8 @@ from django.contrib.auth.decorators import login_required
 from accounts.utils import create_address_from_request
 
 from decimal import Decimal
+from decimal import ROUND_HALF_UP
+
 from django.db import transaction
 from django.db.models import Q, F, Count
 from django.utils import timezone
@@ -262,10 +264,13 @@ class PlaceOrder(LoginRequiredMixin, View):
                 order.razorpay_order_id = rzp_order['id']
                 order.save(update_fields=['razorpay_order_id'])
 
+                amount_in_paisa = int((total_payable * 100).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+                print(amount_in_paisa, '----', type(amount_in_paisa))
+
                 return JsonResponse({
                     'initilaize_razorpay': True,
                     'razorpay_order_id': rzp_order['id'],
-                    'amount_paisa': str(total_payable*100),
+                    'amount_paisa': amount_in_paisa,
                     'amount_inr': float(total_payable),
                     'currency': 'INR',
                     'key_id': settings.RAZORPAY_KEY_ID,

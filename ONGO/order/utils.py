@@ -98,6 +98,7 @@ def create_razorpay_order(amount_inr: Decimal) -> dict:
     Create Razorpay order (amount in INR, converted to paisa)
     Returns: {'id': 'order_xxx', 'amount': 50000, 'currency': 'INR', ...}
     """
+    print('razorpay order creation called')
     return razorpay_client.order.create({
         'amount': int(amount_inr * 100),
         'currency': 'INR',

@@ -34,33 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 else if (data.success) {
                     window.location.href = data.redirect_url;
                 }
-
-
-
-                // if (response.ok) {
-                //     if (data.initiate_razorpay) {
-                //         // 🚧 Phase 1: Just show alert (replace later with Razorpay SDK)
-                //         Swal.fire({
-                //             title: 'Payment Required',
-                //             text: `Please complete payment of ₹${data.amount.toFixed(2)} via Razorpay.`,
-                //             icon: 'info',
-                //             confirmButtonColor: '#3b82f6',
-                //             confirmButtonText: 'Proceed to Payment'
-                //         }).then((result) => {
-                //             if (result.isConfirmed) {
-                //                 // In future: open Razorpay checkout here
-                //                 alert('Razorpay integration placeholder. Redirecting...');
-                //                 window.location.href = '/checkout/success/'; // temporary
-                //             }
-                //         });
-                //     } else if (data.success) {
-
-                //         window.location.href = data.redirect_url || '/checkout/order-success/';
-
-                //     }
-                // } else {
-                //     window.location.href = '/checkout/order-failed'
-                // }
             } catch (error) {
                 console.error('Order error:', error);
                 Swal.fire('Network Error', error.message || 'Please try again.', 'error');
@@ -70,7 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openRazorpayCheckout(data) {
-        const options = {
+        console.log(typeof(data.amount_paisa));
+        
+        let options = {
             'key': data.key_id,
             'amount': String(data.amount_paisa),
             'currency': data.currency,
