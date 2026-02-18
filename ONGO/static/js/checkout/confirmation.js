@@ -20,18 +20,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await response.json();
 
-                if (!response.ok){
+                if (!response.ok) {
                     throw new Error(data.error || 'Something went wrong');
                 }
 
-                if (data.intilaize_razorpay){
+                if (data.initilaize_razorpay) {
                     console.log("called razorpay");
-                    
+
                     loadRazorpayScript().then(() => {
                         openRazorpayCheckout(data);
                     });
                 }
-                else if(data.success){
+                else if (data.success) {
                     window.location.href = data.redirect_url;
                 }
 
@@ -68,44 +68,45 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    
+
     function openRazorpayCheckout(data) {
         const options = {
-            key: data.key_id,
-            amount: data.amount_paisa,
-            currency: data.currency,
-            name: 'Ongo Store',
-            description: 'Order Payment',
-            order_id: data.razorpay_order_id,
-            handler: function(response) {
-                
+            'key': data.key_id,
+            'amount': String(data.amount_paisa),
+            'currency': data.currency,
+            'name': 'Ongo Store',
+            'description': 'Order Payment',
+            "image": "https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg",
+            'order_id': data.razorpay_order_id,
+            'handler': function (response) {
                 verifyPayment({
-                    razorpay_order_id: response.razorpay_order_id,
-                    razorpay_payment_id: response.razorpay_payment_id,
-                    razorpay_signature: response.razorpay_signature,
-                    internal_order_id: data.internal_order_id
+                    "razorpay_order_id": response.razorpay_order_id,
+                    "razorpay_payment_id": response.razorpay_payment_id,
+                    "razorpay_signature": response.razorpay_signature,
+                    "internal_order_id": data.internal_order_id
                 });
             },
-            prefill: {
-                name: document.querySelector('[data-user-name]')?.textContent || '',
-                email: document.querySelector('[data-user-email]')?.textContent || '',
-                contact: document.querySelector('[data-user-phone]')?.textContent || ''
+            'prefill': {
+                'name': data.username || '',
+                'email': data.email || '',
+                'contact': data.contact || ''
             },
-            theme: {
-                color: '#dc2626'
+            'theme': {
+                color: '#ff4d4d'
             },
-            modal: {
-                ondismiss: function() {
+            'modal': {
+                'ondismiss': function () {
                     Swal.fire('Cancelled', 'Payment was cancelled.', 'info');
                     resetButton();
                 }
             }
         };
-        
+
         const rzp = new Razorpay(options);
         rzp.open();
+        console.log("razorpay opend");
     }
-    
+
     async function verifyPayment(paymentData) {
         try {
             const response = await fetch('/checkout/verify-payment/', {
@@ -116,22 +117,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify(paymentData)
             });
-            
+
             const data = await response.json();
-            
+
             if (response.ok && data.success) {
                 window.location.href = data.redirect_url;
             } else {
                 throw new Error(data.error || 'Verification failed');
             }
-            
+
         } catch (error) {
             console.error('Verification error:', error);
             Swal.fire('Payment Failed', error.message, 'error');
             resetButton();
         }
     }
-    
+
     function loadRazorpayScript() {
         return new Promise((resolve) => {
             if (window.Razorpay) {
@@ -144,13 +145,13 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.appendChild(script);
         });
     }
-    
+
     function resetButton() {
         placeOrderBtn.innerHTML = 'Place Order';
         placeOrderBtn.disabled = false;
         placeOrderBtn.classList.remove('opacity-75', 'cursor-not-allowed');
     }
-    
+
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {

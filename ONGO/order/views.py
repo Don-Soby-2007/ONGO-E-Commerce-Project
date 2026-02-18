@@ -34,6 +34,7 @@ from coupons.models import Coupon, CouponUsage
 from .utils import validate_and_apply_coupon, create_razorpay_order, verify_razorpay_signature
 
 import logging
+import json
 
 
 # Create your views here.
@@ -262,14 +263,17 @@ class PlaceOrder(LoginRequiredMixin, View):
                 order.save(update_fields=['razorpay_order_id'])
 
                 return JsonResponse({
-                    'intilaize_razorpay': True,
+                    'initilaize_razorpay': True,
                     'razorpay_order_id': rzp_order['id'],
-                    'amount_pisa': int(total_payable*100),
+                    'amount_paisa': str(total_payable*100),
                     'amount_inr': float(total_payable),
                     'currency': 'INR',
                     'key_id': settings.RAZORPAY_KEY_ID,
                     'internal_order_id': order.id,
-                    'message': 'procceding to secure payment gateway'
+                    'message': 'procceding to secure payment gateway',
+                    "username": user.username,
+                    "email": user.email,
+                    "contact": '+91'+user.phone_number,
                 })
 
             except Exception as e:
@@ -385,10 +389,24 @@ class PlaceOrder(LoginRequiredMixin, View):
 class VerifyRazorpayPayment(LoginRequiredMixin, View):
     @transaction.atomic
     def post(self, request):
-        rzp_order_id = request.POST.get('razorpay_order_id')
-        rzp_payment_id = request.POST.get('razorpay_payment_id')
-        rzp_signature = request.POST.get('razorpay_signature')
-        internal_order_id = request.POST.get('internal_order_id')
+        try:
+            # Parse JSON body instead of using request.POST
+            data = json.loads(request.body)
+            rzp_order_id = data.get('razorpay_order_id')
+            rzp_payment_id = data.get('razorpay_payment_id')
+            rzp_signature = data.get('razorpay_signature')
+            internal_order_id = data.get('internal_order_id')
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return JsonResponse({'error': 'Invalid JSON payload'}, status=400)
+
+        # Rest of your logic remains the same...
+        if not all([rzp_order_id, rzp_payment_id, rzp_signature, internal_order_id]):
+            return JsonResponse({'error': 'Missing payment parameters'}, status=400)
+
+        try:
+            internal_order_id = int(internal_order_id)
+        except (ValueError, TypeError):
+            return JsonResponse({'error': 'Invalid order ID'}, status=400)
 
         try:
             order = Order.objects.select_for_update().get(
