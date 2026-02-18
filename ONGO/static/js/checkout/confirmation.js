@@ -24,27 +24,86 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (response.ok) {
                     if (data.initiate_razorpay) {
-                        // 🚧 Phase 1: Just show alert (replace later with Razorpay SDK)
-                        Swal.fire({
-                            title: 'Payment Required',
-                            text: `Please complete payment of ₹${data.amount.toFixed(2)} via Razorpay.`,
-                            icon: 'info',
-                            confirmButtonColor: '#3b82f6',
-                            confirmButtonText: 'Proceed to Payment'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                // In future: open Razorpay checkout here
-                                alert('Razorpay integration placeholder. Redirecting...');
-                                window.location.href = '/checkout/success/'; // temporary
+                        const options = {
+                            "key": data.key_id,
+                            "amount": data.amount,
+                            "currency": data.currency,
+                            "name": "ONGO E-Commerce",
+                            "description": "Order Payment",
+                            "image": "https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg", // Replace with your logo path if available
+                            "order_id": data.razorpay_order_id,
+                            "handler": async function (response) {
+                                // Payment succeeded, verifying...
+                                placeOrderBtn.innerHTML = '<i class="animate-spin mr-2" data-lucide="loader-2"></i> Verifying Payment...';
+
+                                try {
+                                    const verifyResponse = await fetch('/checkout/payment-verify/', {
+                                        method: 'POST',
+                                        headers: {
+                                            'X-CSRFToken': getCookie('csrftoken'),
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                            razorpay_payment_id: response.razorpay_payment_id,
+                                            razorpay_order_id: response.razorpay_order_id,
+                                            razorpay_signature: response.razorpay_signature
+                                        })
+                                    });
+
+                                    const verifyData = await verifyResponse.json();
+
+                                    if (verifyData.success) {
+                                        window.location.href = verifyData.redirect_url;
+                                    } else {
+                                        Swal.fire({
+                                            title: 'Payment Verification Failed',
+                                            text: verifyData.error || 'Please try again or contact support.',
+                                            icon: 'error'
+                                        }).then(() => {
+                                            window.location.href = verifyData.redirect_url || '/checkout/order-failed/';
+                                        });
+                                    }
+                                } catch (err) {
+                                    console.error('Verification error:', err);
+                                    Swal.fire('Verification Error', 'Network error during verification.', 'error');
+                                    resetButton();
+                                }
+                            },
+                            "prefill": {
+                                "name": "don", // Can be filled from address if available
+                                "email": "don@gmail.com", // Can be filled from user email
+                                "contact": "+918921390755" // Can be filled from address phone
+                            },
+                            "theme": {
+                                "color": "#ff4242"
+                            },
+                            "modal": {
+                                "ondismiss": function () {
+                                    resetButton();
+                                    Swal.fire('Payment Cancelled', 'You cancelled the payment.', 'info');
+                                }
                             }
+                        };
+                        const rzp1 = new Razorpay(options);
+                        rzp1.on('payment.failed', function (response) {
+                            Swal.fire({
+                                title: 'Payment Failed',
+                                text: response.error.description,
+                                icon: 'error'
+                            });
+                            resetButton();
                         });
+                        rzp1.open();
+
                     } else if (data.success) {
 
                         window.location.href = data.redirect_url || '/checkout/order-success/';
 
                     }
                 } else {
-                    window.location.href = '/checkout/order-failed'
+                    const errorMsg = data.error || 'Order placement failed.';
+                    Swal.fire('Order Failed', errorMsg, 'error');
+                    resetButton();
                 }
             } catch (error) {
                 console.error('Order error:', error);

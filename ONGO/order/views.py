@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+
 # from django.views.generic import ListView
 from cart.utils import get_cart_items_for_user
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -13,6 +14,7 @@ from django.views import View
 from django.shortcuts import get_object_or_404
 
 from django.http import JsonResponse, FileResponse, Http404
+
 # from django.views.decorators.csrf import csrf_exempt
 
 from django.contrib.auth.decorators import login_required
@@ -30,9 +32,14 @@ from products.models import ProductVariant
 from accounts.models import Address
 from coupons.models import Coupon, CouponUsage
 
-from .utils import validate_and_apply_coupon
-
+from .utils import (
+    validate_and_apply_coupon,
+    create_razorpay_order,
+    verify_payment_signature,
+)
 import logging
+from django.conf import settings
+import json
 
 
 # Create your views here.
@@ -40,9 +47,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@method_decorator(never_cache, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
 class CheckoutInformation(LoginRequiredMixin, View):
-    template_name = 'checkout/information.html'
+    template_name = "checkout/information.html"
 
     def get(self, request):
 
@@ -53,36 +60,41 @@ class CheckoutInformation(LoginRequiredMixin, View):
         cart_items, cart_summary = get_cart_items_for_user(request, user)
 
         for item in cart_items:
-            if item.get('stock') < item.get('quantity'):
-                messages.error(request, f'Insufficient Stock for {item.get('product_name')}')
-                return redirect('cart')
+            if item.get("stock") < item.get("quantity"):
+                messages.error(
+                    request, f"Insufficient Stock for {item.get('product_name')}"
+                )
+                return redirect("cart")
 
-        total_payable = cart_summary['total_payable']
+        total_payable = cart_summary["total_payable"]
         now = timezone.now()
 
-        coupons = Coupon.objects.filter(
-                active=True,
-                start_date__lte=now
-            ).filter(
-                Q(end_date__isnull=True) | Q(end_date__gte=now)
-            ).annotate(
-                total_usage=Count('usage')
-            ).filter(
-                total_usage__lt=F('usage_limit'),
-                min_order_amount__lte=total_payable
+        coupons = (
+            Coupon.objects.filter(active=True, start_date__lte=now)
+            .filter(Q(end_date__isnull=True) | Q(end_date__gte=now))
+            .annotate(total_usage=Count("usage"))
+            .filter(
+                total_usage__lt=F("usage_limit"), min_order_amount__lte=total_payable
             )
+        )
 
-        return render(request, self.template_name, {'addresses': address,
-                                                    'cart_items': cart_items,
-                                                    'cart_summary': cart_summary,
-                                                    'coupons': coupons})
+        return render(
+            request,
+            self.template_name,
+            {
+                "addresses": address,
+                "cart_items": cart_items,
+                "cart_summary": cart_summary,
+                "coupons": coupons,
+            },
+        )
 
     def post(self, request):
 
-        address = request.POST.get('shipping_address')
+        address = request.POST.get("shipping_address")
 
         if address is None or not Address.objects.filter(id=address).exists():
-            messages.error(request, 'Please select a valid address')
+            messages.error(request, "Please select a valid address")
             return render(request, self.template_name)
 
         request.session["checkout_information"] = {
@@ -92,187 +104,245 @@ class CheckoutInformation(LoginRequiredMixin, View):
         request.session["checkout_step"] = "information"
         request.session.modified = True
 
-        return redirect('payment_methode')
+        return redirect("payment_methode")
 
 
 @never_cache
 @login_required
 def add_address_in_checkout(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         success, message, _ = create_address_from_request(request)
         if success:
             # Fetch the newly created address to return it
-            new_address = Address.objects.filter(user=request.user).order_by('-id').first()
-            return JsonResponse({
-                'success': True,
-                'message': message,
-                'address': {
-                    'id': new_address.id,
-                    'name': new_address.name,
-                    'street_address': new_address.street_address,
-                    'city': new_address.city,
-                    'state': new_address.state,
-                    'postal_code': new_address.postal_code,
-                    'country': new_address.country,
-                    'phone': new_address.phone,
-                    'is_default': new_address.is_default
+            new_address = (
+                Address.objects.filter(user=request.user).order_by("-id").first()
+            )
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": message,
+                    "address": {
+                        "id": new_address.id,
+                        "name": new_address.name,
+                        "street_address": new_address.street_address,
+                        "city": new_address.city,
+                        "state": new_address.state,
+                        "postal_code": new_address.postal_code,
+                        "country": new_address.country,
+                        "phone": new_address.phone,
+                        "is_default": new_address.is_default,
+                    },
                 }
-            })
+            )
         else:
-            return JsonResponse({'success': False, 'message': message})
-    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+            return JsonResponse({"success": False, "message": message})
+    return JsonResponse({"success": False, "message": "Invalid request method"})
 
 
-@method_decorator(never_cache, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
 class PaymentMethode(LoginRequiredMixin, View):
 
-    template_name = 'checkout/payment.html'
+    template_name = "checkout/payment.html"
 
     def get(self, request):
 
         user = request.user
-        checkout_information = request.session.get('checkout_information')
+        checkout_information = request.session.get("checkout_information")
 
         if checkout_information is None:
-            return redirect('checkout_information')
+            return redirect("checkout_information")
 
-        address_id = checkout_information.get('address_id')
+        address_id = checkout_information.get("address_id")
 
         address = Address.objects.get(user=user, id=address_id)
 
         cart_items, cart_summary = get_cart_items_for_user(request, user)
 
         for item in cart_items:
-            if item.get('stock') < item.get('quantity'):
-                messages.error(request, f'Insufficient Stock for {item.get('product_name')}')
-                return redirect('cart')
+            if item.get("stock") < item.get("quantity"):
+                messages.error(
+                    request, f"Insufficient Stock for {item.get('product_name')}"
+                )
+                return redirect("cart")
 
-        return render(request, self.template_name, {'address': address, 'cart_items': cart_items,
-                                                    'cart_summary': cart_summary})
+        return render(
+            request,
+            self.template_name,
+            {
+                "address": address,
+                "cart_items": cart_items,
+                "cart_summary": cart_summary,
+            },
+        )
 
     def post(self, request):
-        payment_methode = request.POST.get('payment_method').strip()
+        payment_methode = request.POST.get("payment_method").strip()
 
-        payment_methodes = ['cod', 'online', 'card', 'wallet']
+        payment_methodes = ["cod", "online", "card", "wallet"]
 
         if payment_methode not in payment_methodes:
-            messages.error(request, 'Select correct Payment methode')
+            messages.error(request, "Select correct Payment methode")
             return render(request, self.template_name)
 
-        checkout_information = request.session.get('checkout_information')
+        checkout_information = request.session.get("checkout_information")
 
         checkout_information["payment_methode"] = payment_methode
 
         request.session["checkout_step"] = "payment_methode"
         request.session.modified = True
 
-        return redirect('order_confirmation')
+        return redirect("order_confirmation")
 
 
-@method_decorator(never_cache, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
 class OrderConfirmation(LoginRequiredMixin, View):
 
-    template_name = 'checkout/confirmation.html'
+    template_name = "checkout/confirmation.html"
 
     def get(self, request):
 
         user = request.user
-        checkout_information = request.session.get('checkout_information')
+        checkout_information = request.session.get("checkout_information")
 
         if checkout_information is None:
-            return redirect('checkout_information')
+            return redirect("checkout_information")
 
-        address_id = checkout_information.get('address_id')
-        payment_methode = checkout_information.get('payment_methode')
+        address_id = checkout_information.get("address_id")
+        payment_methode = checkout_information.get("payment_methode")
 
         address = Address.objects.get(user=user, id=address_id)
 
         cart_items, cart_summary = get_cart_items_for_user(request, user)
 
         for item in cart_items:
-            if item.get('stock') < item.get('quantity'):
-                messages.error(request, f'Insufficient Stock for {item.get('product_name')}')
-                return redirect('cart')
+            if item.get("stock") < item.get("quantity"):
+                messages.error(
+                    request, f"Insufficient Stock for {item.get('product_name')}"
+                )
+                return redirect("cart")
 
         request.session["checkout_step"] = "confirmation"
         request.session.modified = True
 
-        return render(request, self.template_name, {'address': address,
-                                                    'cart_items': cart_items,
-                                                    'payment_methode': payment_methode,
-                                                    'cart_summary': cart_summary})
+        return render(
+            request,
+            self.template_name,
+            {
+                "address": address,
+                "cart_items": cart_items,
+                "payment_methode": payment_methode,
+                "cart_summary": cart_summary,
+            },
+        )
 
 
 class PlaceOrder(LoginRequiredMixin, View):
 
     @transaction.atomic
     def post(self, request):
-        checkout_information = request.session.get('checkout_information', {})
-        address_id = checkout_information.get('address_id')
-        payment_methode = checkout_information.get('payment_methode')
+        checkout_information = request.session.get("checkout_information", {})
+        address_id = checkout_information.get("address_id")
+        payment_methode = checkout_information.get("payment_methode")
         user = request.user
-        checkout_step = request.session.get('checkout_step')
+        checkout_step = request.session.get("checkout_step")
 
-        if not address_id or not payment_methode or checkout_step != 'confirmation':
-            return JsonResponse({
-                'error': 'Incomplete checkout. Please go through all steps'
-            }, status=400)
+        if not address_id or not payment_methode or checkout_step != "confirmation":
+            return JsonResponse(
+                {"error": "Incomplete checkout. Please go through all steps"},
+                status=400,
+            )
 
         address = get_object_or_404(Address, id=address_id, user=user)
 
         cart_list, summary = get_cart_items_for_user(request, user)
 
         if not cart_list:
-            return JsonResponse({'error': 'Your Cart is Empty'}, status=400)
+            return JsonResponse({"error": "Your Cart is Empty"}, status=400)
 
-        variant_ids = [item['variant_id'] for item in cart_list]
+        variant_ids = [item["variant_id"] for item in cart_list]
         locked_variants = {
-            v.id: v for v in ProductVariant.objects.select_for_update().filter(id__in=variant_ids)
+            v.id: v
+            for v in ProductVariant.objects.select_for_update().filter(
+                id__in=variant_ids
+            )
         }
 
         for item in cart_list:
-            variant = locked_variants.get(item['variant_id'])
+            variant = locked_variants.get(item["variant_id"])
             if not variant:
-                return JsonResponse({'error': f"Item {item['product_name']} is no longer available."}, status=400)
+                return JsonResponse(
+                    {"error": f"Item {item['product_name']} is no longer available."},
+                    status=400,
+                )
 
-            if variant.stock < item['quantity']:
-                return JsonResponse({
-                    'error': f"Insufficient stock for {item['product_name']} ({item['size']}/{item['color']})"
-                }, status=400)
+            if variant.stock < item["quantity"]:
+                return JsonResponse(
+                    {
+                        "error": f"Insufficient stock for {item['product_name']} ({item['size']}/{item['color']})"
+                    },
+                    status=400,
+                )
 
-        total_payable = Decimal(str(summary['total_payable']))
-        items_subtotal = Decimal(str(summary['items_subtotal']))
-        discount_amount = Decimal(str(summary['cart_discount']))
-        shipping = Decimal(str(summary['shipping']))
-        coupon_code = summary.get('applied_coupon', {}).get('coupon_code')
+        total_payable = Decimal(str(summary["total_payable"]))
+        items_subtotal = Decimal(str(summary["items_subtotal"]))
+        discount_amount = Decimal(str(summary["cart_discount"]))
+        shipping = Decimal(str(summary["shipping"]))
+        coupon_code = summary.get("applied_coupon", {}).get("coupon_code")
 
-        if payment_methode == 'online':
-            return JsonResponse({
-                'initiate_razorpay': True,
-                'amount': float(total_payable),
-                'currency': 'INR',
-                'message': 'Redirecting to payment gateway...'
-            })
+        if payment_methode == "online":
+            try:
+                razorpay_order = create_razorpay_order(float(total_payable))
+                return JsonResponse(
+                    {
+                        "initiate_razorpay": True,
+                        "razorpay_order_id": razorpay_order["id"],
+                        "amount": razorpay_order["amount"],
+                        "currency": razorpay_order["currency"],
+                        "key_id": settings.RAZORPAY_KEY_ID,
+                        "message": "Redirecting to payment gateway...",
+                    }
+                )
+            except Exception as e:
+                return JsonResponse({"error": str(e)}, status=500)
 
         self._create_order_and_deduct_stock(
-            user, address, cart_list, locked_variants,
-            items_subtotal, total_payable, discount_amount,
-            payment_methode, coupon_code, shipping
+            user,
+            address,
+            cart_list,
+            locked_variants,
+            items_subtotal,
+            total_payable,
+            discount_amount,
+            payment_methode,
+            coupon_code,
+            shipping,
         )
 
-        request.session.pop('checkout_information', None)
-        request.session.pop('checkout_step', None)
-        request.session.pop('applied_coupon', None)
+        request.session.pop("checkout_information", None)
+        request.session.pop("checkout_step", None)
+        request.session.pop("applied_coupon", None)
 
-        return JsonResponse({
-            'success': True,
-            'order_placed': True,
-            'redirect_url': '/checkout/order-success/'
-        })
+        return JsonResponse(
+            {
+                "success": True,
+                "order_placed": True,
+                "redirect_url": "/checkout/order-success/",
+            }
+        )
 
-    def _create_order_and_deduct_stock(self, user, address, cart_list, locked_variants,
-                                       sub_total, total_amount, discount, payment_method,
-                                       coupon_code, shipping):
+    def _create_order_and_deduct_stock(
+        self,
+        user,
+        address,
+        cart_list,
+        locked_variants,
+        sub_total,
+        total_amount,
+        discount,
+        payment_method,
+        coupon_code,
+        shipping,
+    ):
 
         order = Order.objects.create(
             user=user,
@@ -280,10 +350,10 @@ class PlaceOrder(LoginRequiredMixin, View):
             sub_total=sub_total,
             discount_amount=discount,
             total_amount=total_amount,
-            status='confirmed' if payment_method == 'cod' else 'pending',
+            status="confirmed" if payment_method == "cod" else "pending",
             payment_method=payment_method,
             coupon_code=coupon_code,
-            shipping=shipping
+            shipping=shipping,
         )
 
         if coupon_code:
@@ -298,22 +368,22 @@ class PlaceOrder(LoginRequiredMixin, View):
         order_items = []
 
         for item in cart_list:
-            variant = locked_variants[item['variant_id']]
+            variant = locked_variants[item["variant_id"]]
 
-            variant.stock -= item['quantity']
-            variant.save(update_fields=['stock'])
+            variant.stock -= item["quantity"]
+            variant.save(update_fields=["stock"])
 
             order_items.append(
                 OrderItem(
                     order=order,
                     product_variant=variant,
-                    product_name=item['product_name'],
-                    variant_options={'size': item['size'], 'color': item['color']},
-                    image_url=item['image_url'],
-                    price_at_time_of_order=Decimal(str(item['offer_price'])),
-                    quantity=item['quantity'],
-                    total_price=Decimal(str(item['line_total'])),
-                    status='confirmed'
+                    product_name=item["product_name"],
+                    variant_options={"size": item["size"], "color": item["color"]},
+                    image_url=item["image_url"],
+                    price_at_time_of_order=Decimal(str(item["offer_price"])),
+                    quantity=item["quantity"],
+                    total_price=Decimal(str(item["line_total"])),
+                    status="confirmed",
                 )
             )
 
@@ -322,29 +392,180 @@ class PlaceOrder(LoginRequiredMixin, View):
         Cart.objects.filter(user=user).delete()
 
 
-@method_decorator(never_cache, name='dispatch')
+class PaymentVerify(LoginRequiredMixin, View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            razorpay_payment_id = data.get("razorpay_payment_id")
+            razorpay_order_id = data.get("razorpay_order_id")
+            razorpay_signature = data.get("razorpay_signature")
+
+            params = {
+                "razorpay_order_id": razorpay_order_id,
+                "razorpay_payment_id": razorpay_payment_id,
+                "razorpay_signature": razorpay_signature,
+            }
+
+            if verify_payment_signature(params):
+                # Payment successful, proceed to create order
+                user = request.user
+                checkout_information = request.session.get("checkout_information", {})
+                address_id = checkout_information.get("address_id")
+
+                # Retrieve Cart and Logic (Reproducing necessary parts of PlaceOrder)
+                # Note: Ideally this logic should be abstracted to avoid duplication with PlaceOrder
+                # For now, we are repeating the core logic as per the plan.
+
+                address = get_object_or_404(Address, id=address_id, user=user)
+                cart_list, summary = get_cart_items_for_user(request, user)
+
+                if not cart_list:
+                    return JsonResponse(
+                        {
+                            "error": "Your Cart is Empty",
+                            "redirect_url": "/checkout/order-failed/",
+                        },
+                        status=400,
+                    )
+
+                variant_ids = [item["variant_id"] for item in cart_list]
+                # Lock variants again
+                with transaction.atomic():
+                    locked_variants = {
+                        v.id: v
+                        for v in ProductVariant.objects.select_for_update().filter(
+                            id__in=variant_ids
+                        )
+                    }
+
+                    # Re-check stock
+                    for item in cart_list:
+                        variant = locked_variants.get(item["variant_id"])
+                        if not variant or variant.stock < item["quantity"]:
+                            return JsonResponse(
+                                {
+                                    "error": f"Insufficient stock for {item['product_name']}",
+                                    "redirect_url": "/checkout/order-failed/",
+                                },
+                                status=400,
+                            )
+
+                    total_payable = Decimal(str(summary["total_payable"]))
+                    items_subtotal = Decimal(str(summary["items_subtotal"]))
+                    discount_amount = Decimal(str(summary["cart_discount"]))
+                    shipping = Decimal(str(summary["shipping"]))
+                    coupon_code = summary.get("applied_coupon", {}).get("coupon_code")
+
+                    # Create Order
+                    # We need to instantiate PlaceOrder to use its method or make method static/utility
+                    # Since it is a class method, we can just copy logic or instantiate.
+                    # Better to move _create_order_... to a utility or model method, but for now we follow the plan and minimal change.
+                    # We can use the logic directly here.
+
+                    order = Order.objects.create(
+                        user=user,
+                        address=address,
+                        sub_total=items_subtotal,
+                        discount_amount=discount_amount,
+                        total_amount=total_payable,
+                        status="pending",  # Paid but processing
+                        payment_method="online",
+                        coupon_code=coupon_code,
+                        shipping=shipping,
+                        razorpay_order_id=razorpay_order_id,
+                        razorpay_payment_id=razorpay_payment_id,
+                        razorpay_signature=razorpay_signature,
+                        payment_status="paid",
+                    )
+
+                    if coupon_code:
+                        coupon = Coupon.objects.get(coupon_code=coupon_code)
+                        CouponUsage.objects.create(
+                            coupon=coupon, user=user, order=order
+                        )
+
+                    order_items = []
+                    for item in cart_list:
+                        variant = locked_variants[item["variant_id"]]
+                        variant.stock -= item["quantity"]
+                        variant.save(update_fields=["stock"])
+
+                        order_items.append(
+                            OrderItem(
+                                order=order,
+                                product_variant=variant,
+                                product_name=item["product_name"],
+                                variant_options={
+                                    "size": item["size"],
+                                    "color": item["color"],
+                                },
+                                image_url=item["image_url"],
+                                price_at_time_of_order=Decimal(
+                                    str(item["offer_price"])
+                                ),
+                                quantity=item["quantity"],
+                                total_price=Decimal(str(item["line_total"])),
+                                status="confirmed",
+                            )
+                        )
+                    OrderItem.objects.bulk_create(order_items)
+                    Cart.objects.filter(user=user).delete()
+
+                    # Clear session
+                    request.session.pop("checkout_information", None)
+                    request.session.pop("checkout_step", None)
+                    request.session.pop("applied_coupon", None)
+
+                    return JsonResponse(
+                        {"success": True, "redirect_url": "/checkout/order-success/"}
+                    )
+            else:
+                return JsonResponse(
+                    {
+                        "error": "Payment verification failed",
+                        "redirect_url": "/checkout/order-failed/",
+                    },
+                    status=400,
+                )
+
+        except Exception as e:
+            logger.error(f"Payment Verify Error: {e}")
+            return JsonResponse(
+                {
+                    "error": "Something went wrong",
+                    "redirect_url": "/checkout/order-failed/",
+                },
+                status=500,
+            )
+
+
+@method_decorator(never_cache, name="dispatch")
 class OrderSuccess(LoginRequiredMixin, View):
-    template_name = 'checkout/order_success.html'
+    template_name = "checkout/order_success.html"
 
     def get(self, request):
 
         user = request.user
 
-        order = Order.objects.filter(user=user).order_by('-created_at').first()
+        order = Order.objects.filter(user=user).order_by("-created_at").first()
 
         if not order:
-            return redirect('order-failed')
+            return redirect("order-failed")
 
         address = order.address
 
         order_items = order.items.all()
 
-        return render(request, self.template_name, {'address': address, 'order': order, 'order_items': order_items})
+        return render(
+            request,
+            self.template_name,
+            {"address": address, "order": order, "order_items": order_items},
+        )
 
 
 def orderFailed(request):
 
-    return render(request, 'checkout/order_failed.html')
+    return render(request, "checkout/order_failed.html")
 
 
 @login_required
@@ -354,16 +575,19 @@ def download_invoice(request, order_id):
     if request.user != order.user and not request.user.is_staff:
         raise Http404("Order not found")
 
-    if not hasattr(order, 'invoice'):
+    if not hasattr(order, "invoice"):
         # Just in case signals failed or old order, try generating it if delivered
-        if order.status == 'delivered':
+        if order.status == "delivered":
             from .utils import generate_invoice_pdf
+
             generate_invoice_pdf(order)
             order.refresh_from_db()
         else:
             raise Http404("Invoice not available yet")
     try:
-        return FileResponse(order.invoice.pdf_file.open('rb'), content_type='application/pdf')
+        return FileResponse(
+            order.invoice.pdf_file.open("rb"), content_type="application/pdf"
+        )
     except FileNotFoundError:
         raise Http404("Invoice file missing")
 
@@ -372,44 +596,44 @@ class ApplyCouponView(LoginRequiredMixin, View):
 
     def post(self, request):
 
-        coupon_code = request.POST.get('coupon_code')
+        coupon_code = request.POST.get("coupon_code")
 
         if not coupon_code:
-            messages.error(request, 'Enter a coupon code...')
-            return redirect('checkout_information')
+            messages.error(request, "Enter a coupon code...")
+            return redirect("checkout_information")
 
-        if 'applied_coupon' in request.session:
-            messages.error(request, 'Coupon is alredy applied')
-            return redirect('checkout_information')
+        if "applied_coupon" in request.session:
+            messages.error(request, "Coupon is alredy applied")
+            return redirect("checkout_information")
 
         _, summary = get_cart_items_for_user(request, request.user)
 
-        min_order_amount = summary['total_payable']
+        min_order_amount = summary["total_payable"]
 
         is_valid, discount, free_shipping, error_msg = validate_and_apply_coupon(
-                request.user,
-                coupon_code,
-                Decimal(str(min_order_amount))
-            )
+            request.user, coupon_code, Decimal(str(min_order_amount))
+        )
 
         if not is_valid:
             messages.error(request, error_msg)
-            return redirect('checkout_information')
+            return redirect("checkout_information")
 
-        if (
-            free_shipping and
-            any(global_offer['name'] == 'Free Shipping' for global_offer in summary['applied_global_offers'])
+        if free_shipping and any(
+            global_offer["name"] == "Free Shipping"
+            for global_offer in summary["applied_global_offers"]
         ):
-            messages.error(request,
-                           "Free shiping global offer alredy existing.. so you can't apply free shipping coupon")
-            return redirect('checkout_information')
+            messages.error(
+                request,
+                "Free shiping global offer alredy existing.. so you can't apply free shipping coupon",
+            )
+            return redirect("checkout_information")
 
-        request.session['applied_coupon'] = {
-            'coupon_code': coupon_code.upper(),
-            'discount_amount': str(discount),
-            'free_shipping': free_shipping,
+        request.session["applied_coupon"] = {
+            "coupon_code": coupon_code.upper(),
+            "discount_amount": str(discount),
+            "free_shipping": free_shipping,
         }
         request.session.modified = True
 
-        messages.success(request, 'Coupon applied successfully..')
-        return redirect('checkout_information')
+        messages.success(request, "Coupon applied successfully..")
+        return redirect("checkout_information")
