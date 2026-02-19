@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (data.initiate_razorpay) {
                         const options = {
                             "key": data.key_id,
-                            "amount": data.amount,
+                            "amount": String(data.amount),
                             "currency": data.currency,
                             "name": "ONGO E-Commerce",
                             "description": "Order Payment",
@@ -84,6 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }
                             }
                         };
+                        console.log(options);
+                        
                         const rzp1 = new Razorpay(options);
                         rzp1.on('payment.failed', function (response) {
                             Swal.fire({

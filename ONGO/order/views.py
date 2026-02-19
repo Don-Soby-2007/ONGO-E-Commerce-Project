@@ -479,7 +479,8 @@ class PaymentVerify(LoginRequiredMixin, View):
                     # Create Order
                     # We need to instantiate PlaceOrder to use its method or make method static/utility
                     # Since it is a class method, we can just copy logic or instantiate.
-                    # Better to move _create_order_... to a utility or model method, but for now we follow the plan and minimal change.
+                    # Better to move _create_order_... to a utility or model method, but for now we follow the plan
+                    # and minimal change.
                     # We can use the logic directly here.
 
                     order = Order.objects.create(

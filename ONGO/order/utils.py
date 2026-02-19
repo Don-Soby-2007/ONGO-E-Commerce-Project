@@ -5,6 +5,8 @@ from .models import Invoice
 from coupons.models import Coupon, CouponUsage
 from decimal import Decimal
 
+import razorpay
+from django.conf import settings
 
 from django.contrib.staticfiles import finders
 
@@ -96,10 +98,6 @@ def validate_and_apply_coupon(user, coupon_code, base_total):
         free_shipping = True
 
     return True, discount, free_shipping, ""
-
-
-import razorpay
-from django.conf import settings
 
 
 def create_razorpay_order(amount, currency="INR"):
