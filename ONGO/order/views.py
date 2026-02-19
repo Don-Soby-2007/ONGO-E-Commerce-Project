@@ -249,6 +249,7 @@ class PlaceOrder(LoginRequiredMixin, View):
         discount_amount = Decimal(str(summary['cart_discount']))
         shipping = Decimal(str(summary['shipping']))
         coupon_code = summary.get('applied_coupon', {}).get('coupon_code')
+        coupon_discount_amount = summary.get('applied_coupon', {}).get('discount_amount')
 
         if payment_methode == 'online':
             try:
@@ -256,7 +257,7 @@ class PlaceOrder(LoginRequiredMixin, View):
                 order = self._create_pending_order(
                     user, address, cart_list, locked_variants,
                     items_subtotal, total_payable, discount_amount,
-                    payment_methode, coupon_code, shipping
+                    payment_methode, coupon_code, coupon_discount_amount, shipping
                 )
 
                 rzp_order = create_razorpay_order(total_payable)
@@ -290,7 +291,7 @@ class PlaceOrder(LoginRequiredMixin, View):
         self._create_order_and_deduct_stock(
             user, address, cart_list, locked_variants,
             items_subtotal, total_payable, discount_amount,
-            payment_methode, coupon_code, shipping
+            payment_methode, coupon_code, coupon_discount_amount, shipping
         )
 
         request.session.pop('checkout_information', None)
@@ -305,7 +306,7 @@ class PlaceOrder(LoginRequiredMixin, View):
 
     def _create_order_and_deduct_stock(self, user, address, cart_list, locked_variants,
                                        sub_total, total_amount, discount, payment_method,
-                                       coupon_code, shipping):
+                                       coupon_code, coupon_discount_amount, shipping):
 
         order = Order.objects.create(
             user=user,
@@ -316,11 +317,14 @@ class PlaceOrder(LoginRequiredMixin, View):
             status='confirmed' if payment_method == 'cod' else 'pending',
             payment_method=payment_method,
             coupon_code=coupon_code,
+            coupon_discount_amount=coupon_discount_amount,
             shipping=shipping
         )
 
+        print(coupon_code)
+
         if coupon_code:
-            coupon = Coupon.objects.get(coupon_code=coupon_code)
+            coupon = Coupon.objects.get(coupon_code__iexact=coupon_code)
 
             CouponUsage.objects.create(
                 coupon=coupon,
@@ -345,6 +349,7 @@ class PlaceOrder(LoginRequiredMixin, View):
                     image_url=item['image_url'],
                     price_at_time_of_order=Decimal(str(item['offer_price'])),
                     quantity=item['quantity'],
+                    # total_discount_amount_per_item=Decimal(str(item['total_discount'])),
                     total_price=Decimal(str(item['line_total'])),
                     status='confirmed'
                 )
