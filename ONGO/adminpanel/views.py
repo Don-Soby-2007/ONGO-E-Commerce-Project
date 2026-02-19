@@ -1924,3 +1924,32 @@ class ToggleCouponStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
                 'success': False,
                 'message': f'Something went wrong while changing status of {coupon.coupon_code}'
             })
+
+
+@method_decorator(never_cache, name='dispatch')
+class SalesReportView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    template_name = 'adminpanel/sales_report.html'
+    model = Order
+    paginate_by = 6
+    context_object_name = "orders"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        orders = Order.objects.all().exclude(status='failed').aggregate(
+            count=Count('id'),
+            gross_revenue=Sum('sub_total'),
+            discount_amount=Sum('discount_amount'),
+            coupon_discount_amount=Sum('coupon_discount_amount'),
+            )
+        print(orders)
+
+        # context['total_orders'] = orders['coutn']
+
+        # context['gross_revenue'] = gross_revenue['revenue']
+
+        return context

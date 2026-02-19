@@ -69,5 +69,9 @@ urlpatterns = [
     path('coupon/edit/<int:coupon_id>/', views.CouponEditView.as_view(), name='coupon_edit'),
     path('coupon/toggle-status/<int:coupon_id>/', views.ToggleCouponStatusView.as_view(), name='coupon_toggle'),
 
+    # sales report urls
+
+    path('sales-report/', views.SalesReportView.as_view(), name='sales_report'),
+
 
 ]

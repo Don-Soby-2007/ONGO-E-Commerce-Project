@@ -93,6 +93,7 @@ class OrderItem(models.Model):
     image_url = models.URLField()
     price_at_time_of_order = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    # total_discount_amount_per_item = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total_price = models.DecimalField(max_digits=12, decimal_places=2)
 
     status = models.CharField(

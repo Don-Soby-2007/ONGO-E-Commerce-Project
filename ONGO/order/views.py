@@ -361,7 +361,7 @@ class PlaceOrder(LoginRequiredMixin, View):
 
     def _create_pending_order(
             self, user, address, cart_list, locked_variants, sub_total,
-            total_amount, discount, payment_method, coupon_code, shipping):
+            total_amount, discount, payment_method, coupon_code, coupon_discount_amount, shipping):
 
         order = Order.objects.create(
             user=user,
@@ -373,6 +373,7 @@ class PlaceOrder(LoginRequiredMixin, View):
             payment_status='pending',
             payment_method=payment_method,
             coupon_code=coupon_code,
+            coupon_discount_amount=coupon_discount_amount,
             shipping=shipping,
         )
 
