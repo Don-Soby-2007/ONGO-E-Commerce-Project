@@ -1928,7 +1928,7 @@ class ToggleCouponStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 
 @method_decorator(never_cache, name='dispatch')
-class SalesReportView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+class AnalyticstView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
     def test_func(self):
         return self.request.user.is_staff
@@ -1984,7 +1984,6 @@ class SalesReportView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             discount_amount=Sum('discount_amount'),
             coupon_discount_amount=Sum('coupon_discount_amount'),
             )
-        print(order_stats)
 
         def safe_decimal(value):
             """Convert None to Decimal(0) for safe math"""
