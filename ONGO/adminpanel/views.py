@@ -26,7 +26,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from django.utils import timezone
-
+from datetime import timedelta
+from decimal import Decimal
 
 import uuid
 
@@ -1937,19 +1938,80 @@ class SalesReportView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     paginate_by = 6
     context_object_name = "orders"
 
+    def get_queryset(self):
+        queryset = Order.objects.filter(status='delivered')
+
+        # date filter
+
+        date_filter = self.request.GET.get('date_filter', 'all')
+        start_date = self.request.GET.get('start_date', '')
+        end_date = self.request.GET.get('end_date', '')
+
+        today = timezone.now().date()
+
+        if date_filter == 'today':
+            queryset = queryset.filter(created_at__date=today)
+        elif date_filter == 'week':
+            start_of_week = today - timedelta(days=today.weekday())
+            queryset = queryset.filter(created_at__date__gte=start_of_week)
+        elif date_filter == 'month':
+            queryset = queryset.filter(created_at__year=today.year, created_at__month=today.month)
+        elif date_filter == 'year':
+            queryset = queryset.fileter(created_at__year=today.year)
+        elif date_filter == 'custom' and start_date and end_date:
+            queryset = queryset.filter(created_at__date__gte=start_date, created_at__date_lte=end_date)
+
+        return queryset
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        orders = Order.objects.all().exclude(status='failed').aggregate(
-            count=Count('id'),
+        base_orders = self.get_queryset()
+
+        context['current_filters'] = {
+            'date_filter': self.request.GET.get('date_filter', 'all'),
+            'start_date': self.request.GET.get('start_date', ''),
+            'end_date': self.request.GET.get('end_date', ''),
+            'status_filter': self.request.GET.get('status_filter', 'all'),
+            'payment_filter': self.request.GET.get('payment_filter', 'all'),
+        }
+
+        # KPI
+
+        order_stats = base_orders.aggregate(
+            total_orders=Count('id'),
             gross_revenue=Sum('sub_total'),
             discount_amount=Sum('discount_amount'),
             coupon_discount_amount=Sum('coupon_discount_amount'),
             )
-        print(orders)
+        print(order_stats)
 
-        # context['total_orders'] = orders['coutn']
+        def safe_decimal(value):
+            """Convert None to Decimal(0) for safe math"""
+            return value if value is not None else Decimal('0')
 
-        # context['gross_revenue'] = gross_revenue['revenue']
+        context['total_orders'] = safe_decimal(order_stats['total_orders'])
+        context['gross_revenue'] = safe_decimal(order_stats['gross_revenue'])
+        context['discount_amount'] = safe_decimal(order_stats['discount_amount'])
+        context['coupon_discount_amount'] = safe_decimal(order_stats['coupon_discount_amount'])
+        context['overall_discount'] = context['discount_amount'] + context['coupon_discount_amount']
+        context['net_revenue'] = context['gross_revenue'] - context['overall_discount']
+
+        # payment distribution
+
+        payment_stats = base_orders.values('payment_method').annotate(
+            total_amount=Sum('total_amount'),
+            order_count=Count('id')
+        ).order_by('-total_amount')
+
+        context['payment_distribution'] = {
+            item['payment_method']: {
+                'amount': safe_decimal(item['total_amount']),
+                'count': safe_decimal(item['order_count'])
+            } for item in payment_stats
+        }
+
+        # Calculate total for percentage calculation in template
+        context['payment_total'] = sum(p['amount'] for p in context['payment_distribution'].values())
 
         return context
