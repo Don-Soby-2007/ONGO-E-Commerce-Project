@@ -114,14 +114,19 @@
                         <span>₹{{ order.sub_total }}</span>
                     </div>
                     {% if order.discount_amount > 0 %}
-                    <div class="summary-row" style="color: #059669;">
+                    <div class="summary-row text-green-600">
                         <span>Discount</span>
                         <span>- ₹{{ order.discount_amount }}</span>
                     </div>
                     {% endif %}
                     <div class="summary-row">
+                        {% if order.shipping == 0 %}
+                        <span class='text-green-600'>Shipping</span>
+                        <span class='text-green-600'>Free</span>
+                        {% else %}
                         <span>Shipping</span>
-                        <span>Free</span>
+                        <span>100</span>
+                        {% endif %}
                     </div>
                     <div class="summary-row total">
                         <span>Total Amount</span>
