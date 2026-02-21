@@ -238,15 +238,15 @@
         </div>
 
         <!-- Pagination -->
-        {% if orders.has_other_pages %}
+        {% if is_paginated %}
         <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
             <div class="text-sm text-gray-500">
-                Showing <span class="font-medium text-gray-700">{{ orders.start_index }}</span> to <span class="font-medium text-gray-700">{{ orders.end_index }}</span> of <span class="font-medium text-gray-700">{{ orders.paginator.count }}</span> orders
+                Showing <span class="font-medium text-gray-700">{{ page_obj.start_index }}</span> to <span class="font-medium text-gray-700">{{ page_obj.end_index }}</span> of <span class="font-medium text-gray-700">{{ page_obj.paginator.count }}</span> orders
             </div>
             
             <div class="flex items-center space-x-1">
-                {% if orders.has_previous %}
-                <a href="?page={{ orders.previous_page_number }}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.start_date %}&start_date={{ current_filters.start_date }}{% endif %}{% if current_filters.end_date %}&end_date={{ current_filters.end_date }}{% endif %}" 
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.start_date %}&start_date={{ current_filters.start_date }}{% endif %}{% if current_filters.end_date %}&end_date={{ current_filters.end_date }}{% endif %}" 
                    class="p-2 border border-gray-300 rounded-lg hover:bg-white text-gray-600 transition shadow-sm">
                     <i data-lucide="chevron-left" class="w-4 h-4"></i>
                 </a>
@@ -256,17 +256,17 @@
                 </div>
                 {% endif %}
 
-                {% for i in orders.paginator.page_range %}
-                    {% if orders.number == i %}
+                {% for i in page_obj.paginator.page_range %}
+                    {% if page_obj.number == i %}
                     <span class="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-sm">{{ i }}</span>
-                    {% elif i > orders.number|add:'-3' and i < orders.number|add:'3' %}
+                    {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
                     <a href="?page={{ i }}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.start_date %}&start_date={{ current_filters.start_date }}{% endif %}{% if current_filters.end_date %}&end_date={{ current_filters.end_date }}{% endif %}" 
                        class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white text-gray-600 text-sm font-medium transition shadow-sm">{{ i }}</a>
                     {% endif %}
                 {% endfor %}
 
-                {% if orders.has_next %}
-                <a href="?page={{ orders.next_page_number }}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.start_date %}&start_date={{ current_filters.start_date }}{% endif %}{% if current_filters.end_date %}&end_date={{ current_filters.end_date }}{% endif %}" 
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.start_date %}&start_date={{ current_filters.start_date }}{% endif %}{% if current_filters.end_date %}&end_date={{ current_filters.end_date }}{% endif %}" 
                    class="p-2 border border-gray-300 rounded-lg hover:bg-white text-gray-600 transition shadow-sm">
                     <i data-lucide="chevron-right" class="w-4 h-4"></i>
                 </a>

@@ -249,7 +249,7 @@ class PlaceOrder(LoginRequiredMixin, View):
         discount_amount = Decimal(str(summary['cart_discount']))
         shipping = Decimal(str(summary['shipping']))
         coupon_code = summary.get('applied_coupon', {}).get('coupon_code')
-        coupon_discount_amount = summary.get('applied_coupon', {}).get('discount_amount')
+        coupon_discount_amount = summary.get('applied_coupon', {}).get('discount_amount', 0)
 
         if payment_methode == 'online':
             try:
