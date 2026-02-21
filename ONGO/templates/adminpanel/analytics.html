@@ -1,0 +1,291 @@
+{% extends 'common/base_admin_list.html' %}
+{% load static %}
+
+{% block title %}Sales Analytics | Administrative Panel{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/adminpanel/analytics.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock style %}
+
+{% block content %}
+<div class="space-y-8 pb-10">
+    
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Sales Analytics</h1>
+            <p class="text-sm text-gray-500 mt-1">Track performance and revenue insights</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button class="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-400 cursor-not-allowed transition hover:bg-gray-50 opacity-70 group" disabled>
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+                <span class="text-sm font-medium">Export as PDF</span>
+            </button>
+            <button class="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-400 cursor-not-allowed transition hover:bg-gray-50 opacity-70 group" disabled>
+                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                <span class="text-sm font-medium">Export as Excel</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 sticky-filter animate-fade-in" style="animation-delay: 0.1s;">
+        <form method="GET" action="{% url 'analytics' %}" class="flex flex-wrap items-center gap-4">
+            <div class="flex items-center space-x-2">
+                <label for="date_filter" class="text-sm font-medium text-gray-700">Time Period:</label>
+                <select name="date_filter" id="date_filter" class="text-sm border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50 px-3 py-2">
+                    <option value="all" {% if current_filters.date_filter == 'all' %}selected{% endif %}>All Time</option>
+                    <option value="today" {% if current_filters.date_filter == 'today' %}selected{% endif %}>Today</option>
+                    <option value="this_week" {% if current_filters.date_filter == 'this_week' %}selected{% endif %}>This Week</option>
+                    <option value="this_month" {% if current_filters.date_filter == 'this_month' %}selected{% endif %}>This Month</option>
+                    <option value="this_year" {% if current_filters.date_filter == 'this_year' %}selected{% endif %}>This Year</option>
+                    <option value="custom" {% if current_filters.date_filter == 'custom' %}selected{% endif %}>Custom Range</option>
+                </select>
+            </div>
+
+            <div id="custom-date-range" class="{% if current_filters.date_filter != 'custom' %}hidden{% endif %} items-center gap-3">
+                <input type="date" name="start_date" value="{{ current_filters.start_date }}" class="text-sm border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50 px-3 py-2">
+                <span class="text-gray-400">to</span>
+                <input type="date" name="end_date" value="{{ current_filters.end_date }}" class="text-sm border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50 px-3 py-2">
+            </div>
+
+            <div class="flex items-center gap-2 ml-auto">
+                <a href="{% url 'analytics' %}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition">Clear Filters</a>
+                <button type="submit" class="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition shadow-sm hover:shadow-md">
+                    Apply Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 3️⃣ KPI CARDS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in" style="animation-delay: 0.2s;">
+        <!-- Card 1: Total Orders -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm kpi-card">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Total Orders</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-2">{{ total_orders|default:0 }}</h3>
+                </div>
+                <div class="p-3 bg-gray-50 rounded-lg">
+                    <i data-lucide="shopping-bag" class="w-6 h-6 text-gray-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Gross Revenue -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm kpi-card">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Gross Revenue</p>
+                    <h3 class="text-2xl font-bold text-green-600 mt-2">₹{{ gross_revenue|floatformat:2|default:"0.00" }}</h3>
+                </div>
+                <div class="p-3 bg-green-50 rounded-lg">
+                    <i data-lucide="banknote" class="w-6 h-6 text-green-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Product Discount -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm kpi-card">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Product Discount</p>
+                    <h3 class="text-2xl font-bold text-red-500 mt-2">₹{{ discount_amount|floatformat:2|default:"0.00" }}</h3>
+                </div>
+                <div class="p-3 bg-red-50 rounded-lg">
+                    <i data-lucide="tag" class="w-6 h-6 text-red-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: Coupon Discount -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm kpi-card">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Coupon Discount</p>
+                    <h3 class="text-2xl font-bold text-red-500 mt-2">₹{{ coupon_discount_amount|floatformat:2|default:"0.00" }}</h3>
+                </div>
+                <div class="p-3 bg-red-50 rounded-lg">
+                    <i data-lucide="ticket" class="w-6 h-6 text-red-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 5: Overall Discount -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm kpi-card">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Overall Discount</p>
+                    <h3 class="text-2xl font-bold text-red-600 mt-2">₹{{ overall_discount|floatformat:2|default:"0.00" }}</h3>
+                </div>
+                <div class="p-3 bg-red-100 rounded-lg">
+                    <i data-lucide="trending-down" class="w-6 h-6 text-red-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 6: Net Revenue -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm kpi-card border-l-4 border-l-blue-500">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Net Revenue</p>
+                    <h3 class="text-2xl font-bold text-blue-600 mt-2">₹{{ net_revenue|floatformat:2|default:"0.00" }}</h3>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-lg">
+                    <i data-lucide="wallet" class="w-6 h-6 text-blue-600"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4️⃣ PAYMENT DISTRIBUTION -->
+    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm animate-fade-in" style="animation-delay: 0.3s;">
+        <h3 class="text-lg font-bold text-gray-800 mb-6">Payment Distribution</h3>
+        
+        {% if payment_total > 0 %}
+        <div class="flex flex-col lg:flex-row items-center gap-10">
+            <!-- Left side: Doughnut chart -->
+            <div class="relative w-64 h-64">
+                <canvas id="paymentChart"></canvas>
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span class="text-xs text-gray-400 font-medium uppercase">Total</span>
+                    <span class="text-xl font-bold text-gray-800">₹{{ payment_total|floatformat:0 }}</span>
+                </div>
+            </div>
+
+            <!-- Right side: List -->
+            <div class="flex-1 w-full space-y-6">
+                {% for method, data in payment_distribution.items %}
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full 
+                                {% if method == 'cod' %}bg-orange-500{% elif method == 'online' %}bg-blue-500{% elif method == 'wallet' %}bg-purple-500{% else %}bg-gray-400{% endif %}">
+                            </span>
+                            <span class="text-sm font-bold text-gray-700 uppercase">{{ method }}</span>
+                            <span class="text-xs text-gray-400">({{ data.count }} orders)</span>
+                        </div>
+                        <span class="text-sm font-bold text-gray-800">₹{{ data.amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                        <div class="progress-bar-fill h-full rounded-full 
+                            {% if method == 'cod' %}bg-orange-500{% elif method == 'online' %}bg-blue-500{% elif method == 'wallet' %}bg-purple-500{% else %}bg-gray-400{% endif %}" 
+                            data-amount="{{ data.amount }}"
+                            data-total="{{ payment_total }}">
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="flex flex-col items-center justify-center py-12 text-gray-400">
+            <i data-lucide="pie-chart" class="w-12 h-12 mb-4 opacity-20"></i>
+            <p>No payment data available for the selected period.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 5️⃣ DELIVERED ORDERS TABLE -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden animate-fade-in" style="animation-delay: 0.4s;">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+            <h3 class="text-lg font-bold text-gray-800">Delivered Orders</h3>
+            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wider">Historical Data</span>
+        </div>
+        
+        <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-200">
+                        <th class="px-6 py-4 font-semibold">Order ID</th>
+                        <th class="px-6 py-4 font-semibold">Customer</th>
+                        <th class="px-6 py-4 font-semibold">Payment</th>
+                        <th class="px-6 py-4 font-semibold">Subtotal</th>
+                        <th class="px-6 py-4 font-semibold">Discount</th>
+                        <th class="px-6 py-4 font-semibold">Total Amount</th>
+                        <th class="px-6 py-4 font-semibold">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for order in orders %}
+                    <tr class="hover:bg-gray-50 transition-colors group">
+                        <td class="px-6 py-4 text-sm font-bold text-gray-900">#{{ order.order_id }}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-medium text-gray-800">{{ order.user.username }}</span>
+                                <span class="text-xs text-gray-400">{{ order.user.email }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 bg-gray-100 text-gray-600 text-[10px] font-bold rounded-lg uppercase">
+                                {{ order.payment_method }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">₹{{ order.sub_total|floatformat:2 }}</td>
+                        <td class="px-6 py-4 text-sm text-red-500">-₹{{ order.discount_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 text-sm font-bold text-gray-900 font-mono">₹{{ order.total_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">{{ order.created_at|date:"d M Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center text-gray-400">
+                            No delivered orders found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if orders.has_other_pages %}
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+            <div class="text-sm text-gray-500">
+                Showing <span class="font-medium text-gray-700">{{ orders.start_index }}</span> to <span class="font-medium text-gray-700">{{ orders.end_index }}</span> of <span class="font-medium text-gray-700">{{ orders.paginator.count }}</span> orders
+            </div>
+            
+            <div class="flex items-center space-x-1">
+                {% if orders.has_previous %}
+                <a href="?page={{ orders.previous_page_number }}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.start_date %}&start_date={{ current_filters.start_date }}{% endif %}{% if current_filters.end_date %}&end_date={{ current_filters.end_date }}{% endif %}" 
+                   class="p-2 border border-gray-300 rounded-lg hover:bg-white text-gray-600 transition shadow-sm">
+                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </a>
+                {% else %}
+                <div class="p-2 border border-gray-200 rounded-lg text-gray-300 cursor-not-allowed">
+                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </div>
+                {% endif %}
+
+                {% for i in orders.paginator.page_range %}
+                    {% if orders.number == i %}
+                    <span class="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-sm">{{ i }}</span>
+                    {% elif i > orders.number|add:'-3' and i < orders.number|add:'3' %}
+                    <a href="?page={{ i }}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.start_date %}&start_date={{ current_filters.start_date }}{% endif %}{% if current_filters.end_date %}&end_date={{ current_filters.end_date }}{% endif %}" 
+                       class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white text-gray-600 text-sm font-medium transition shadow-sm">{{ i }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if orders.has_next %}
+                <a href="?page={{ orders.next_page_number }}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.start_date %}&start_date={{ current_filters.start_date }}{% endif %}{% if current_filters.end_date %}&end_date={{ current_filters.end_date }}{% endif %}" 
+                   class="p-2 border border-gray-300 rounded-lg hover:bg-white text-gray-600 transition shadow-sm">
+                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </a>
+                {% else %}
+                <div class="p-2 border border-gray-200 rounded-lg text-gray-300 cursor-not-allowed">
+                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- JSON Data for Charts -->
+{{ payment_distribution|json_script:"payment-data-json" }}
+
+{% endblock content %}
+
+{% block scripts %}
+<script src="{% static 'js/adminpanel/analytics.js' %}"></script>
+{% endblock scripts %}

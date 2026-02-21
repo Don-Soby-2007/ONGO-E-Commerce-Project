@@ -1933,7 +1933,7 @@ class AnalyticstView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     def test_func(self):
         return self.request.user.is_staff
 
-    template_name = 'adminpanel/sales_report.html'
+    template_name = 'adminpanel/analytics.html'
     model = Order
     paginate_by = 6
     context_object_name = "orders"
@@ -1959,7 +1959,7 @@ class AnalyticstView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         elif date_filter == 'year':
             queryset = queryset.fileter(created_at__year=today.year)
         elif date_filter == 'custom' and start_date and end_date:
-            queryset = queryset.filter(created_at__date__gte=start_date, created_at__date_lte=end_date)
+            queryset = queryset.filter(created_at__date__gte=start_date, created_at__date__lte=end_date)
 
         return queryset
 
@@ -1984,6 +1984,8 @@ class AnalyticstView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             discount_amount=Sum('discount_amount'),
             coupon_discount_amount=Sum('coupon_discount_amount'),
             )
+
+        print(order_stats)
 
         def safe_decimal(value):
             """Convert None to Decimal(0) for safe math"""

@@ -50,7 +50,7 @@
                         <i data-lucide="layout-dashboard" class="icon w-5 h-5 mr-3"></i>
                         <h2>Dashboard</h2>
                     </a>
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="analytics">
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'analytics' %}" data-page="analytics">
                         <i data-lucide="bar-chart-2" class="icon w-5 h-5 mr-3"></i>
                         <h2>Analytics</h2>
                     </a>
