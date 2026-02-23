@@ -1049,8 +1049,10 @@ class ToggleOrderStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
             )
         elif new_status == 'delivered':
             order.items.exclude(status='cancelled').update(status='delivered')
+            order.delivered_at = timezone.now()
         elif new_status == 'shipped':
             order.items.exclude(status='cancelled').update(status='shipped')
+            order.shipped_at = timezone.now()
 
         order.status = new_status
         order.save(update_fields=['status', 'updated_at'])

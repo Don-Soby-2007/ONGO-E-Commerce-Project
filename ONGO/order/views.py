@@ -248,14 +248,15 @@ class PlaceOrder(LoginRequiredMixin, View):
         items_subtotal = Decimal(str(summary['items_subtotal']))
         discount_amount = Decimal(str(summary['cart_discount']))
         shipping = Decimal(str(summary['shipping']))
-        coupon_code = summary.get('applied_coupon', {}).get('coupon_code')
+        coupon_code = summary.get('applied_coupon', {}).get('coupon_code', None)
         coupon_discount_amount = summary.get('applied_coupon', {}).get('discount_amount', 0)
         print(coupon_code)
 
-        coupon = Coupon.objects.get(coupon_code__iexact=coupon_code, active=True)
+        coupon = None
 
-        if not coupon.is_active():
-            coupon = None
+        if coupon_code:
+
+            coupon = Coupon.objects.get(coupon_code__iexact=coupon_code, active=True)
 
         if payment_methode == 'online':
             try:
@@ -294,7 +295,7 @@ class PlaceOrder(LoginRequiredMixin, View):
                     'error': 'Payment gateway unavailable. Please try COD.'
                 }, status=500)
 
-        self._create_order_and_deduct_stock(
+        _ = self._create_order_and_deduct_stock(
             user, address, cart_list, locked_variants,
             items_subtotal, total_payable, discount_amount,
             payment_methode, coupon, coupon_discount_amount, shipping
@@ -326,8 +327,6 @@ class PlaceOrder(LoginRequiredMixin, View):
             coupon_discount=coupon_discount_amount,
             shipping=shipping
         )
-
-        print(coupon.coupon_code)
 
         if coupon:
             CouponUsage.objects.create(
@@ -363,6 +362,8 @@ class PlaceOrder(LoginRequiredMixin, View):
         OrderItem.objects.bulk_create(order_items)
 
         Cart.objects.filter(user=user).delete()
+
+        return order
 
     def _create_pending_order(
             self, user, address, cart_list, locked_variants, sub_total,
@@ -415,7 +416,6 @@ class VerifyRazorpayPayment(LoginRequiredMixin, View):
         except (json.JSONDecodeError, UnicodeDecodeError):
             return JsonResponse({'error': 'Invalid JSON payload'}, status=400)
 
-        # Rest of your logic remains the same...
         if not all([rzp_order_id, rzp_payment_id, rzp_signature, internal_order_id]):
             return JsonResponse({'error': 'Missing payment parameters'}, status=400)
 
