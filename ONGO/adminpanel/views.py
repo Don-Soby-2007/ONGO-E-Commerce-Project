@@ -1981,8 +1981,8 @@ class AnalyticstView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         order_stats = base_orders.aggregate(
             total_orders=Count('id'),
             gross_revenue=Sum('sub_total'),
-            discount_amount=Sum('discount_amount'),
-            coupon_discount_amount=Sum('coupon_discount_amount'),
+            discount_amount=Sum('promotional_discount'),
+            coupon_discount_amount=Sum('coupon_discount'),
             )
 
         print(order_stats)
