@@ -250,14 +250,20 @@ class PlaceOrder(LoginRequiredMixin, View):
         shipping = Decimal(str(summary['shipping']))
         coupon_code = summary.get('applied_coupon', {}).get('coupon_code')
         coupon_discount_amount = summary.get('applied_coupon', {}).get('discount_amount', 0)
+        print(coupon_code)
+
+        coupon = Coupon.objects.get(coupon_code__iexact=coupon_code, active=True)
+
+        if not coupon.is_active():
+            coupon = None
 
         if payment_methode == 'online':
             try:
 
-                order = self._create_pending_order(
+                order = self._create_order_and_deduct_stock(
                     user, address, cart_list, locked_variants,
                     items_subtotal, total_payable, discount_amount,
-                    payment_methode, coupon_code, coupon_discount_amount, shipping
+                    payment_methode, coupon, coupon_discount_amount, shipping
                 )
 
                 rzp_order = create_razorpay_order(total_payable)
@@ -275,7 +281,7 @@ class PlaceOrder(LoginRequiredMixin, View):
                     'amount_inr': float(total_payable),
                     'currency': 'INR',
                     'key_id': settings.RAZORPAY_KEY_ID,
-                    'internal_order_id': order.id,
+                    'internal_order_id': order.order_id,
                     'message': 'procceding to secure payment gateway',
                     "username": user.username,
                     "email": user.email,
@@ -291,7 +297,7 @@ class PlaceOrder(LoginRequiredMixin, View):
         self._create_order_and_deduct_stock(
             user, address, cart_list, locked_variants,
             items_subtotal, total_payable, discount_amount,
-            payment_methode, coupon_code, coupon_discount_amount, shipping
+            payment_methode, coupon, coupon_discount_amount, shipping
         )
 
         request.session.pop('checkout_information', None)
@@ -306,26 +312,24 @@ class PlaceOrder(LoginRequiredMixin, View):
 
     def _create_order_and_deduct_stock(self, user, address, cart_list, locked_variants,
                                        sub_total, total_amount, discount, payment_method,
-                                       coupon_code, coupon_discount_amount, shipping):
+                                       coupon, coupon_discount_amount, shipping):
 
         order = Order.objects.create(
             user=user,
             address=address,
             sub_total=sub_total,
-            discount_amount=discount,
+            promotional_discount=discount,
             total_amount=total_amount,
             status='confirmed' if payment_method == 'cod' else 'pending',
             payment_method=payment_method,
-            coupon_code=coupon_code,
-            coupon_discount_amount=coupon_discount_amount,
+            coupon=coupon,
+            coupon_discount=coupon_discount_amount,
             shipping=shipping
         )
 
-        print(coupon_code)
+        print(coupon.coupon_code)
 
-        if coupon_code:
-            coupon = Coupon.objects.get(coupon_code__iexact=coupon_code)
-
+        if coupon:
             CouponUsage.objects.create(
                 coupon=coupon,
                 user=user,
@@ -337,8 +341,9 @@ class PlaceOrder(LoginRequiredMixin, View):
         for item in cart_list:
             variant = locked_variants[item['variant_id']]
 
-            variant.stock -= item['quantity']
-            variant.save(update_fields=['stock'])
+            if payment_method != 'online':
+                variant.stock -= item['quantity']
+                variant.save(update_fields=['stock'])
 
             order_items.append(
                 OrderItem(
@@ -347,10 +352,10 @@ class PlaceOrder(LoginRequiredMixin, View):
                     product_name=item['product_name'],
                     variant_options={'size': item['size'], 'color': item['color']},
                     image_url=item['image_url'],
-                    price_at_time_of_order=Decimal(str(item['offer_price'])),
+                    price_at_purchase=Decimal(str(item['offer_price'])),
                     quantity=item['quantity'],
-                    # total_discount_amount_per_item=Decimal(str(item['total_discount'])),
-                    total_price=Decimal(str(item['line_total'])),
+                    line_discount=Decimal(str(item['total_discount'])),
+                    final_line_price=Decimal(str(item['line_total'])),
                     status='confirmed'
                 )
             )
