@@ -248,7 +248,7 @@ class PlaceOrder(LoginRequiredMixin, View):
         items_subtotal = Decimal(str(summary['items_subtotal']))
         discount_amount = Decimal(str(summary['cart_discount']))
         shipping = Decimal(str(summary['shipping']))
-        coupon_code = summary.get('applied_coupon', {}).get('coupon_code', None)
+        coupon_code = summary.get('applied_coupon', {}).get('coupon_code', '')
         coupon_discount_amount = summary.get('applied_coupon', {}).get('discount_amount', 0)
         print(coupon_code)
 
@@ -256,7 +256,7 @@ class PlaceOrder(LoginRequiredMixin, View):
 
         if coupon_code:
 
-            coupon = Coupon.objects.get(coupon_code__iexact=coupon_code, active=True)
+            coupon = Coupon.objects.get(coupon_code__iexact=coupon_code, coupon_code__isnull=False, active=True)
 
         if payment_methode == 'online':
             try:
