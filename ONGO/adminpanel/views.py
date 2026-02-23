@@ -1930,7 +1930,7 @@ class ToggleCouponStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 
 @method_decorator(never_cache, name='dispatch')
-class AnalyticstView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+class AnalyticsView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
     def test_func(self):
         return self.request.user.is_staff
@@ -1941,10 +1941,10 @@ class AnalyticstView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     context_object_name = "orders"
 
     def get_queryset(self):
+
         queryset = Order.objects.filter(status='delivered')
 
-        # date filter
-
+        # Date filter
         date_filter = self.request.GET.get('date_filter', 'all')
         start_date = self.request.GET.get('start_date', '')
         end_date = self.request.GET.get('end_date', '')
@@ -1959,7 +1959,7 @@ class AnalyticstView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         elif date_filter == 'month':
             queryset = queryset.filter(created_at__year=today.year, created_at__month=today.month)
         elif date_filter == 'year':
-            queryset = queryset.fileter(created_at__year=today.year)
+            queryset = queryset.filter(created_at__year=today.year)
         elif date_filter == 'custom' and start_date and end_date:
             queryset = queryset.filter(created_at__date__gte=start_date, created_at__date__lte=end_date)
 
@@ -1974,9 +1974,10 @@ class AnalyticstView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             'date_filter': self.request.GET.get('date_filter', 'all'),
             'start_date': self.request.GET.get('start_date', ''),
             'end_date': self.request.GET.get('end_date', ''),
-            'status_filter': self.request.GET.get('status_filter', 'all'),
-            'payment_filter': self.request.GET.get('payment_filter', 'all'),
         }
+
+        def safe_decimal(value):
+            return value if value is not None else Decimal('0')
 
         # KPI
 
@@ -1985,20 +1986,30 @@ class AnalyticstView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             gross_revenue=Sum('sub_total'),
             discount_amount=Sum('promotional_discount'),
             coupon_discount_amount=Sum('coupon_discount'),
-            )
-
-        print(order_stats)
-
-        def safe_decimal(value):
-            """Convert None to Decimal(0) for safe math"""
-            return value if value is not None else Decimal('0')
+        )
 
         context['total_orders'] = safe_decimal(order_stats['total_orders'])
         context['gross_revenue'] = safe_decimal(order_stats['gross_revenue'])
         context['discount_amount'] = safe_decimal(order_stats['discount_amount'])
         context['coupon_discount_amount'] = safe_decimal(order_stats['coupon_discount_amount'])
-        context['overall_discount'] = context['discount_amount'] + context['coupon_discount_amount']
-        context['net_revenue'] = context['gross_revenue'] - context['overall_discount']
+
+        overall_discount = context['discount_amount'] + context['coupon_discount_amount']
+        context['overall_discount'] = overall_discount
+        context['net_revenue'] = context['gross_revenue'] - overall_discount
+
+        # No. of returns
+
+        returns_data = Return.objects.filter(
+            order__in=base_orders
+        ).aggregate(
+            total_returns=Count('id'),
+            accepted_returns=Count('id', filter=Q(status='accepted')),
+            total_refunded=Sum('refund_amount')
+        )
+
+        context['total_returns'] = safe_decimal(returns_data['total_returns'])
+        context['accepted_returns'] = safe_decimal(returns_data['accepted_returns'])
+        context['total_refunded_amount'] = safe_decimal(returns_data['total_refunded'])
 
         # payment distribution
 
@@ -2013,8 +2024,78 @@ class AnalyticstView(LoginRequiredMixin, UserPassesTestMixin, ListView):
                 'count': safe_decimal(item['order_count'])
             } for item in payment_stats
         }
-
-        # Calculate total for percentage calculation in template
         context['payment_total'] = sum(p['amount'] for p in context['payment_distribution'].values())
+
+        # coupon usage
+
+        coupon_orders = base_orders.filter(coupon__isnull=False)
+
+        coupon_stats = coupon_orders.values(
+            'coupon__coupon_code', 'coupon_discount'
+        ).annotate(
+            times_used=Count('id'),
+            total_discount=Sum('coupon_discount')
+        ).order_by('-total_discount')
+
+        context['coupon_breakdown'] = [
+            {
+                'coupon_code': item['coupon__coupon_code'] or 'Unknown',
+                'times_used': item['times_used'],
+                'discount_type': item.coupon.discount_type,
+                'total_discount': safe_decimal(item['total_discount'])
+            }
+            for item in coupon_stats
+        ]
+
+        context['coupon_total_usage'] = sum(c['times_used'] for c in context['coupon_breakdown'])
+        context['coupon_total_discount'] = sum(c['total_discount'] for c in context['coupon_breakdown'])
+
+        # top 10 products
+
+        order_items = OrderItem.objects.filter(
+            order__in=base_orders
+        ).select_related('product_variant__product').only(
+            'product_name', 'final_line_price', 'quantity', 'line_discount',
+            'order__sub_total', 'order__promotional_discount', 'order__coupon_discount',
+            'product_variant__product__id'
+        )
+
+        product_map = {}
+        for item in order_items:
+            pid = item.product_variant.product.id if item.product_variant else None
+            if not pid:
+                continue
+
+            if pid not in product_map:
+                product_map[pid] = {
+                    'name': item.product_name,
+                    'gross_amount': Decimal('0'),
+                    'discount': Decimal('0'),
+                }
+
+            item_price = safe_decimal(item.final_line_price)
+            item_discount = safe_decimal(item.line_discount)
+
+            product_map[pid]['gross_amount'] += item_price
+            product_map[pid]['discount'] += item_discount
+
+            if item.order.sub_total and item.order.sub_total > 0:
+                order_total_discount = (safe_decimal(item.order.promotional_discount) +
+                                        safe_decimal(item.order.coupon_discount))
+                item_share = item_price / safe_decimal(item.order.sub_total)
+                product_map[pid]['discount'] += item_share * order_total_discount
+
+        product_breakdown = []
+        for pid, data in product_map.items():
+            data['net_revenue'] = data['gross_amount'] - data['discount']
+            product_breakdown.append(data)
+
+        product_breakdown.sort(key=lambda x: x['gross_amount'], reverse=True)
+
+        context['product_breakdown'] = product_breakdown[:10]
+
+        context['product_total_gross'] = sum(p['gross_amount'] for p in context['product_breakdown'])
+        context['product_total_discount'] = sum(p['discount'] for p in context['product_breakdown'])
+        context['product_total_net'] = sum(p['net_revenue'] for p in context['product_breakdown'])
 
         return context
