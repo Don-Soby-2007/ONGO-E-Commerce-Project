@@ -37,6 +37,9 @@ class Return(models.Model):
         help_text=_("Notes from admin regarding acceptance/rejection")
     )
 
+    refund_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    refunded_at = models.DateTimeField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     processed_at = models.DateTimeField(

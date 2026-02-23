@@ -11,11 +11,6 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-        ('order', '0004_invoice'),
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-    ]
-
     operations = [
         migrations.CreateModel(
             name='Coupon',
@@ -33,19 +28,5 @@ class Migration(migrations.Migration):
                 ('end_date', models.DateTimeField(blank=True, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
             ],
-        ),
-        migrations.CreateModel(
-            name='CouponUsage',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('used_at', models.DateTimeField(auto_now_add=True)),
-                ('coupon', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='usage', to='coupons.coupon')),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='used_coupon', to='order.order')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='used_coupon', to=settings.AUTH_USER_MODEL)),
-            ],
-            options={
-                'indexes': [models.Index(fields=['coupon', 'user'], name='coupons_cou_coupon__830da4_idx')],
-                'unique_together': {('coupon', 'order')},
-            },
         ),
     ]

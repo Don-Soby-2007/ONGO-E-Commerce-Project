@@ -21,6 +21,7 @@ class Order(models.Model):
         ('shipped', 'Shipped'),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
+        ('returned', 'Returned'),
         ('failed', 'Failed'),
     ]
 
@@ -30,35 +31,44 @@ class Order(models.Model):
         ('wallet', 'Wallet'),
     ]
 
+    PAYMENT_STATUS = [
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('failed', 'Failed'),
+        ('refunded', 'Refunded'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     address = models.ForeignKey(Address, on_delete=models.PROTECT)
+
     sub_total = models.DecimalField(max_digits=12, decimal_places=2)
-    discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    promotional_discount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    coupon_discount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    coupon = models.ForeignKey('coupons.Coupon', null=True, blank=True, on_delete=models.SET_NULL)
+    shipping = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
-    coupon_code = models.CharField(max_length=50, blank=True, null=True)
-    coupon_discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     payment_method = models.CharField(
         max_length=50,
         choices=PAYMENT_METHOD_CHOICE,
-        default='COD',
+        default='cod',
     )
-    shipping = models.DecimalField(max_digits=5, decimal_places=2, default=0)
 
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS,
+        default='pending'
+    )
     razorpay_order_id = models.CharField(max_length=255, blank=True, null=True)
     razorpay_payment_id = models.CharField(max_length=255, blank=True, null=True)
     razorpay_signature = models.CharField(max_length=255, blank=True, null=True)
-    payment_status = models.CharField(
-        max_length=20,
-        choices=[
-            ('pending', 'Pending'),
-            ('paid', 'Paid'),
-            ('failed', 'Failed')
-        ],
-        default='pending'
-    )
 
+    status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
+
+    shipped_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -81,6 +91,7 @@ class OrderItem(models.Model):
         ('shipped', 'Shipped'),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
+        ('return requested', 'Return Requested'),
         ('returned', 'Returned'),
         ('refunded', 'Refunded'),
     ]
@@ -91,10 +102,16 @@ class OrderItem(models.Model):
     product_name = models.CharField(max_length=255)
     variant_options = models.JSONField()
     image_url = models.URLField()
-    price_at_time_of_order = models.DecimalField(max_digits=10, decimal_places=2)
+
+    price_at_purchase = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
-    # total_discount_amount_per_item = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    total_price = models.DecimalField(max_digits=12, decimal_places=2)
+
+    line_discount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )
+    final_line_price = models.DecimalField(
+        max_digits=12, decimal_places=2,
+    )
 
     status = models.CharField(
         max_length=20,
@@ -106,7 +123,7 @@ class OrderItem(models.Model):
     cancelled_at = models.DateTimeField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        self.total_price = self.quantity * self.price_at_time_of_order
+        self.total_price = self.quantity * self.price_at_purchace
         super().save(*args, **kwargs)
 
 
