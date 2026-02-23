@@ -76,8 +76,8 @@ class Order(models.Model):
         return f"Order {self.order_id} - {self.user.email}"
 
     @property
-    def applied_coupon(self):
-        return self.used_coupon.first()
+    def total_discount(self):
+        return (self.promotional_discount or 0) + (self.coupon_discount or 0)
 
     class Meta:
         ordering = ['-created_at']

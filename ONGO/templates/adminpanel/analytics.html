@@ -222,7 +222,7 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">₹{{ order.sub_total|floatformat:2 }}</td>
-                        <td class="px-6 py-4 text-sm text-red-500">-₹{{ order.discount_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 text-sm text-red-500">-₹{{ order.total_discount |floatformat:2 }}</td>
                         <td class="px-6 py-4 text-sm font-bold text-gray-900 font-mono">₹{{ order.total_amount|floatformat:2 }}</td>
                         <td class="px-6 py-4 text-sm text-gray-500">{{ order.created_at|date:"d M Y" }}</td>
                     </tr>
