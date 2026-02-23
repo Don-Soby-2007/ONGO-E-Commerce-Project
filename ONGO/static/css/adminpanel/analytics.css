@@ -25,6 +25,14 @@
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
+.hover-shadow {
+    transition: box-shadow 0.3s ease;
+}
+
+.hover-shadow:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
 /* Sticky Filter Bar */
 .sticky-filter {
     position: sticky;
@@ -42,19 +50,26 @@
 
 .custom-scrollbar::-webkit-scrollbar-track {
     background: #f1f1f1;
+    border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
+    background: #cbd5e1;
     border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #cbd5e1;
+    background: #94a3b8;
 }
 
 /* Progress Bar Animation */
 .progress-bar-fill {
+    transition: width 1s ease-in-out;
+    width: 0;
+}
+
+/* Horizontal Bar for Data Breakdown */
+.data-bar-fill {
     transition: width 1s ease-in-out;
     width: 0;
 }

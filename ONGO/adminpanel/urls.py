@@ -71,7 +71,7 @@ urlpatterns = [
 
     # sales report urls
 
-    path('analytics/', views.AnalyticstView.as_view(), name='analytics'),
+    path('analytics/', views.AnalyticsView.as_view(), name='analytics'),
 
 
 ]

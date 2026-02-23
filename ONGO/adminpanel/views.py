@@ -2031,7 +2031,7 @@ class AnalyticsView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         coupon_orders = base_orders.filter(coupon__isnull=False)
 
         coupon_stats = coupon_orders.values(
-            'coupon__coupon_code', 'coupon_discount'
+            'coupon__coupon_code', 'coupon_discount', 'coupon__discount_type'
         ).annotate(
             times_used=Count('id'),
             total_discount=Sum('coupon_discount')
@@ -2041,7 +2041,7 @@ class AnalyticsView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             {
                 'coupon_code': item['coupon__coupon_code'] or 'Unknown',
                 'times_used': item['times_used'],
-                'discount_type': item.coupon.discount_type,
+                'discount_type': item['coupon__discount_type'] or 'Unknown',
                 'total_discount': safe_decimal(item['total_discount'])
             }
             for item in coupon_stats
