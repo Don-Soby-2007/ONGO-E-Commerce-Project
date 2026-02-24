@@ -2059,6 +2059,7 @@ class AnalyticsView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             'order__sub_total', 'order__promotional_discount', 'order__coupon_discount',
             'product_variant__product__id'
         )
+        print(order_items)
 
         product_map = {}
         for item in order_items:
@@ -2073,7 +2074,7 @@ class AnalyticsView(LoginRequiredMixin, UserPassesTestMixin, ListView):
                     'discount': Decimal('0'),
                 }
 
-            item_price = safe_decimal(item.final_line_price)
+            item_price = safe_decimal((item.price_at_purchase * item.quantity))
             item_discount = safe_decimal(item.line_discount)
 
             product_map[pid]['gross_amount'] += item_price
@@ -2084,6 +2085,8 @@ class AnalyticsView(LoginRequiredMixin, UserPassesTestMixin, ListView):
                                         safe_decimal(item.order.coupon_discount))
                 item_share = item_price / safe_decimal(item.order.sub_total)
                 product_map[pid]['discount'] += item_share * order_total_discount
+
+        print(product_map)
 
         product_breakdown = []
         for pid, data in product_map.items():

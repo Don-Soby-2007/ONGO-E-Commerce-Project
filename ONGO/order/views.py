@@ -351,7 +351,7 @@ class PlaceOrder(LoginRequiredMixin, View):
                     product_name=item['product_name'],
                     variant_options={'size': item['size'], 'color': item['color']},
                     image_url=item['image_url'],
-                    price_at_purchase=Decimal(str(item['offer_price'])),
+                    price_at_purchase=Decimal(str(item['unit_price'])),
                     quantity=item['quantity'],
                     line_discount=Decimal(str(item['total_discount'])),
                     final_line_price=Decimal(str(item['line_total'])),
