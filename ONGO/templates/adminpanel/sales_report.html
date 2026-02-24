@@ -1,1 +1,303 @@
-<h1>Sales report</h1>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Sales Analytics Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 11pt;
+            color: #333;
+            line-height: 1.5;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            color: #1e40af;
+            font-size: 22pt;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .header .meta {
+            color: #666;
+            font-size: 9pt;
+            margin-top: 8px;
+        }
+        .section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        .section-title {
+            background: #2563eb;
+            color: white;
+            padding: 8px 12px;
+            font-size: 12pt;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+            margin: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0;
+        }
+        th {
+            background: #f1f5f9;
+            color: #334155;
+            font-weight: 600;
+            text-align: left;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            font-size: 10pt;
+        }
+        td {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            font-size: 10pt;
+        }
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        .kpi-grid {
+            display: table;
+            width: 100%;
+        }
+        .kpi-row {
+            display: table-row;
+        }
+        .kpi-cell {
+            display: table-cell;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .kpi-label {
+            color: #64748b;
+            font-size: 9pt;
+            text-transform: uppercase;
+        }
+        .kpi-value {
+            color: #1e40af;
+            font-size: 16pt;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .total-row {
+            background: #dbeafe !important;
+            font-weight: bold;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 15px;
+            border-top: 2px solid #e2e8f0;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 9pt;
+        }
+        .logo {
+            height: 40px;
+            width: auto;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>
+            <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="Logo" class="logo">
+            Sales Analytics Report
+        </h1>
+        <div class="meta">
+            <strong>Filter:</strong> {{ filter_label }} &nbsp;|&nbsp; 
+            <strong>Generated:</strong> {{ report_date }}
+        </div>
+    </div>
+
+    <!-- Executive Summary -->
+    <div class="section">
+        <h2 class="section-title">EXECUTIVE SUMMARY</h2>
+        <div class="kpi-grid">
+            <div class="kpi-row">
+                <div class="kpi-cell">
+                    <div class="kpi-label">Net Revenue</div>
+                    <div class="kpi-value">Rs. {{ net_revenue|floatformat:2 }}</div>
+                </div>
+                <div class="kpi-cell">
+                    <div class="kpi-label">Total Orders</div>
+                    <div class="kpi-value">{{ total_orders }}</div>
+                </div>
+                <div class="kpi-cell">
+                    <div class="kpi-label">Total Discount</div>
+                    <div class="kpi-value">Rs. {{ overall_discount|floatformat:2 }}</div>
+                </div>
+                <div class="kpi-cell">
+                    <div class="kpi-label">Gross Revenue</div>
+                    <div class="kpi-value">Rs. {{ gross_revenue|floatformat:2 }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Returns Analysis -->
+    <div class="section">
+        <h2 class="section-title">RETURN & REFUND ANALYSIS</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Total Returns</th>
+                    <th>Accepted Returns</th>
+                    <th>Total Refunded</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-center">{{ total_returns }}</td>
+                    <td class="text-center">{{ accepted_returns }}</td>
+                    <td class="text-center">Rs. {{ total_refunded|floatformat:2 }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Payment Distribution -->
+    <div class="section">
+        <h2 class="section-title">PAYMENT DISTRIBUTION</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Payment Method</th>
+                    <th class="text-right">Total Amount</th>
+                    <th class="text-center">Order Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in payment_stats %}
+                <tr>
+                    <td>{{ stat.payment_method|default:"Unknown" }}</td>
+                    <td class="text-right">Rs. {{ stat.total_amount|floatformat:2 }}</td>
+                    <td class="text-center">{{ stat.order_count }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="text-center">No payment data available</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Coupon Analysis -->
+    <div class="section">
+        <h2 class="section-title">COUPON USAGE ANALYSIS</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Coupon Code</th>
+                    <th>Discount Type</th>
+                    <th class="text-center">Usage Count</th>
+                    <th class="text-right">Total Discount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in coupon_stats %}
+                <tr>
+                    <td>{{ stat.coupon__coupon_code|default:"Unknown" }}</td>
+                    <td>{{ stat.coupon__discount_type|default:"Standard" }}</td>
+                    <td class="text-center">{{ stat.times_used }}</td>
+                    <td class="text-right">Rs. {{ stat.total_discount|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center">No coupon data available</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Top Products -->
+    <div class="section">
+        <h2 class="section-title">TOP 10 SELLING PRODUCTS</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th class="text-center">Units Sold</th>
+                    <th class="text-right">Gross Amount</th>
+                    <th class="text-right">Discount</th>
+                    <th class="text-right">Net Revenue</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in top_products %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td class="text-center">{{ product.qty }}</td>
+                    <td class="text-right">Rs. {{ product.gross|floatformat:2 }}</td>
+                    <td class="text-right">Rs. {{ product.disc|floatformat:2 }}</td>
+                    <td class="text-right">Rs. {{ product.net|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center">No product data available</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Detailed Order Log -->
+    <div class="section">
+        <h2 class="section-title">DETAILED ORDER LOG ({{ orders.count }} Orders)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Email</th>
+                    <th class="text-center">Items</th>
+                    <th class="text-right">Amount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.order_id }}</td>
+                    <td>{{ order.created_at|date:"M d, Y" }}</td>
+                    <td>{{ order.user.username|default:"-" }}</td>
+                    <td>{{ order.user.email|default:"-" }}</td>
+                    <td class="text-center">{{ order.items.count }}</td>
+                    <td class="text-right">Rs. {{ order.total_amount|floatformat:2 }}</td>
+                    <td>{{ order.status|upper }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>Generated by ONGO Dashboard | Confidential Business Report</p>
+    </div>
+
+</body>
+</html>

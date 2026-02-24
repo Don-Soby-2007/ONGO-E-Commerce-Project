@@ -25,7 +25,7 @@ from django.db import transaction
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-from .utils import generate_analytics_excel
+from .utils import generate_analytics_excel, generate_analytics_pdf
 
 from django.utils import timezone
 from datetime import timedelta
@@ -1946,6 +1946,10 @@ class AnalyticsView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         if request.GET.get('get_excel') == 'true':
             queryset = self.get_queryset()
             return generate_analytics_excel(request, queryset)
+
+        if request.GET.get('get_pdf') == 'true':
+            queryset = self.get_queryset()
+            return generate_analytics_pdf(request, queryset)
 
         return super().get(request, *args, **kwargs)
 
