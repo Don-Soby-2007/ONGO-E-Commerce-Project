@@ -357,12 +357,8 @@ def generate_analytics_excel(request, queryset):
 
 
 def generate_analytics_pdf(request, queryset):
-    """
-    Generates a PDF report based on the filtered queryset.
-    Uses WeasyPrint with inline CSS for styling.
-    """
 
-    # --- 1. Recalculate All Analytics (Same as Excel/View) ---
+    # --- 1. Datas same as Remember: make a util function for DRY
     today = timezone.now().date()
 
     # KPIs
@@ -372,14 +368,14 @@ def generate_analytics_pdf(request, queryset):
         discount_amount=Sum('promotional_discount'),
         coupon_discount_amount=Sum('coupon_discount'),
     )
-    
+
     total_orders = safe_decimal(order_stats['total_orders'])
     gross_revenue = safe_decimal(order_stats['gross_revenue'])
     discount_amount = safe_decimal(order_stats['discount_amount'])
     coupon_discount_amount = safe_decimal(order_stats['coupon_discount_amount'])
     overall_discount = discount_amount + coupon_discount_amount
     net_revenue = gross_revenue - overall_discount
-    
+
     # Returns
     try:
         returns_data = Return.objects.filter(
@@ -394,13 +390,13 @@ def generate_analytics_pdf(request, queryset):
         total_refunded = safe_decimal(returns_data['total_refunded'])
     except Exception:
         total_returns = accepted_returns = total_refunded = Decimal('0')
-    
+
     # Payments
     payment_stats = queryset.values('payment_method').annotate(
         total_amount=Sum('total_amount'),
         order_count=Count('id')
     ).order_by('-total_amount')
-    
+
     # Coupons
     coupon_orders = queryset.filter(coupon__isnull=False)
     coupon_stats = coupon_orders.values(
@@ -409,19 +405,19 @@ def generate_analytics_pdf(request, queryset):
         times_used=Count('id'),
         total_discount=Sum('coupon_discount')
     ).order_by('-total_discount')
-    
+
     # Top Products
     try:
         order_items = OrderItem.objects.filter(
             order__in=queryset
         ).select_related('product_variant__product')
-        
+
         product_map = {}
         for item in order_items:
             pid = item.product_variant.product.id if item.product_variant else None
             if not pid:
                 continue
-            
+
             if pid not in product_map:
                 product_map[pid] = {
                     'name': item.product_name,
@@ -429,39 +425,39 @@ def generate_analytics_pdf(request, queryset):
                     'gross': Decimal('0'),
                     'disc': Decimal('0')
                 }
-            
+
             product_map[pid]['qty'] += item.quantity
             item_price = safe_decimal(item.price_at_purchase * item.quantity)
             product_map[pid]['gross'] += item_price
-            
+
             item_discount = safe_decimal(item.line_discount)
             product_map[pid]['disc'] += item_discount
-            
+
             if item.order.sub_total and item.order.sub_total > 0:
                 order_total_discount = (safe_decimal(item.order.promotional_discount) +
                                         safe_decimal(item.order.coupon_discount))
                 item_share = item_price / safe_decimal(item.order.sub_total)
                 product_map[pid]['disc'] += item_share * order_total_discount
-        
+
         product_breakdown = []
         for pid, data in product_map.items():
             data['net'] = data['gross'] - data['disc']
             product_breakdown.append(data)
-        
+
         product_breakdown.sort(key=lambda x: x['gross'], reverse=True)
         top_products = product_breakdown[:10]
     except Exception:
         top_products = []
-    
+
     # --- 2. Prepare Context Data ---
     date_filter = request.GET.get('date_filter', 'all')
     start_date = request.GET.get('start_date', '')
     end_date = request.GET.get('end_date', '')
-    
+
     filter_label = date_filter.upper().replace('_', ' ')
     if date_filter == 'custom' and start_date and end_date:
         filter_label = f"Custom ({start_date} to {end_date})"
-    
+
     context = {
         'report_date': today.strftime('%b %d, %Y, %I:%M %p'),
         'filter_label': filter_label,
@@ -479,15 +475,13 @@ def generate_analytics_pdf(request, queryset):
     }
 
     print('DEBUG top_product : ', top_products)
-    # --- 3. Render HTML Template ---
+
     html_string = render_to_string('adminpanel/sales_report.html', context)
-    
-    # --- 4. Convert to PDF ---
+
     pdf_file = HTML(string=html_string).write_pdf()
-    
-    # --- 5. Return Response ---
+
     response = HttpResponse(pdf_file, content_type='application/pdf')
     filename = f"Sales_Analytics_{today.strftime('%Y-%m-%d')}.pdf"
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
-    
+
     return response
