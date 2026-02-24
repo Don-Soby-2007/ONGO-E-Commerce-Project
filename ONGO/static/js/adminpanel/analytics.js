@@ -18,6 +18,25 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleCustomDates(); // Initial check
     }
 
+    const excelBtn = document.getElementById('export-excel-btn')
+
+    if (excelBtn){
+        excelBtn.addEventListener('click', function(){
+
+            const startDate = document.querySelector('input[name="start_date"]').value;
+            const endDate = document.querySelector('input[name="end_date"]').value;
+
+            const params = new URLSearchParams({
+                'get_excel': 'true',
+                'date_filter': dateFilter.value,
+                'start_date': startDate,
+                'end_date': endDate
+            })
+
+            window.location.href = `/admin/analytics/?${params.toString()}`
+        })
+    }
+
     // 2. Chart.js Doughnut Chart for Payments
     const ctx = document.getElementById('paymentChart');
     if (ctx) {

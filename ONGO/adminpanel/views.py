@@ -25,6 +25,8 @@ from django.db import transaction
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
+from .utils import generate_analytics_excel
+
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
@@ -1939,6 +1941,13 @@ class AnalyticsView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Order
     paginate_by = 6
     context_object_name = "orders"
+
+    def get(self, request, *args, **kwargs):
+        if request.GET.get('get_excel') == 'true':
+            queryset = self.get_queryset()
+            return generate_analytics_excel(request, queryset)
+
+        return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
 
