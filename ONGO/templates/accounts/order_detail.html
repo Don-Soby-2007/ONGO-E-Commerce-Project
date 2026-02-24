@@ -61,7 +61,7 @@
                                 <span class="item-variant">Color: {{ item.variant_options.color }}</span>
                             </div>
                             <div class="item-meta-row">
-                                <span class="item-price">₹{{ item.price_at_time_of_order }} x {{ item.quantity }}</span>
+                                <span class="item-price">₹{{ item.price_at_purchase }} x {{ item.quantity }}</span>
                                 <span class="item-status status-{{ item.status }}">{{ item.status|title }}</span>
                             </div>
                         </div>
@@ -113,10 +113,16 @@
                         <span>Subtotal</span>
                         <span>₹{{ order.sub_total }}</span>
                     </div>
-                    {% if order.discount_amount > 0 %}
+                    {% if order.promotional_discount > 0 %}
                     <div class="summary-row text-green-600">
                         <span>Discount</span>
-                        <span>- ₹{{ order.discount_amount }}</span>
+                        <span>- ₹{{ order.promotional_discount }}</span>
+                    </div>
+                    {% endif %}
+                    {% if order.coupon_discount > 0 %}
+                    <div class="summary-row text-green-600">
+                        <span>Coupon Discount</span>
+                        <span>- ₹{{ order.coupon_discount }}</span>
                     </div>
                     {% endif %}
                     <div class="summary-row">
