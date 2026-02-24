@@ -9,6 +9,7 @@ import uuid
 from django.core.validators import MinValueValidator
 
 from products.models import ProductVariant
+from order.models import Order
 
 # Create your models here.
 
@@ -210,3 +211,52 @@ class Wallet(models.Model):
 
     def __str__(self):
         return f"Wallet of {self.user.email} — ₹{self.balance}"
+
+
+class WalletTransaction(models.Model):
+
+    TRANSACTION_TYPE = [
+        ('credit', 'Credit'),
+        ('debit', 'Debit')
+    ]
+
+    SOURCE_TYPE = [
+        ('order_payment',     'Used for Order Payment'),
+        ('order_refund',      'Refund from Cancelled/Returned Order'),
+        ('referral_bonus',    'Referral Reward'),
+    ]
+
+    wallet = models.ForeignKey(
+        Wallet,
+        on_delete=models.CASCADE,
+        related_name='transactions'
+    )
+
+    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPE)
+
+    amount = models.DecimalField(max_digits=12, decimal_places=2,)
+
+    source_type = models.CharField(max_length=10, choices=SOURCE_TYPE)
+
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='wallet_transactions'
+    )
+
+    description = models.CharField(max_length=255)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['wallet', 'created_at']),
+            models.Index(fields=['source_type']),
+        ]
+
+    def __str__(self):
+        sign = "+" if self.amount > 0 else "-"
+        return f"{sign}₹{abs(self.amount)} — {self.get_source_type_display()} — {self.created_at.date()}"
