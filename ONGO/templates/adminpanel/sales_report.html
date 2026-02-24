@@ -120,6 +120,33 @@
             vertical-align: middle;
             margin-right: 10px;
         }
+
+        /* === ONLY CHANGED: Detailed Order Log Table CSS === */
+        #order-log-table {
+            table-layout: fixed; /* Forces columns to respect width */
+            font-size: 8pt; /* Smaller font for dense data */
+        }
+        #order-log-table th {
+            padding: 6px 8px;
+            font-size: 8pt;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        #order-log-table td {
+            padding: 5px 8px;
+            font-size: 8pt;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 0; /* Forces text wrapping */
+        }
+        #order-log-table th:nth-child(1) { width: 22%; } /* Order ID */
+        #order-log-table th:nth-child(2) { width: 10%; } /* Date */
+        #order-log-table th:nth-child(3) { width: 13%; } /* Customer */
+        #order-log-table th:nth-child(4) { width: 22%; } /* Email */
+        #order-log-table th:nth-child(5) { width: 5%; }  /* Items */
+        #order-log-table th:nth-child(6) { width: 11%; } /* Amount */
+        #order-log-table th:nth-child(7) { width: 10%; } /* Status */
+        /* ================================================ */
     </style>
 </head>
 <body>
@@ -127,7 +154,7 @@
     <!-- Header -->
     <div class="header">
         <h1>
-            <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="Logo" class="logo">
+            <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg  " alt="Logo" class="logo">
             Sales Analytics Report
         </h1>
         <div class="meta">
@@ -266,7 +293,7 @@
     <!-- Detailed Order Log -->
     <div class="section">
         <h2 class="section-title">DETAILED ORDER LOG ({{ orders.count }} Orders)</h2>
-        <table>
+        <table id="order-log-table">
             <thead>
                 <tr>
                     <th>Order ID</th>
