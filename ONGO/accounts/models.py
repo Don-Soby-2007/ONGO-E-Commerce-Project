@@ -6,6 +6,8 @@ import cloudinary.uploader
 import cloudinary.utils
 import uuid
 
+from django.core.validators import MinValueValidator
+
 from products.models import ProductVariant
 
 # Create your models here.
@@ -186,3 +188,25 @@ class Wishlist(models.Model):
 
     def __str__(self):
         return f'{self.user} - {self.product_variant}'
+
+
+class Wallet(models.Model):
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='wallet'
+    )
+
+    balance = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)],
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Wallet of {self.user.email} — ₹{self.balance}"
