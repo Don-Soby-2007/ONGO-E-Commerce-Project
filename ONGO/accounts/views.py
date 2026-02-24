@@ -23,7 +23,7 @@ from django.http import JsonResponse
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import User, Address, Wishlist
+from .models import User, Address, Wishlist, WalletTransaction
 from order.models import Order, OrderItem
 from products.models import ProductVariant
 from cart.models import Cart
@@ -951,3 +951,15 @@ class AddtoCartWishlistItem(LoginRequiredMixin, View):
                 'success': False,
                 'message': 'Something went wrong while deleting wishlist item. Please try again later.'
             }, status=500)
+
+
+@method_decorator(never_cache, name='dispatch')
+class WalletListView(LoginRequiredMixin, ListView):
+
+    model = WalletTransaction
+    template_name = 'accounts/wallet.html'
+    context_object_name = 'transactions'
+    paginate_by = 6
+
+    def get_queryset(self):
+        return WalletTransaction.objects.filter(wallet__user=self.request.user)

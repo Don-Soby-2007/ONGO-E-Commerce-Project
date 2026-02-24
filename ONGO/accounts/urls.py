@@ -79,4 +79,8 @@ urlpatterns = [
     path('wishlist/', views.WishlistView.as_view(), name='wishlist'),
     path('wishlist/delete/<int:variant_id>/', views.DeleteWishlistItem.as_view(), name='delete_wishlist_item'),
     path('wishlist/add-to-cart/<int:variant_id>/', views.AddtoCartWishlistItem.as_view(), name='add_to_cart_wish_item'),
+
+    # wallet
+
+    path('wallet/', views.WalletListView.as_view(), name='wallet'),
 ]
