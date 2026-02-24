@@ -9,7 +9,6 @@ import uuid
 from django.core.validators import MinValueValidator
 
 from products.models import ProductVariant
-from order.models import Order
 
 # Create your models here.
 
@@ -236,10 +235,10 @@ class WalletTransaction(models.Model):
 
     amount = models.DecimalField(max_digits=12, decimal_places=2,)
 
-    source_type = models.CharField(max_length=10, choices=SOURCE_TYPE)
+    source_type = models.CharField(max_length=28, choices=SOURCE_TYPE)
 
     order = models.ForeignKey(
-        Order,
+        'order.Order',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
