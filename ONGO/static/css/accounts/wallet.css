@@ -1,0 +1,9 @@
+/* Minimal custom CSS for wallet page */
+.transaction-row {
+    will-change: opacity, transform;
+}
+
+/* Ensure smooth transitions inside table */
+#transaction-table-body tr {
+    transition: background-color 0.15s ease-in-out;
+}

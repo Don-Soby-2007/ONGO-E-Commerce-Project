@@ -48,10 +48,11 @@
                         class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'wishlist' %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-red-500"></i>
                     Wishlist
                 </a>
-                <a href="#"
-                    class="nav-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 group">
-                    <i data-lucide="wallet" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-red-500"></i>
-                    Wallet
+                <a href="{% url 'wallet' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %} flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if request.resolver_match.url_name == 'wallet' %}text-gray-700{% else %}text-gray-600{% endif %} hover:bg-gray-100 group">
+                    <i data-lucide="wallet"
+                        class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'wallet' %}text-gray-500{% else %}text-gray-400{% endif %} group-hover:text-red-500"></i>
+                    wallet
                 </a>
             </nav>
 

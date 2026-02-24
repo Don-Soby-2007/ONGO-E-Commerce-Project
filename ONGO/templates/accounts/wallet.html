@@ -1,0 +1,199 @@
+{% extends 'accounts/base_profile.html' %}
+{% load static %}
+
+{% block title %}My Wallet | ONGO{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/accounts/wallet.css' %}">
+{% endblock %}
+
+{% block profile_content %}
+<div class="p-6 md:p-8 w-full max-w-6xl mx-auto mt-20">
+
+    <!-- Breadcrumb -->
+    <div class="w-full max-w-5xl mb-8 mt-20">
+        <p class="text-sm text-gray-500"><a href="{% url 'home' %}"
+                class="hover:text-black transition-colors">Home</a> / <a href="{% url 'profile' %}"
+                class="hover:text-black transition-colors">Account</a> / <span
+                class="text-black font-semibold">Wishlist</span>
+                <h1 class="text-3xl font-bold text-gray-800 mt-1">My Wallet</h1>
+                <p class="text-gray-500 text-sm mt-1">Track your balance and transaction history</p>
+        </p>
+    </div>
+
+    <!-- Wallet Balance Card -->
+    {% with wallet=request.user.wallet.first %}
+    <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl shadow-sm border border-green-100 p-6 mb-8 hover:shadow-md transition-shadow duration-300 relative overflow-hidden">
+        <div class="flex items-center justify-between relative z-10">
+            <div>
+                <p class="text-green-800 text-sm font-medium mb-1 flex items-center gap-2">
+                    <i data-lucide="wallet" class="w-4 h-4"></i> Current Balance
+                </p>
+                <h2 class="text-4xl font-bold text-green-900 balance-amount" data-balance="{{ wallet.balance|default:0|stringformat:'f' }}">
+                    ₹{{ wallet.balance|default:0|floatformat:2 }}
+                </h2>
+                {% if wallet.updated_at %}
+                <p class="text-xs text-green-600 mt-2">Last updated: {{ wallet.updated_at|date:"d M Y, H:i" }}</p>
+                {% endif %}
+            </div>
+            <div class="hidden sm:block">
+                <div class="w-16 h-16 bg-green-200 rounded-full flex items-center justify-center opacity-50">
+                    <i data-lucide="indian-rupee" class="w-8 h-8 text-green-700"></i>
+                </div>
+            </div>
+        </div>
+        <!-- Decorative background circles -->
+        <div class="absolute -right-10 -top-10 w-40 h-40 bg-green-200 rounded-full opacity-20 blur-2xl"></div>
+        <div class="absolute right-20 -bottom-10 w-32 h-32 bg-emerald-200 rounded-full opacity-20 blur-xl"></div>
+    </div>
+    {% endwith %}
+
+    <!-- Transaction History Section -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-300">
+        <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-gray-800">Transaction History</h3>
+        </div>
+
+        {% if transactions %}
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse whitespace-nowrap">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                        <th class="px-6 py-4 font-medium first:rounded-tl-xl w-32">Date</th>
+                        <th class="px-6 py-4 font-medium w-24">Type</th>
+                        <th class="px-6 py-4 font-medium w-32">Amount</th>
+                        <th class="px-6 py-4 font-medium w-32">Source</th>
+                        <th class="px-6 py-4 font-medium w-24">Order</th>
+                        <th class="px-6 py-4 font-medium last:rounded-tr-xl">Description</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-sm text-gray-700" id="transaction-table-body">
+                    {% for txn in transactions %}
+                    <tr class="hover:bg-gray-50 transition-colors duration-150 transaction-row opacity-0 translate-y-2">
+                        <td class="px-6 py-4">{{ txn.created_at|date:"d M Y, H:i" }}</td>
+                        <td class="px-6 py-4">
+                            {% if txn.transaction_type == 'credit' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Credit
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Debit
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 font-medium">
+                            {% if txn.transaction_type == 'credit' %}
+                            <span class="text-green-600">+₹{{ txn.amount|floatformat:2 }}</span>
+                            {% else %}
+                            <span class="text-red-500">-₹{{ txn.amount|floatformat:2 }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-gray-600 capitalize">
+                                {% if txn.get_source_type_display %}
+                                    {{ txn.get_source_type_display }}
+                                {% else %}
+                                    {{ txn.source_type|default:"-" }}
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if txn.order %}
+                            <a href="{% url 'order_detail' txn.order.id %}" class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+                                #{{ txn.order.order_id|default:txn.order.id }}
+                            </a>
+                            {% else %}
+                            <span class="text-gray-400">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 max-w-xs truncate" title="{{ txn.description|default:'' }}">
+                            {{ txn.description|default:"-" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between sm:px-6">
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between w-full">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Showing <span class="font-medium">{{ page_obj.start_index }}</span> to <span class="font-medium">{{ page_obj.end_index }}</span> of <span class="font-medium">{{ paginator.count }}</span> transactions
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Previous</span>
+                            <i data-lucide="chevron-left" class="h-5 w-5"></i>
+                        </a>
+                        {% else %}
+                        <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-300">
+                            <span class="sr-only">Previous</span>
+                            <i data-lucide="chevron-left" class="h-5 w-5"></i>
+                        </span>
+                        {% endif %}
+
+                        {% for i in paginator.page_range %}
+                            {% if page_obj.number == i %}
+                            <span aria-current="page" class="z-10 bg-red-50 border-red-500 text-red-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                {{ i }}
+                            </span>
+                            {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                            <a href="?page={{ i }}" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                {{ i }}
+                            </a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Next</span>
+                            <i data-lucide="chevron-right" class="h-5 w-5"></i>
+                        </a>
+                        {% else %}
+                        <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-300">
+                            <span class="sr-only">Next</span>
+                            <i data-lucide="chevron-right" class="h-5 w-5"></i>
+                        </span>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+            <!-- Mobile Pagination -->
+            <div class="flex items-center justify-between w-full sm:hidden">
+                <a href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% else %}#{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 {% if not page_obj.has_previous %}opacity-50 cursor-not-allowed{% endif %}">
+                    Previous
+                </a>
+                <span class="text-sm text-gray-700">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+                <a href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }}{% else %}#{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 {% if not page_obj.has_next %}opacity-50 cursor-not-allowed{% endif %}">
+                    Next
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- Empty State -->
+        <div class="flex flex-col items-center justify-center py-16 px-4 text-center">
+            <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                <i data-lucide="wallet" class="w-10 h-10 text-gray-300"></i>
+            </div>
+            <h4 class="text-lg font-medium text-gray-900 mb-1">No transactions yet</h4>
+            <p class="text-gray-500 max-w-sm">Your wallet activity will appear here.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/accounts/wallet.js' %}"></script>
+{% endblock %}
