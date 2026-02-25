@@ -1,4 +1,5 @@
 from django.db import models
+import uuid
 
 # Create your models here.
 
@@ -16,6 +17,15 @@ class Category(models.Model):
 
 
 class Product(models.Model):
+
+    pro_id = models.UUIDField(
+        default=uuid.uuid4,
+        editable=False,
+        unique=True,
+        null=True,
+        blank=True,
+    )
+
     category = models.ForeignKey(
         Category,
         on_delete=models.PROTECT,
