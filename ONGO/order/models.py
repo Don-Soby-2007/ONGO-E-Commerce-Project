@@ -123,7 +123,7 @@ class OrderItem(models.Model):
     cancelled_at = models.DateTimeField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        self.total_price = self.quantity * self.price_at_purchace
+        self.total_price = self.quantity * self.price_at_purchase
         super().save(*args, **kwargs)
 
 
