@@ -81,7 +81,7 @@
         </div>
     </div>
 
-    <form method='POST' action='{% url "edit_product" product.id %}' id="productForm" data-mode='edit' enctype="multipart/form-data" class="pb-4">
+    <form method='POST' action='{% url "edit_product" product.pro_id %}' id="productForm" data-mode='edit' enctype="multipart/form-data" class="pb-4">
         {% csrf_token %}
         <input type="hidden" name="deleted_variants" id="deletedVariants">
         

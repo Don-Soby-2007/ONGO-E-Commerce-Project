@@ -722,7 +722,7 @@ class ProductEditView(View):
         if not request.user.is_authenticated or not request.user.is_staff:
             return redirect('admin_login')
 
-        product = get_object_or_404(Product, pk=pk)
+        product = get_object_or_404(Product, pro_id=pk)
         variants = product.variants.prefetch_related("images")
 
         return render(request, self.template_name, {
@@ -739,7 +739,7 @@ class ProductEditView(View):
             product_data = validate_product_fields(request.POST)
 
             # Fetch product within transaction to ensure consistency
-            product = get_object_or_404(Product, pk=pk)
+            product = get_object_or_404(Product, pro_id=pk)
 
             # Fetch and validate category
             category = get_object_or_404(Category, id=product_data['category_id'], is_active=True)
