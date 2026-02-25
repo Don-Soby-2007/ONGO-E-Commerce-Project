@@ -126,7 +126,7 @@
             <div class="product-grid flex-1 p-4">
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {% for product in products %}
-                    <div onclick="window.location='{% url 'product_detail' product.id %}'"
+                    <div onclick="window.location='{% url 'product_detail' product.pro_id %}'"
                         class="product-card group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                         <div class="relative">
                             <!-- Discount Badge -->

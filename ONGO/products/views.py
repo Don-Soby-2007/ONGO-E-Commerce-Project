@@ -229,7 +229,19 @@ class ProductDetailView(DetailView):
     model = Product
     template_name = "products/product-detail.html"
     context_object_name = 'product'
-    pk_url_kwarg = 'pk'
+    pk_url_kwarg = 'pro_id'
+
+    def get_object(self, queryset=None):
+
+        queryset = queryset or self.get_queryset()
+        pro_id = self.kwargs.get(self.pk_url_kwarg)
+
+        try:
+            obj = queryset.get(pro_id=pro_id)
+        except Product.DoesNotExist:
+            raise Http404('No Product matches the given query.')
+
+        return obj
 
     def get_queryset(self):
         return Product.objects.filter(is_active=True)
