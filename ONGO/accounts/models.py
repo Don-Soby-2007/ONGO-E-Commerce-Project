@@ -30,11 +30,30 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
+    referral_code = models.CharField(max_length=13, unique=True, blank=True, null=True, db_index=True)
+
+    referred_by = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='referred_user'
+        )
+
+    has_claimed_referral_discount = models.BooleanField(
+        default=False,
+    )
+
     # OTP related fields
 
     otp = models.CharField(max_length=6, blank=True, null=True)
     otp_created_at = models.DateTimeField(blank=True, null=True)
     otp_attempts = models.IntegerField(default=0)
+
+    def save(self, *args, **kwargs):
+        if not self.referral_code and self.pk:
+            self.referral_code = 'ONGO-' + uuid.uuid4().hex[:8].upper()
+        return super().save(*args, **kwargs)
 
     def generate_otp(self):
         import random
