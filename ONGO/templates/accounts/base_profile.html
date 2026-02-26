@@ -74,9 +74,10 @@
 
             <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 mt-8">Earn</h2>
             <nav class="space-y-1">
-                <a href="#"
-                    class="nav-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 group">
-                    <i data-lucide="gift" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-red-500"></i>
+                <a href="{% url 'referral' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'referral' %}active{% endif %} flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if request.resolver_match.url_name == 'referral' %}bg-gray-100 text-red-600 font-semibold{% else %}text-gray-600{% endif %} hover:bg-gray-100 group">
+                    <i data-lucide="gift"
+                        class="w-5 h-5 mr-3 {% if request.resolver_match.url_name == 'referral' %}text-red-500{% else %}text-gray-400{% endif %} group-hover:text-red-500"></i>
                     My Referral
                 </a>
             </nav>

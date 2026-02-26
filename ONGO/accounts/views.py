@@ -1029,8 +1029,8 @@ def ReferralView(request):
 
         context = {
             'referral_code': referral_code,
-            'referred_count': user.referred_users.all().count(),
-            'referral_link': f'http://127.0.0.1:8000/signup/?referral_code={referral_code}'
+            'referred_count': user.referred_user.all().count(),
+            'referral_link': f'http://127.0.0.1:8000/auth/signup/?referral_code={referral_code}'
         }
 
         return render(request, 'accounts/referral.html', context)
