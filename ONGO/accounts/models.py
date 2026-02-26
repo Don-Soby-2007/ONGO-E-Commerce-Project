@@ -30,7 +30,7 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
-    referral_code = models.CharField(max_length=13, unique=True, blank=True, null=True, db_index=True)
+    referral_code = models.CharField(max_length=15, unique=True, blank=True, null=True, db_index=True)
 
     referred_by = models.ForeignKey(
         'self',
@@ -52,7 +52,7 @@ class User(AbstractUser):
 
     def save(self, *args, **kwargs):
         if not self.referral_code and self.pk:
-            self.referral_code = 'ONGO-' + uuid.uuid4().hex[:8].upper()
+            self.referral_code = 'ONGO-' + uuid.uuid4().hex[:10].upper()
         return super().save(*args, **kwargs)
 
     def generate_otp(self):
