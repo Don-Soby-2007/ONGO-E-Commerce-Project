@@ -46,78 +46,131 @@ def user_login_view(request):
 
 @method_decorator(never_cache, name='dispatch')
 class SignupView(View):
-    template_name = 'accounts/user-sigup.html'
+    template_name = 'accounts/user-signup.html'
 
     def get(self, request):
-        if request.user.is_authenticated and request.user.is_staff is False:
+        if request.user.is_authenticated and not request.user.is_staff:
             return redirect('home')
-        return render(request, self.template_name)
+
+        referral_code = (request.GET.get('referral_code', '')).strip().upper()
+
+        context = {}
+        if referral_code:
+            if self.is_valid_referral_format(referral_code):
+                try:
+                    referrer = User.objects.get(
+                        referral_code=referral_code,
+                        is_active=True,
+                        is_blocked=False,
+                        is_verified=True
+                    )
+                    if referrer == request.user:
+                        messages.warning(request, "You cannot use your own referral code.")
+                    else:
+                        request.session['pending_referral_code'] = referral_code
+                        context['prefilled_referral'] = referral_code
+                except User.DoesNotExist:
+                    messages.error(request, "Invalid or expired referral code.")
+            else:
+                messages.error(request, "Referral code must start with 'ONGO-' and be valid.")
+
+        return render(request, self.template_name, context)
 
     def post(self, request):
 
-        username = request.POST.get('username').strip()
-        email = request.POST.get('email').strip().lower()
-        phone = request.POST.get('phone').strip()
-        password = request.POST.get('password').strip()
-        confirm_password = request.POST.get('confirm_password').strip()
-
-        if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', password):
-            messages.error(request, "Password must be at least 8 characters long "
-                           "and include uppercase,lowercase, number, and special character.")
-            return render(request, self.template_name)
+        username = (request.POST.get('username') or '').strip()
+        email = (request.POST.get('email') or '').strip().lower()
+        phone = (request.POST.get('phone') or '').strip()
+        password = (request.POST.get('password') or '').strip()
+        confirm_password = (request.POST.get('confirm_password') or '').strip()
+        referral_code = (request.POST.get('referral_code') or '').strip().upper()
 
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
-            return render(request, self.template_name)
+            return render(request, self.template_name, self.get_context(request))
 
-        # Check for existing user
-        existing_user = User.objects.filter(email=email).first()
-
-        if existing_user:
-            if existing_user.is_verified:
-                messages.error(request, "Email is already registered.")
-                return render(request, self.template_name)
-            else:
-                otp = existing_user.generate_otp()
-                logger.info(f"OTP for user {existing_user.email}")
-
-                send_mail(
-                    'Your OTP Verification Code',
-                    f'Your OTP code is: {otp}. It is valid for 5 minutes.',
-                    None,
-                    [existing_user.email],
-                    fail_silently=False,
+        if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', password):
+            messages.error(
+                request,
+                "Password must be 8+ characters with uppercase, lowercase, number, and special character (@$!%*?&)."
                 )
-                request.session['pending_user_id'] = existing_user.id
-                return redirect("otp_verify")
+            return render(request, self.template_name, self.get_context(request))
 
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username is already taken.")
-            return render(request, self.template_name)
+            return render(request, self.template_name, self.get_context(request))
 
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            phone_number=phone,
-        )
-        user.set_password(password)
-        user.is_verified = False
-        user.is_active = False
-        user.save()
+        existing = User.objects.filter(email=email).first()
+        if existing:
+            if existing.is_verified:
+                messages.error(request, "Email is already registered and verified.")
+            else:
+                otp = existing.generate_otp()
+                self.send_otp_email(existing.email, otp)
+                request.session['pending_user_id'] = existing.id
+                return redirect("otp_verify")
+            return render(request, self.template_name, self.get_context(request))
 
-        otp = user.generate_otp()
-        logger.info(f"OTP for user {user.email}: {otp}")
+        referred_by = None
+        if referral_code:
+            if not self.is_valid_referral_format(referral_code):
+                messages.error(request, "Referral code must start with 'ONGO-' (15 characters total).")
+                return render(request, self.template_name, self.get_context(request))
 
+            try:
+                referrer = User.objects.get(
+                    referral_code=referral_code,
+                    is_active=True,
+                    is_blocked=False,
+                    is_verified=True
+                )
+                referred_by = referrer
+            except User.DoesNotExist:
+                messages.error(request, "Invalid or inactive referral code.")
+                return render(request, self.template_name, self.get_context(request))
+
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                phone_number=phone,
+                referred_by=referred_by,
+            )
+            user.set_password(password)
+            user.is_verified = False
+            user.is_active = False
+            user.save()
+
+            otp = user.generate_otp()
+            self.send_otp_email(user.email, otp)
+
+            request.session['pending_user_id'] = user.id
+            if 'pending_referral_code' in request.session:
+                del request.session['pending_referral_code']
+
+            return redirect("otp_verify")
+
+        except Exception as e:
+            logger.error(f"Signup error for {email}: {e}")
+            messages.error(request, "Something went wrong. Please try again.")
+            return render(request, self.template_name, self.get_context(request))
+
+    def is_valid_referral_format(self, code):
+        return bool(code and code.startswith('ONGO-') and len(code) == 15)
+
+    def send_otp_email(self, email, otp):
         send_mail(
             'Your OTP Verification Code',
-            f'Your OTP code is: {otp}. It is valid for 5 minutes. Please do not share it anyone',
+            f'Your OTP is: {otp}. Valid for 5 minutes. Do not share it.',
             None,
-            [user.email],
+            [email],
             fail_silently=False,
         )
 
-        request.session['pending_user_id'] = user.id
-        return redirect("otp_verify")
+    def get_context(self, request):
+        return {
+            'prefilled_referral': request.session.get('pending_referral_code', '')
+        }
 
 
 @method_decorator(never_cache, name='dispatch')
