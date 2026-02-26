@@ -83,4 +83,8 @@ urlpatterns = [
     # wallet
 
     path('wallet/', views.WalletListView.as_view(), name='wallet'),
+
+    # referral
+
+    path('referral/', views.ReferralView, name='referral'),
 ]
