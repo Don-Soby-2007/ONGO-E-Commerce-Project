@@ -65,13 +65,16 @@ def get_cart_items_for_user(request, user):
             offer_scope = 'product'
 
             if offer_type == 'percent':
-                discounted = original_price * (Decimal('1') - offer_value / Decimal('100'))
+                discounted = original_price * (offer_value / Decimal('100'))
+                print('Debug discounted:', discounted)
                 if product_offer.max_discount_amount:
                     max_disc = _to_decimal(product_offer.max_discount_amount)
                     discounted = min(discounted, max_disc)
-                offer_price = max(Decimal('0'), discounted)
+                offer_price = max(Decimal('0'), (original_price - discounted))
             elif offer_type == 'fixed':
                 offer_price = max(Decimal('0'), original_price - offer_value)
+
+            print('DEBUG offer_price: ', offer_price)
 
         # CATEGORY OFFER
         category_offer = None
@@ -145,6 +148,8 @@ def get_cart_items_for_user(request, user):
             "applied_offer_type": offer_type,
             "applied_offer_value": float(_round_currency(offer_value)) if offer_value is not None else None,
         })
+
+        print('DEBUG cart_items: ', cart_items)
 
     shipping = Decimal('100')
     applied_global_offers = []
