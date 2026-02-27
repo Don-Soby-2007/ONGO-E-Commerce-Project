@@ -161,9 +161,13 @@ def get_cart_items_for_user(request, user):
     ).order_by('-priority')
 
     for offer in global_offers:
-        if not offer.is_active_now() or offer.discount_type not in ['percent', 'fixed']:
+        if (
+            not offer.is_active_now() or offer.discount_type not in ['percent', 'fixed']
+            or offer.name == 'First_Ord_Referral_Off'
+        ):
             continue
 
+        disc_amt = 0
         offer_val = _to_decimal(offer.value)
         if offer.discount_type == 'percent':
             disc_amt = total_payable_exact * (offer_val / Decimal('100'))
@@ -193,8 +197,29 @@ def get_cart_items_for_user(request, user):
         applied_global_offers.append(top_offer)
     else:
         total_payable_exact = _round_currency(total_payable_exact)
+    print("Debug befor applying the shipping: ", applied_global_offers)
 
     for offer in global_offers:
+        if (
+            offer.name == 'First_Ord_Referral_Off' and offer.discount_type == 'percent' and offer.is_active_now()
+            and _to_decimal(offer.min_cart_value) <= total_payable_exact
+        ):
+            if request.user.orders.count() == 0 and not request.user.has_claimed_referral_discount:
+                disc_amt = 0
+                offer_val = _to_decimal(offer.value)
+                disc_amt = total_payable_exact * (offer_val / Decimal('100'))
+                if offer.max_discount:
+                    disc_amt = min(disc_amt, _to_decimal(offer.max_discount))
+
+                total_payable_exact = _round_currency(total_payable_exact - disc_amt)
+                applied_global_offers.append({
+                    "id": offer.id,
+                    "name": offer.name,
+                    "type": offer.discount_type,
+                    "value": float(_round_currency(offer.value)),
+                    "discount_amount": float(_round_currency(disc_amt)),
+                })
+
         if (
             offer.discount_type == 'free_shipping' and offer.is_active_now()
             and _to_decimal(offer.min_cart_value) <= total_payable_exact
@@ -210,6 +235,8 @@ def get_cart_items_for_user(request, user):
             break
 
     cart_discount_exact = items_subtotal_exact - total_payable_exact
+
+    print("Debug after applying the shipping: ", applied_global_offers)
 
     if 'applied_coupon' in request.session:
         applied_coupon = request.session.get('applied_coupon')

@@ -304,6 +304,7 @@ class PlaceOrder(LoginRequiredMixin, View):
         request.session.pop('checkout_information', None)
         request.session.pop('checkout_step', None)
         request.session.pop('applied_coupon', None)
+        print('Cart Session cleared...!!!!!')
 
         return JsonResponse({
             'success': True,
@@ -487,6 +488,7 @@ class VerifyRazorpayPayment(LoginRequiredMixin, View):
         request.session.pop('checkout_information', None)
         request.session.pop('checkout_step', None)
         request.session.pop('applied_coupon', None)
+        print('Cart session Cleared..!!!')
 
         return JsonResponse({
             'success': True,
