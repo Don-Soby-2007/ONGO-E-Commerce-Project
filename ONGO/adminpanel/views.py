@@ -5,13 +5,13 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views import View
-from django.db.models import Q, Count, Case, When, Value, IntegerField, Sum
+from django.db.models import Q, F, Count, Case, When, Value, IntegerField, Sum
 from django.views.generic import ListView, DetailView
 from django.views.generic.edit import CreateView, UpdateView
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
-from accounts.models import User
+from accounts.models import User, Wallet, WalletTransaction
 from products.models import Category, Product, ProductVariant, ProductImage
 from order.models import Order, OrderItem
 from returns.models import Return, ReturnItem
@@ -1050,8 +1050,49 @@ class ToggleOrderStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
                 cancelled_at=timezone.now()
             )
         elif new_status == 'delivered':
-            order.items.exclude(status='cancelled').update(status='delivered')
-            order.delivered_at = timezone.now()
+            with transaction.atomic():
+
+                order.items.exclude(status='cancelled').update(status='delivered')
+                order.status = 'delivered'
+                order.delivered_at = timezone.now()
+                order.save(update_fields=['status', 'delivered_at'])
+
+                user = order.user
+
+                delivered_orders_count = user.orders.filter(
+                    status='delivered'
+                ).exclude(id=order.id).count()
+
+                if (
+                    not user.has_claimed_referral_discount
+                    and user.referred_by
+                    and delivered_orders_count == 0
+                ):
+
+                    user.has_claimed_referral_discount = True
+                    user.save(update_fields=['has_claimed_referral_discount'])
+
+                    referrer = user.referred_by
+
+                    wallet, _ = Wallet.objects.get_or_create(
+                        user=referrer,
+                        defaults={'balance': 0}
+                    )
+
+                    Wallet.objects.filter(pk=wallet.pk).update(
+                        balance=F('balance') + 50.00
+                    )
+
+                    wallet.refresh_from_db()
+
+                    WalletTransaction.objects.create(
+                        wallet=wallet,
+                        transaction_type='credit',
+                        amount=50.00,
+                        source_type='referral_bonus',
+                        description='Referral reward for inviting a new user'
+                    )
+
         elif new_status == 'shipped':
             order.items.exclude(status='cancelled').update(status='shipped')
             order.shipped_at = timezone.now()
@@ -1106,15 +1147,53 @@ class ToggleOrderItemStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
         item.status = new_status
         item.save(update_fields=['status'])
 
-        self._update_order_status_if_needed(order)
+        self._update_order_status_if_needed(order, request)
 
         return JsonResponse({'success': True, 'new_status': new_status})
 
-    def _update_order_status_if_needed(self, order):
+    def _update_order_status_if_needed(self, order, request):
         item_statuses = set(order.items.values_list('status', flat=True))
         if item_statuses == {'delivered'}:
-            order.status = 'delivered'
-            order.save(update_fields=['status'])
+            with transaction.atomic():
+                order.status = 'delivered'
+                order.delivered_at = timezone.now()
+                order.save(update_fields=['status', 'delivered_at'])
+
+                user = order.user
+
+                delivered_orders_count = user.orders.filter(
+                    status='delivered'
+                ).exclude(id=order.id).count()
+
+                if (
+                    not user.has_claimed_referral_discount
+                    and user.referred_by
+                    and delivered_orders_count == 0
+                ):
+
+                    user.has_claimed_referral_discount = True
+                    user.save(update_fields=['has_claimed_referral_discount'])
+
+                    referrer = user.referred_by
+
+                    wallet, _ = Wallet.objects.get_or_create(
+                        user=referrer,
+                        defaults={'balance': 0}
+                    )
+
+                    Wallet.objects.filter(pk=wallet.pk).update(
+                        balance=F('balance') + 50.00
+                    )
+
+                    wallet.refresh_from_db()
+
+                    WalletTransaction.objects.create(
+                        wallet=wallet,
+                        transaction_type='credit',
+                        amount=50.00,
+                        source_type='referral_bonus',
+                        description='Referral reward for inviting a new user'
+                    )
         elif 'cancelled' in item_statuses and not item_statuses - {'cancelled'}:
             order.status = 'cancelled'
             order.save(update_fields=['status'])

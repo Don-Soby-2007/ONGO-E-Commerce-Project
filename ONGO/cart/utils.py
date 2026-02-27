@@ -204,7 +204,10 @@ def get_cart_items_for_user(request, user):
             offer.name == 'First_Ord_Referral_Off' and offer.discount_type == 'percent' and offer.is_active_now()
             and _to_decimal(offer.min_cart_value) <= total_payable_exact
         ):
-            if request.user.orders.count() == 0 and not request.user.has_claimed_referral_discount:
+            if (
+                request.user.orders.count() == 0 and not request.user.has_claimed_referral_discount
+                and request.user.referred_by
+            ):
                 disc_amt = 0
                 offer_val = _to_decimal(offer.value)
                 disc_amt = total_payable_exact * (offer_val / Decimal('100'))
