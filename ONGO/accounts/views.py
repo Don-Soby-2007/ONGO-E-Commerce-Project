@@ -67,7 +67,6 @@ class SignupView(View):
                     if referrer == request.user:
                         messages.warning(request, "You cannot use your own referral code.")
                     else:
-                        request.session['pending_referral_code'] = referral_code
                         context['prefilled_referral'] = referral_code
                 except User.DoesNotExist:
                     messages.error(request, "Invalid or expired referral code.")
@@ -145,8 +144,6 @@ class SignupView(View):
             self.send_otp_email(user.email, otp)
 
             request.session['pending_user_id'] = user.id
-            if 'pending_referral_code' in request.session:
-                del request.session['pending_referral_code']
 
             return redirect("otp_verify")
 
@@ -166,11 +163,6 @@ class SignupView(View):
             [email],
             fail_silently=False,
         )
-
-    def get_context(self, request):
-        return {
-            'prefilled_referral': request.session.get('pending_referral_code', '')
-        }
 
 
 @method_decorator(never_cache, name='dispatch')
