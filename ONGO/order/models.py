@@ -119,6 +119,9 @@ class OrderItem(models.Model):
         default='pending'
     )
 
+    refunded_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    refunded_at = models.DateTimeField(null=True, blank=True)
+
     cancel_reason = models.TextField(blank=True, null=True)
     cancelled_at = models.DateTimeField(blank=True, null=True)
 
