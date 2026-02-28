@@ -115,3 +115,34 @@ def verify_razorpay_signature(params_dict: dict) -> bool:
         return True
     except Exception:
         return False
+
+
+def calculate_item_refund_amount(item, order) -> Decimal:
+
+    if order.sub_total <= 0:
+        return Decimal('0.00')
+
+    # Gross contribution of this item before any discount
+    item_gross = item.total_price  # already = price_at_purchase × quantity
+
+    # Already-applied item-level discount
+    item_level_disc = item.line_discount or Decimal('0.00')
+
+    # Net item value before order-level discounts
+    item_net_before_order_disc = item_gross - item_level_disc
+
+    # Proportion of the subtotal this item represents
+    proportion = item_gross / order.sub_total
+
+    # Order-level discounts total
+    order_level_disc = (order.promotional_discount or Decimal('0')) + \
+                       (order.coupon_discount or Decimal('0'))
+
+    # Prorated share of order-level discount that "belongs" to this item
+    prorated_order_disc = order_level_disc * proportion
+
+    # Final refund = item's net contribution minus its share of order-level discount
+    refund = item_net_before_order_disc - prorated_order_disc
+
+    # Never refund negative
+    return max(refund, Decimal('0.00'))

@@ -6,7 +6,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 
 from .utils import create_address_from_request
-
+from order.utils import calculate_item_refund_amount
 
 from django.views import View
 from django.views.generic import ListView
@@ -23,7 +23,9 @@ from django.http import JsonResponse
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import User, Address, Wishlist, WalletTransaction
+from decimal import Decimal
+
+from .models import User, Address, Wishlist, WalletTransaction, Wallet
 from order.models import Order, OrderItem
 from products.models import ProductVariant
 from cart.models import Cart
@@ -843,23 +845,52 @@ class OrderItemCancelView(LoginRequiredMixin, View):
             }, status=400)
 
         reason = request.POST.get('reason', 'Cancelled by user')
-        item.status = 'cancelled'
-        item.cancel_reason = reason
-        item.cancelled_at = timezone.now()
-        item.save()
 
-        order.sub_total -= item.total_price
-        order.total_amount -= item.total_price
-        order.save(update_fields=['sub_total', 'total_amount'])
+        refund_amount = calculate_item_refund_amount(item, order)
 
-        variant = item.product_variant
-        variant.stock += item.quantity
-        variant.save(update_fields=['stock'])
+        with transaction.atomic():
+            item.status = 'cancelled'
+            item.cancel_reason = reason
+            item.cancelled_at = timezone.now()
+            item.save()
 
-        if not order.items.exclude(status='cancelled').exists():
-            order.status = 'cancelled'
-            order.save()
+            variant = item.product_variant
+            variant.stock += item.quantity
+            variant.save(update_fields=['stock'])
 
+            order.sub_total -= item.total_price
+            order.total_amount -= refund_amount
+
+            order.sub_total = max(order.sub_total, Decimal('0.00'))
+            order.total_amount = max(order.total_amount, order.shipping)
+
+            order.save(update_fields=['sub_total', 'total_amount'])
+
+            if not order.items.exclude(status='cancelled').exists():
+                order.status = 'cancelled'
+                order.save(update_fields=['status'])
+
+            credited = False
+
+            if order.payment_method in ['wallet', 'online']:
+                wallet = Wallet.objects.select_for_update().get(user=request.user)
+                wallet.balance += refund_amount
+                wallet.save(update_fields=['balance'])
+                description = (f"Refund for cancelled item:{item.product_name} x {item.quantity}" +
+                               f"(Order: {order.order_id})")
+
+                WalletTransaction.objects.create(
+                    transaction_type='credit',
+                    amount=refund_amount,
+                    source_type='order_refund',
+                    order=order,
+                    description=description
+                )
+
+                credited = True
+
+        if credited:
+            logger.info('')
         return JsonResponse({'message': 'Item cancelled successfully.'})
 
 
