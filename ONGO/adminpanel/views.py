@@ -1293,6 +1293,7 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
                     id=return_id
                 )
                 current_status = returns.status
+                order = returns.order.first()
 
                 if current_status in ['accepted', 'rejected']:
                     return JsonResponse({

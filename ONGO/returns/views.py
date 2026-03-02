@@ -1,6 +1,5 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Sum
 # from django.views.decorators.cache import never_cache
 
 # from django.utils.decorators import method_decorator
@@ -32,7 +31,7 @@ class ReturnOrderView(LoginRequiredMixin, View):
             messages.error(request, "This order cannot be returned.")
             return redirect('order_detail', order_id=order_id)
 
-        order_items = order.items.all()
+        order_items = order.items.filter(status='delivered')
         if not order_items.exists():
             messages.error(request, "This order has no items to return.")
             return redirect('order_detail', order_id=order_id)
@@ -58,32 +57,12 @@ class ReturnOrderView(LoginRequiredMixin, View):
             return redirect('order_detail', order_id=order_id)
 
         selected_items = []
-        for order_item in order.items.all():
+        for order_item in order.items.filter('delivered'):
             item_key = f'item_{order_item.id}'
             if request.POST.get(f'{item_key}_select'):
                 try:
-                    quantity = int(request.POST.get(f'{item_key}_quantity', 0))
+                    quantity = order_item.quantity
                     item_reason = request.POST.get(f'{item_key}_reason', '').strip()
-
-                    if quantity <= 0 or quantity > order_item.quantity:
-                        messages.error(
-                            request,
-                            f"Invalid quantity for {order_item.product.name}."
-                        )
-                        return redirect('order_detail', order_id=order_id)
-
-                    total_returned = ReturnItem.objects.filter(
-                        order_item=order_item,
-                        return_request__status__in=['pending', 'accepted']
-                    ).aggregate(total=Sum('quantity'))['total'] or 0
-
-                    if total_returned + quantity > order_item.quantity:
-                        messages.error(
-                            request,
-                            f"Cannot return {quantity} more units of {order_item.product_name}. "
-                            f"Only {order_item.quantity - total_returned} units available for return."
-                        )
-                        return redirect('order_detail', order_id=order_id)
 
                     selected_items.append({
                         'order_item': order_item,
@@ -116,6 +95,9 @@ class ReturnOrderView(LoginRequiredMixin, View):
                         quantity=item_data['quantity'],
                         item_reason=item_data['item_reason'] or return_reason
                     )
+
+                order.status = 'return requested'
+                order.save(update_fields=['status'])
 
             messages.success(
                 request,
