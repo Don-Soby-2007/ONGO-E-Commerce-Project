@@ -807,30 +807,80 @@ class OrderDetailView(LoginRequiredMixin, DetailView):
 class OrderCancelView(LoginRequiredMixin, View):
 
     def post(self, request, order_id):
+        try:
+            with transaction.atomic():
+                order = get_object_or_404(
+                    Order.objects.select_for_update(),
+                    order_id=order_id,
+                    user=request.user
+                )
 
-        order = get_object_or_404(Order, order_id=order_id, user=request.user)
+                if order.status not in ['pending', 'confirmed']:
+                    return JsonResponse({
+                        'error': 'Cannot cancel this order. Current status: ' + order.status
+                    }, status=400)
 
-        if order.status not in ['pending', 'confirmed']:
+                reason = request.POST.get('cancel_reason', 'Cancelled by user')
+                cancellable_items = order.items.select_related('product_variant').filter(status__in=['pending', 'confirmed'])
+
+                for item in cancellable_items:
+                    item.status = 'cancelled'
+                    item.cancel_reason = reason
+                    item.cancelled_at = timezone.now()
+                    item.save(update_fields=['status', 'cancel_reason', 'cancelled_at'])
+
+                    variant = item.product_variant
+                    variant.stock += item.quantity
+                    variant.save(update_fields=['stock'])
+
+                refunded_to_wallet = False
+                can_refund = (
+                    order.payment_method == 'wallet' or
+                    (order.payment_method == 'online' and order.payment_status == 'paid')
+                )
+                refund_amount = max(order.total_amount or Decimal('0.00'), Decimal('0.00'))
+
+                if can_refund and refund_amount > 0:
+                    wallet = Wallet.objects.select_for_update().filter(user=request.user).first()
+                    if not wallet:
+                        wallet = Wallet.objects.create(user=request.user, balance=Decimal('0.00'))
+
+                    wallet.balance += refund_amount
+                    wallet.save(update_fields=['balance'])
+
+                    WalletTransaction.objects.create(
+                        wallet=wallet,
+                        transaction_type='credit',
+                        amount=refund_amount,
+                        source_type='order_refund',
+                        order=order,
+                        description=f"Refund for cancelled order {order.order_id}"
+                    )
+                    refunded_to_wallet = True
+
+                order.status = 'cancelled'
+                update_fields = ['status']
+                if refunded_to_wallet:
+                    order.payment_status = 'refunded'
+                    update_fields.append('payment_status')
+                order.save(update_fields=update_fields)
+
+            if refunded_to_wallet:
+                logger.info(f'Full order refund credited to wallet for order {order.order_id}')
+                return JsonResponse({'message': 'Order cancelled and refund credited to wallet successfully.'})
+
+            return JsonResponse({'message': 'Order cancelled successfully.'})
+
+        except DatabaseError as e:
+            logger.error(f'Database error occurred while cancelling order {order_id}: {e}')
             return JsonResponse({
-                'error': 'Cannot cancell This Order. Current Status: ' + order.status
-            }, status=400)
-
-        reason = request.POST.get('cancel_reason', 'Cancelled by User')
-
-        for item in order.items.all():
-            if item.status in ['pending', 'confirmed']:
-                item.status = 'cancelled'
-                item.cancel_reason = reason
-                item.cancelled_at = timezone.now()
-                item.save()
-                variant = item.product_variant
-                variant.stock += item.quantity
-                variant.save(update_fields=['stock'])
-
-        order.status = 'cancelled'
-        order.save()
-
-        return JsonResponse({'message': 'Order cancelled successfully.'})
+                'error': 'A database error occurred. Please try again.'
+            }, status=503)
+        except Exception as e:
+            logger.error(f'Unexpected error occurred while cancelling order {order_id}: {e}')
+            return JsonResponse({
+                'error': 'An unexpected error occurred. Please try again later.'
+            }, status=500)
 
 
 @method_decorator(never_cache, name='dispatch')
@@ -874,13 +924,17 @@ class OrderItemCancelView(LoginRequiredMixin, View):
                 credited = False
 
                 if order.payment_method in ['wallet', 'online']:
-                    wallet = Wallet.objects.select_for_update().get(user=request.user)
+                    wallet = Wallet.objects.select_for_update().filter(user=request.user).first()
+                    if not wallet:
+                        wallet = Wallet.objects.create(user=request.user, balance=Decimal('0.00'))
+
                     wallet.balance += refund_amount
                     wallet.save(update_fields=['balance'])
                     description = (f"Refund for cancelled item:{item.product_name} x {item.quantity}" +
                                    f"(Order: {order.order_id})")
 
                     WalletTransaction.objects.create(
+                        wallet=wallet,
                         transaction_type='credit',
                         amount=refund_amount,
                         source_type='order_refund',
@@ -903,7 +957,7 @@ class OrderItemCancelView(LoginRequiredMixin, View):
             }, status=404)
 
         except DatabaseError as e:
-            logger.erroe(f'Database error occured while canceling the order iteme: {e}')
+            logger.error(f'Database error occured while canceling the order iteme: {e}')
 
             return JsonResponse({
                 'error': 'A database error occurred. Please try again'
