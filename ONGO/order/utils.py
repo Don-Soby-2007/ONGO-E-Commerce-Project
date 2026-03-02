@@ -123,7 +123,7 @@ def calculate_item_refund_amount(item, order) -> Decimal:
         return Decimal('0.00')
 
     # Gross contribution of this item before any discount
-    item_gross = item.total_price  # already = price_at_purchase × quantity
+    item_gross = item.price_at_purchase * item.quantity
 
     # Already-applied item-level discount
     item_level_disc = item.line_discount or Decimal('0.00')

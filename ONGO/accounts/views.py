@@ -836,62 +836,84 @@ class OrderCancelView(LoginRequiredMixin, View):
 @method_decorator(never_cache, name='dispatch')
 class OrderItemCancelView(LoginRequiredMixin, View):
     def post(self, request, order_id, item_id):
-        order = get_object_or_404(Order, order_id=order_id, user=request.user)
-        item = get_object_or_404(OrderItem, id=item_id, order=order)
+        try:
+            order = get_object_or_404(Order, order_id=order_id, user=request.user)
+            item = get_object_or_404(OrderItem, id=item_id, order=order)
 
-        if item.status not in ['pending', 'confirmed']:
-            return JsonResponse({
-                'error': 'Cannot cancel this item. Current status: ' + item.status
-            }, status=400)
+            if item.status not in ['pending', 'confirmed']:
+                return JsonResponse({
+                    'error': 'Cannot cancel this item. Current status: ' + item.status
+                }, status=400)
 
-        reason = request.POST.get('reason', 'Cancelled by user')
+            reason = request.POST.get('reason', 'Cancelled by user')
 
-        refund_amount = calculate_item_refund_amount(item, order)
+            refund_amount = calculate_item_refund_amount(item, order)
 
-        with transaction.atomic():
-            item.status = 'cancelled'
-            item.cancel_reason = reason
-            item.cancelled_at = timezone.now()
-            item.save()
+            with transaction.atomic():
+                item.status = 'cancelled'
+                item.cancel_reason = reason
+                item.cancelled_at = timezone.now()
+                item.save()
 
-            variant = item.product_variant
-            variant.stock += item.quantity
-            variant.save(update_fields=['stock'])
+                variant = item.product_variant
+                variant.stock += item.quantity
+                variant.save(update_fields=['stock'])
 
-            order.sub_total -= item.total_price
-            order.total_amount -= refund_amount
+                order.sub_total -= (item.price_at_purchase * item.quantity)
+                order.total_amount -= refund_amount
 
-            order.sub_total = max(order.sub_total, Decimal('0.00'))
-            order.total_amount = max(order.total_amount, order.shipping)
+                order.sub_total = max(order.sub_total, Decimal('0.00'))
+                order.total_amount = max(order.total_amount, order.shipping)
 
-            order.save(update_fields=['sub_total', 'total_amount'])
+                order.save(update_fields=['sub_total', 'total_amount'])
 
-            if not order.items.exclude(status='cancelled').exists():
-                order.status = 'cancelled'
-                order.save(update_fields=['status'])
+                if not order.items.exclude(status='cancelled').exists():
+                    order.status = 'cancelled'
+                    order.save(update_fields=['status'])
 
-            credited = False
+                credited = False
 
-            if order.payment_method in ['wallet', 'online']:
-                wallet = Wallet.objects.select_for_update().get(user=request.user)
-                wallet.balance += refund_amount
-                wallet.save(update_fields=['balance'])
-                description = (f"Refund for cancelled item:{item.product_name} x {item.quantity}" +
-                               f"(Order: {order.order_id})")
+                if order.payment_method in ['wallet', 'online']:
+                    wallet = Wallet.objects.select_for_update().get(user=request.user)
+                    wallet.balance += refund_amount
+                    wallet.save(update_fields=['balance'])
+                    description = (f"Refund for cancelled item:{item.product_name} x {item.quantity}" +
+                                   f"(Order: {order.order_id})")
 
-                WalletTransaction.objects.create(
-                    transaction_type='credit',
-                    amount=refund_amount,
-                    source_type='order_refund',
-                    order=order,
-                    description=description
+                    WalletTransaction.objects.create(
+                        transaction_type='credit',
+                        amount=refund_amount,
+                        source_type='order_refund',
+                        order=order,
+                        description=description
+                    )
+
+                    credited = True
+
+            if credited:
+                logger.info('User got the refunded amount in the wallet')
+            return JsonResponse({'message': 'Item cancelled successfully.'})
+
+        except (Order.DoesNotExist, OrderItem.DoesNotExist):
+            logger.warning(
+                f'Cancel attempt for non-existent order/item: order={order_id}, item={item_id}, user={request.user.id}'
                 )
+            return JsonResponse({
+                'error': 'Order or item not found'
+            }, status=404)
 
-                credited = True
+        except DatabaseError as e:
+            logger.erroe(f'Database error occured while canceling the order iteme: {e}')
 
-        if credited:
-            logger.info('')
-        return JsonResponse({'message': 'Item cancelled successfully.'})
+            return JsonResponse({
+                'error': 'A database error occurred. Please try again'
+            }, status=503)
+
+        except Exception as e:
+            logger.error(f'Unexpected error occured while canceling a item in order: {e}')
+            return JsonResponse({
+                'error': 'An unexpected error occured. Please try again later'
+            }, status=500)
 
 
 @method_decorator(never_cache, name='dispatch')
