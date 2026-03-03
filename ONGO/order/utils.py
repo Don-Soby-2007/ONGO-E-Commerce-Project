@@ -3,7 +3,7 @@ from django.template.loader import render_to_string
 from django.core.files.base import ContentFile
 from .models import Invoice
 from coupons.models import Coupon, CouponUsage
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 import razorpay
 from django.conf import settings
@@ -119,30 +119,44 @@ def verify_razorpay_signature(params_dict: dict) -> bool:
 
 def calculate_item_refund_amount(item, order) -> Decimal:
 
-    if order.sub_total <= 0:
-        return Decimal('0.00')
+    zero = Decimal('0.00')
+    quant = Decimal('0.01')
 
-    # Gross contribution of this item before any discount
-    item_gross = item.price_at_purchase * item.quantity
+    if not item or not order:
+        return zero
 
-    # Already-applied item-level discount
-    item_level_disc = item.line_discount or Decimal('0.00')
+    if not item.quantity or item.quantity <= 0:
+        return zero
 
-    # Net item value before order-level discounts
-    item_net_before_order_disc = item_gross - item_level_disc
+    # Stable order denominator: sum of all order-item net values before order-level discounts.
+    order_net_total = zero
+    for line in order.items.all().only('price_at_purchase', 'quantity', 'line_discount'):
+        line_gross = Decimal(str(line.price_at_purchase)) * Decimal(line.quantity)
+        line_disc = Decimal(str(line.line_discount or zero))
+        line_net = max(line_gross - line_disc, zero)
+        order_net_total += line_net
 
-    # Proportion of the subtotal this item represents
-    proportion = item_gross / order.sub_total
+    if order_net_total <= 0:
+        return zero
 
-    # Order-level discounts total
-    order_level_disc = (order.promotional_discount or Decimal('0')) + \
-                       (order.coupon_discount or Decimal('0'))
+    item_gross_total = Decimal(str(item.price_at_purchase)) * Decimal(item.quantity)
+    item_line_disc_total = Decimal(str(item.line_discount or zero))
+    item_net_total = max(item_gross_total - item_line_disc_total, zero)
 
-    # Prorated share of order-level discount that "belongs" to this item
-    prorated_order_disc = order_level_disc * proportion
+    if item_net_total <= 0:
+        return zero
 
-    # Final refund = item's net contribution minus its share of order-level discount
-    refund = item_net_before_order_disc - prorated_order_disc
+    # `line_discount` is already reflected at item level, so only prorate
+    # true order-level discount here to avoid double-discounting.
+    order_level_disc_total = Decimal(str(order.coupon_discount or zero))
 
-    # Never refund negative
-    return max(refund, Decimal('0.00'))
+    # Item's share of order-level discounts for full line refund.
+    item_total_ratio = item_net_total / order_net_total
+    item_total_prorated_disc = order_level_disc_total * item_total_ratio
+    item_max_refundable = max(item_net_total - item_total_prorated_disc, zero)
+
+    already_refunded = Decimal(str(getattr(item, 'refunded_amount', zero) or zero))
+    remaining_refundable = max(item_max_refundable - already_refunded, zero)
+
+    final_refund = min(item_max_refundable, remaining_refundable)
+    return final_refund.quantize(quant, rounding=ROUND_HALF_UP)
