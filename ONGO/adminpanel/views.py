@@ -14,6 +14,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from accounts.models import User, Wallet, WalletTransaction
 from products.models import Category, Product, ProductVariant, ProductImage
 from order.models import Order, OrderItem
+from order.utils import calculate_item_refund_amount
 from returns.models import Return, ReturnItem
 from offers.models import ProductOffer, CategoryOffer, GlobalOffer
 from coupons.models import Coupon
@@ -1325,141 +1326,138 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
                 if not user:
                     return JsonResponse({'error': 'Associated user not found'}, status=404)
 
-                if new_status in ['accepted', 'rejected']:
-                    returns.processed_at = timezone.now()
-                else:
-                    returns.processed_at = None
-
-                if new_status == 'rejected':
-                    admin_notes = request.POST.get('admin_notes', '').strip()
-                    returns.admin_notes = admin_notes if admin_notes else 'Rejected by admin'
-
                 refund_amount = Decimal('0.00')
-                if current_status == 'pending' and new_status == 'accepted':
-                    return_items = list(returns.return_items.select_related('order_item__product_variant'))
-                    if not return_items:
-                        return JsonResponse({'error': 'No return items found for this request'}, status=400)
 
-                    # Detect "full order return in this request": each order item is returned with full quantity.
-                    order_items = list(order.items.all())
-                    request_qty_by_order_item = {}
-                    for item in return_items:
-                        request_qty_by_order_item[item.order_item_id] = (
-                            request_qty_by_order_item.get(item.order_item_id, 0) + item.quantity
-                        )
-
-                    is_full_order_return = bool(order_items) and (
-                        len(request_qty_by_order_item) == len(order_items)
-                    ) and all(
-                        request_qty_by_order_item.get(order_item.id, 0) == order_item.quantity
-                        for order_item in order_items
-                    )
-
-                    for item in returns.return_items.select_related('order_item__product_variant'):
-                        order_item = item.order_item
-                        if not order_item:
-                            return JsonResponse({'error': 'Order item not found for return entry'}, status=404)
-
-                        if order_item.order_id != order.id:
-                            return JsonResponse({'error': 'Return item does not belong to the linked order'}, status=400)
-
-                        if item.quantity <= 0 or item.quantity > order_item.quantity:
-                            return JsonResponse({'error': 'Invalid return quantity for one or more items'}, status=400)
-
-                        variant = item.order_item.product_variant
-                        if not variant:
-                            return JsonResponse({'error': 'Product variant not found for return item'}, status=404)
-
-                        original_stock = variant.stock
-                        variant.stock += item.quantity
-                        variant.save(update_fields=['stock'])
-                        logger.info(
-                            f"Stock increased: Variant {variant.sku} | "
-                            f"+{item.quantity} (Return #{returns.id}) | "
-                            f"Old: {original_stock} → New: {variant.stock}"
-                        )
-
-                        # Partial-item return refund from final_line_price (already discount-aware).
-                        per_unit_refund = Decimal('0.00')
-                        if order_item.quantity > 0:
-                            per_unit_refund = (order_item.final_line_price / Decimal(order_item.quantity))
-                        refund_amount += (per_unit_refund * Decimal(item.quantity))
-
-                    # Full-order return refund uses total amount paid for the order.
-                    if is_full_order_return:
-                        refund_amount = order.total_amount
-
-                    refund_amount = refund_amount.quantize(Decimal('0.01'))
-                    if refund_amount <= 0:
-                        return JsonResponse({'error': 'Calculated refund amount is invalid'}, status=400)
-
-                    wallet, _ = Wallet.objects.select_for_update().get_or_create(
-                        user=user,
-                        defaults={'balance': Decimal('0.00')}
-                    )
-                    wallet.balance += refund_amount
-                    wallet.save(update_fields=['balance'])
-
-                    WalletTransaction.objects.create(
-                        wallet=wallet,
-                        transaction_type='credit',
-                        amount=refund_amount,
-                        source_type='order_refund',
-                        order=order,
-                        description=f"Refund for approved return #{returns.id} (Order {order.order_id})"
-                    )
-
-                    returns.refund_amount = refund_amount
-                    returns.refunded_at = timezone.now()
-
-                returns.status = new_status
-                update_fields = ['status', 'processed_at']
                 if new_status == 'rejected':
-                    update_fields.append('admin_notes')
-                if new_status == 'accepted':
-                    update_fields.extend(['refund_amount', 'refunded_at'])
-                returns.save(update_fields=update_fields)
+                    returns.status = 'rejected'
+                    returns.save(update_fields=['status'])
+                    return JsonResponse({
+                        'success': True,
+                        'new_status': 'rejected',
+                        'refund_amount': '0.00',
+                        'message': 'Return status updated to "rejected"',
+                        'is_final': True
+                    })
 
-                if new_status == 'accepted':
-                    fully_returned_items = []
+                if new_status != 'accepted':
+                    return JsonResponse({'error': 'Invalid status change'}, status=400)
 
-                    for return_item in returns.return_items.select_related('order_item'):
-                        order_item = return_item.order_item
+                return_items = list(returns.return_items.select_related('order_item__product_variant'))
+                if not return_items:
+                    return JsonResponse({'error': 'No return items found for this request'}, status=400)
 
-                        total_returned = ReturnItem.objects.filter(
-                            order_item=order_item,
+                order_items = list(order.items.select_related('product_variant'))
+                if not order_items:
+                    return JsonResponse({'error': 'No order items found for this order'}, status=404)
+
+                selected_qty_by_item = {}
+                order_item_by_id = {oi.id: oi for oi in order_items}
+
+                for return_item in return_items:
+                    order_item = return_item.order_item
+                    if not order_item:
+                        return JsonResponse({'error': 'Order item not found for return entry'}, status=404)
+
+                    if order_item.order_id != order.id:
+                        return JsonResponse({'error': 'Return item does not belong to the linked order'}, status=400)
+
+                    if return_item.quantity <= 0 or return_item.quantity > order_item.quantity:
+                        return JsonResponse({'error': 'Invalid return quantity for one or more items'}, status=400)
+
+                    variant = order_item.product_variant
+                    if not variant:
+                        return JsonResponse({'error': 'Product variant not found for return item'}, status=404)
+
+                    original_stock = variant.stock
+                    variant.stock += return_item.quantity
+                    variant.save(update_fields=['stock'])
+                    logger.info(
+                        f"Stock increased: Variant {variant.sku} | "
+                        f"+{return_item.quantity} (Return #{returns.id}) | "
+                        f"Old: {original_stock} -> New: {variant.stock}"
+                    )
+
+                    selected_qty_by_item[order_item.id] = selected_qty_by_item.get(order_item.id, 0) + return_item.quantity
+
+                is_full_order_return = (
+                    len(selected_qty_by_item) == len(order_items) and
+                    all(selected_qty_by_item.get(oi.id, 0) == oi.quantity for oi in order_items)
+                )
+
+                if is_full_order_return:
+                    refund_amount = Decimal(str(order.total_amount or 0)).quantize(Decimal('0.01'))
+                    for order_item in order_items:
+                        if order_item.status != 'returned':
+                            order_item.status = 'returned'
+                            order_item.refunded_amount = Decimal(str(order_item.final_line_price))
+                            order_item.refunded_at = timezone.now()
+                            order_item.save(update_fields=['status', 'refunded_amount', 'refunded_at'])
+
+                    if order.status != 'returned':
+                        order.status = 'returned'
+                        order.save(update_fields=['status'])
+                else:
+                    refund_amount = Decimal('0.00')
+                    existing_returned_qty = {
+                        row['order_item']: (row['total'] or 0)
+                        for row in ReturnItem.objects.filter(
+                            order_item_id__in=[item.order_item_id for item in return_items],
                             return_request__status='accepted'
-                        ).aggregate(total=Sum('quantity'))['total'] or 0
+                        ).values('order_item').annotate(total=Sum('quantity'))
+                    }
 
-                        if total_returned >= order_item.quantity and order_item.status != 'returned':
+                    for return_item in return_items:
+                        order_item = order_item_by_id.get(return_item.order_item_id)
+                        line_refund = calculate_item_refund_amount(order_item, order)
+                        refund_amount += line_refund
+
+                        total_returned = existing_returned_qty.get(order_item.id, 0)
+
+                        if (total_returned + return_item.quantity) >= order_item.quantity:
                             order_item.status = 'returned'
                             order_item.save(update_fields=['status'])
-                            fully_returned_items.append(order_item)
-                            logger.info(
-                                f"OrderItem #{order_item.id} marked as 'returned' | "
-                                f"Total returned: {total_returned}/{order_item.quantity}"
-                            )
 
-                    if fully_returned_items:
-                        total_order_items = order.items.count()
-                        returned_order_items = order.items.filter(status='returned').count()
+                        order_item.refunded_amount = (Decimal(str(order_item.refunded_amount or 0)) + line_refund)
+                        order_item.refunded_at = timezone.now()
+                        order_item.save(update_fields=['refunded_amount', 'refunded_at'])
 
-                        if total_order_items == returned_order_items and order.status != 'returned':
-                            old_order_status = order.status
-                            order.status = 'returned'
-                            order.save(update_fields=['status'])
-                            logger.info(
-                                f"Order #{order.id} status updated: {old_order_status} → 'returned' | "
-                                f"All {total_order_items} items returned"
-                            )
+                    refund_amount = refund_amount.quantize(Decimal('0.01'))
+                    if order.items.exclude(status='returned').count() == 0 and order.status != 'returned':
+                        order.status = 'returned'
+                        order.save(update_fields=['status'])
+
+                if refund_amount <= 0:
+                    return JsonResponse({'error': 'Calculated refund amount is invalid'}, status=400)
+
+                wallet, _ = Wallet.objects.select_for_update().get_or_create(
+                    user=user,
+                    defaults={'balance': Decimal('0.00')}
+                )
+                wallet.balance += refund_amount
+                wallet.save(update_fields=['balance'])
+
+                WalletTransaction.objects.create(
+                    wallet=wallet,
+                    transaction_type='credit',
+                    amount=refund_amount,
+                    source_type='order_refund',
+                    order=order,
+                    description=f"Refund for approved return #{returns.id} (Order {order.order_id})"
+                )
+
+                returns.status = 'accepted'
+                returns.processed_at = timezone.now()
+                returns.refund_amount = refund_amount
+                returns.refunded_at = timezone.now()
+                returns.save(update_fields=['status', 'processed_at', 'refund_amount', 'refunded_at'])
 
             return JsonResponse({
                 'success': True,
-                'new_status': new_status,
+                'new_status': 'accepted',
                 'processed_at': returns.processed_at.isoformat() if returns.processed_at else None,
-                'refund_amount': str(refund_amount) if new_status == 'accepted' else None,
-                'message': f'Return status updated to "{new_status}"',
-                'is_final': new_status in ['accepted', 'rejected']
+                'refund_amount': str(refund_amount),
+                'message': 'Return status updated to "accepted"',
+                'is_final': True
             })
 
         except DatabaseError as e:
