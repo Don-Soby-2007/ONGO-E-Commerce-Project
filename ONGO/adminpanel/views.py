@@ -1288,17 +1288,28 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         try:
             with transaction.atomic():
-                returns = get_object_or_404(
-                    Return.objects.select_for_update(),
-                    id=return_id
-                )
-                current_status = returns.status
-                order = returns.order.first()
+                returns = Return.objects.select_for_update().select_related(
+                    'order',
+                    'user'
+                ).prefetch_related(
+                    'return_items__order_item__product_variant'
+                ).filter(id=return_id).first()
 
-                if current_status in ['accepted', 'rejected']:
+                if not returns:
+                    return JsonResponse({'error': 'Return request not found'}, status=404)
+
+                current_status = returns.status
+                order = returns.order
+                user = returns.user
+
+                if current_status == 'accepted':
                     return JsonResponse({
-                        'error': 'Status cannot be changed',
-                        'details': f'This return has already been {current_status}.'
+                        'error': 'Return already approved. Duplicate refund prevented.'
+                    }, status=409)
+
+                if current_status == 'rejected':
+                    return JsonResponse({
+                        'error': 'Status cannot be changed after rejection.'
                     }, status=403)
 
                 if current_status == new_status:
@@ -1307,6 +1318,12 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
                         'message': 'Status unchanged',
                         'current_status': current_status
                     }, status=200)
+
+                if not order:
+                    return JsonResponse({'error': 'Associated order not found'}, status=404)
+
+                if not user:
+                    return JsonResponse({'error': 'Associated user not found'}, status=404)
 
                 if new_status in ['accepted', 'rejected']:
                     returns.processed_at = timezone.now()
@@ -1317,9 +1334,42 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
                     admin_notes = request.POST.get('admin_notes', '').strip()
                     returns.admin_notes = admin_notes if admin_notes else 'Rejected by admin'
 
+                refund_amount = Decimal('0.00')
                 if current_status == 'pending' and new_status == 'accepted':
+                    return_items = list(returns.return_items.select_related('order_item__product_variant'))
+                    if not return_items:
+                        return JsonResponse({'error': 'No return items found for this request'}, status=400)
+
+                    # Detect "full order return in this request": each order item is returned with full quantity.
+                    order_items = list(order.items.all())
+                    request_qty_by_order_item = {}
+                    for item in return_items:
+                        request_qty_by_order_item[item.order_item_id] = (
+                            request_qty_by_order_item.get(item.order_item_id, 0) + item.quantity
+                        )
+
+                    is_full_order_return = bool(order_items) and (
+                        len(request_qty_by_order_item) == len(order_items)
+                    ) and all(
+                        request_qty_by_order_item.get(order_item.id, 0) == order_item.quantity
+                        for order_item in order_items
+                    )
+
                     for item in returns.return_items.select_related('order_item__product_variant'):
+                        order_item = item.order_item
+                        if not order_item:
+                            return JsonResponse({'error': 'Order item not found for return entry'}, status=404)
+
+                        if order_item.order_id != order.id:
+                            return JsonResponse({'error': 'Return item does not belong to the linked order'}, status=400)
+
+                        if item.quantity <= 0 or item.quantity > order_item.quantity:
+                            return JsonResponse({'error': 'Invalid return quantity for one or more items'}, status=400)
+
                         variant = item.order_item.product_variant
+                        if not variant:
+                            return JsonResponse({'error': 'Product variant not found for return item'}, status=404)
+
                         original_stock = variant.stock
                         variant.stock += item.quantity
                         variant.save(update_fields=['stock'])
@@ -1329,11 +1379,48 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
                             f"Old: {original_stock} → New: {variant.stock}"
                         )
 
+                        # Partial-item return refund from final_line_price (already discount-aware).
+                        per_unit_refund = Decimal('0.00')
+                        if order_item.quantity > 0:
+                            per_unit_refund = (order_item.final_line_price / Decimal(order_item.quantity))
+                        refund_amount += (per_unit_refund * Decimal(item.quantity))
+
+                    # Full-order return refund uses total amount paid for the order.
+                    if is_full_order_return:
+                        refund_amount = order.total_amount
+
+                    refund_amount = refund_amount.quantize(Decimal('0.01'))
+                    if refund_amount <= 0:
+                        return JsonResponse({'error': 'Calculated refund amount is invalid'}, status=400)
+
+                    wallet, _ = Wallet.objects.select_for_update().get_or_create(
+                        user=user,
+                        defaults={'balance': Decimal('0.00')}
+                    )
+                    wallet.balance += refund_amount
+                    wallet.save(update_fields=['balance'])
+
+                    WalletTransaction.objects.create(
+                        wallet=wallet,
+                        transaction_type='credit',
+                        amount=refund_amount,
+                        source_type='order_refund',
+                        order=order,
+                        description=f"Refund for approved return #{returns.id} (Order {order.order_id})"
+                    )
+
+                    returns.refund_amount = refund_amount
+                    returns.refunded_at = timezone.now()
+
                 returns.status = new_status
-                returns.save(update_fields=['status', 'processed_at', 'admin_notes'])
+                update_fields = ['status', 'processed_at']
+                if new_status == 'rejected':
+                    update_fields.append('admin_notes')
+                if new_status == 'accepted':
+                    update_fields.extend(['refund_amount', 'refunded_at'])
+                returns.save(update_fields=update_fields)
 
                 if new_status == 'accepted':
-                    order = returns.order
                     fully_returned_items = []
 
                     for return_item in returns.return_items.select_related('order_item'):
@@ -1370,10 +1457,16 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
                 'success': True,
                 'new_status': new_status,
                 'processed_at': returns.processed_at.isoformat() if returns.processed_at else None,
+                'refund_amount': str(refund_amount) if new_status == 'accepted' else None,
                 'message': f'Return status updated to "{new_status}"',
                 'is_final': new_status in ['accepted', 'rejected']
             })
 
+        except DatabaseError as e:
+            logger.error(f"Database error while processing return #{return_id}: {str(e)}", exc_info=True)
+            return JsonResponse({
+                'error': 'A database error occurred during processing.'
+            }, status=503)
         except Exception as e:
             logger.error(f"Error processing return #{return_id}: {str(e)}", exc_info=True)
             return JsonResponse({
