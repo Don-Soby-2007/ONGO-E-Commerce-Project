@@ -821,7 +821,9 @@ class OrderCancelView(LoginRequiredMixin, View):
                     }, status=400)
 
                 reason = request.POST.get('cancel_reason', 'Cancelled by user')
-                cancellable_items = order.items.select_related('product_variant').filter(status__in=['pending', 'confirmed'])
+                cancellable_items = order.items.select_related('product_variant').filter(
+                    status__in=['pending', 'confirmed']
+                    )
 
                 for item in cancellable_items:
                     item.status = 'cancelled'
@@ -835,9 +837,8 @@ class OrderCancelView(LoginRequiredMixin, View):
 
                 refunded_to_wallet = False
                 can_refund = (
-                    order.payment_method == 'wallet' or
-                    (order.payment_method == 'online' and order.payment_status == 'paid')
-                )
+                    order.payment_method in ['wallet', 'online'] and order.payment_status == 'paid'
+                    )
                 refund_amount = max(order.total_amount or Decimal('0.00'), Decimal('0.00'))
 
                 if can_refund and refund_amount > 0:
