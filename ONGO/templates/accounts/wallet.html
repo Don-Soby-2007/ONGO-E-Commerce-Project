@@ -101,7 +101,7 @@
                         </td>
                         <td class="px-6 py-4">
                             {% if txn.order %}
-                            <a href="{% url 'order_detail' txn.order.id %}" class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+                            <a href="{% url 'order_detail' txn.order.order_id %}" class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
                                 #{{ txn.order.order_id|default:txn.order.id }}
                             </a>
                             {% else %}

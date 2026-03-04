@@ -156,9 +156,9 @@ class PaymentMethode(LoginRequiredMixin, View):
                                                     'cart_summary': cart_summary})
 
     def post(self, request):
-        payment_methode = request.POST.get('payment_method').strip()
+        payment_methode = request.POST.get('payment_method', '').strip()
 
-        payment_methodes = ['cod', 'online', 'card', 'wallet']
+        payment_methodes = ['cod', 'online', 'wallet']
 
         if payment_methode not in payment_methodes:
             messages.error(request, 'Select correct Payment methode')
