@@ -1377,7 +1377,8 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
                         f"Old: {original_stock} -> New: {variant.stock}"
                     )
 
-                    selected_qty_by_item[order_item.id] = selected_qty_by_item.get(order_item.id, 0) + return_item.quantity
+                    selected_qty_by_item[order_item.id] = (selected_qty_by_item.get(order_item.id, 0) +
+                                                           return_item.quantity)
 
                 is_full_order_return = (
                     len(selected_qty_by_item) == len(order_items) and
