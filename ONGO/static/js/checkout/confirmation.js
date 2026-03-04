@@ -26,10 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (data.initilaize_razorpay) {
                     console.log("called razorpay");
-
-                    loadRazorpayScript().then(() => {
-                        openRazorpayCheckout(data);
-                    });
+                    openRazorpayCheckout(data);
                 }
                 else if (data.success) {
                     window.location.href = data.redirect_url;
@@ -44,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openRazorpayCheckout(data) {
         console.log(typeof(data.amount_paisa));
+        console.log(data);
         
         let options = {
             'key': data.key_id,
@@ -108,18 +106,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function loadRazorpayScript() {
-        return new Promise((resolve) => {
-            if (window.Razorpay) {
-                resolve();
-                return;
-            }
-            const script = document.createElement('script');
-            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-            script.onload = resolve;
-            document.body.appendChild(script);
-        });
-    }
+    // function loadRazorpayScript() {
+    //     return new Promise((resolve) => {
+    //         if (window.Razorpay) {
+    //             resolve();
+    //             return;
+    //         }
+    //         const script = document.createElement('script');
+    //         script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    //         script.onload = resolve;
+    //         document.body.appendChild(script);
+    //     });
+    // }
 
     function resetButton() {
         placeOrderBtn.innerHTML = 'Place Order';
@@ -143,4 +141,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 });
-

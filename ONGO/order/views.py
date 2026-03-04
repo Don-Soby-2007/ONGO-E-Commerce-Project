@@ -37,6 +37,7 @@ from .utils import validate_and_apply_coupon, create_razorpay_order, verify_razo
 
 import logging
 import json
+from uuid import UUID
 
 
 # Create your views here.
@@ -255,22 +256,28 @@ class PlaceOrder(LoginRequiredMixin, View):
         coupon = None
 
         if coupon_code:
-
-            coupon = Coupon.objects.get(coupon_code__iexact=coupon_code, coupon_code__isnull=False, active=True)
+            try:
+                coupon = Coupon.objects.get(
+                    coupon_code__iexact=coupon_code,
+                    coupon_code__isnull=False,
+                    active=True
+                )
+            except Coupon.DoesNotExist:
+                return JsonResponse({
+                    'error': 'Applied coupon is no longer valid. Please re-apply and try again.'
+                }, status=400)
 
         if payment_methode == 'online':
             try:
+                rzp_order = create_razorpay_order(total_payable)
+                print('DEBUG: rzp_order: ', rzp_order)
 
                 order = self._create_order_and_deduct_stock(
                     user, address, cart_list, locked_variants,
                     items_subtotal, total_payable, discount_amount,
-                    payment_methode, coupon, coupon_discount_amount, shipping
+                    payment_methode, coupon, coupon_discount_amount, shipping,
+                    razorpay_order_id=rzp_order['id']
                 )
-
-                rzp_order = create_razorpay_order(total_payable)
-
-                order.razorpay_order_id = rzp_order['id']
-                order.save(update_fields=['razorpay_order_id'])
 
                 amount_in_paisa = int((total_payable * 100).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
                 print(amount_in_paisa, '----', type(amount_in_paisa))
@@ -290,6 +297,7 @@ class PlaceOrder(LoginRequiredMixin, View):
                 })
 
             except Exception as e:
+                transaction.set_rollback(True)
                 logger.exception(f"Razorpay order creation failed: {e}")
                 return JsonResponse({
                     'error': 'Payment gateway unavailable. Please try COD.'
@@ -314,7 +322,7 @@ class PlaceOrder(LoginRequiredMixin, View):
 
     def _create_order_and_deduct_stock(self, user, address, cart_list, locked_variants,
                                        sub_total, total_amount, discount, payment_method,
-                                       coupon, coupon_discount_amount, shipping):
+                                       coupon, coupon_discount_amount, shipping, razorpay_order_id=None):
 
         order = Order.objects.create(
             user=user,
@@ -322,14 +330,15 @@ class PlaceOrder(LoginRequiredMixin, View):
             sub_total=sub_total,
             promotional_discount=discount,
             total_amount=total_amount,
-            status='confirmed' if payment_method == 'cod' else 'pending',
+            status='confirmed' if payment_method != 'online' else 'pending',
             payment_method=payment_method,
             coupon=coupon,
             coupon_discount=coupon_discount_amount,
-            shipping=shipping
+            shipping=shipping,
+            razorpay_order_id=razorpay_order_id
         )
 
-        if coupon:
+        if coupon and payment_method != 'online':
             CouponUsage.objects.create(
                 coupon=coupon,
                 user=user,
@@ -356,49 +365,14 @@ class PlaceOrder(LoginRequiredMixin, View):
                     quantity=item['quantity'],
                     line_discount=Decimal(str(item['total_discount'])),
                     final_line_price=Decimal(str(item['line_total'])),
-                    status='confirmed'
+                    status='confirmed' if payment_method != 'online' else 'pending'
                 )
             )
 
         OrderItem.objects.bulk_create(order_items)
 
-        Cart.objects.filter(user=user).delete()
-
-        return order
-
-    def _create_pending_order(
-            self, user, address, cart_list, locked_variants, sub_total,
-            total_amount, discount, payment_method, coupon_code, coupon_discount_amount, shipping):
-
-        order = Order.objects.create(
-            user=user,
-            address=address,
-            sub_total=sub_total,
-            discount_amount=discount,
-            total_amount=total_amount,
-            status='pending',
-            payment_status='pending',
-            payment_method=payment_method,
-            coupon_code=coupon_code,
-            coupon_discount_amount=coupon_discount_amount,
-            shipping=shipping,
-        )
-
-        items = [
-            OrderItem(
-                order=order,
-                product_variant=locked_variants[item['variant_id']],
-                product_name=item['product_name'],
-                variant_options={'size': item['size'], 'color': item['color']},
-                image_url=item['image_url'],
-                price_at_time_of_order=Decimal(str(item['offer_price'])),
-                quantity=item['quantity'],
-                total_price=Decimal(str(item['line_total'])),
-                status='pending'
-            )
-            for item in cart_list
-        ]
-        OrderItem.objects.bulk_create(items)
+        if payment_method != 'online':
+            Cart.objects.filter(user=user).delete()
 
         return order
 
@@ -421,13 +395,13 @@ class VerifyRazorpayPayment(LoginRequiredMixin, View):
             return JsonResponse({'error': 'Missing payment parameters'}, status=400)
 
         try:
-            internal_order_id = int(internal_order_id)
-        except (ValueError, TypeError):
+            internal_order_id = UUID(str(internal_order_id))
+        except (ValueError, TypeError, AttributeError):
             return JsonResponse({'error': 'Invalid order ID'}, status=400)
 
         try:
             order = Order.objects.select_for_update().get(
-                id=internal_order_id,
+                order_id=internal_order_id,
                 user=request.user,
                 status='pending',
                 payment_status='pending',
@@ -452,8 +426,17 @@ class VerifyRazorpayPayment(LoginRequiredMixin, View):
 
         # stock validation & deduction
         try:
-            for item in order.items.select_related('product_variant'):
-                variant = item.product_variant
+            order_items = list(order.items.select_related('product_variant'))
+            variant_ids = [item.product_variant_id for item in order_items]
+            locked_variants = {
+                variant.id: variant
+                for variant in ProductVariant.objects.select_for_update().filter(id__in=variant_ids)
+            }
+
+            for item in order_items:
+                variant = locked_variants.get(item.product_variant_id)
+                if not variant:
+                    raise Exception(f"Product variant missing for {item.product_name}")
                 if variant.stock < item.quantity:
                     raise Exception(f"Insufficient stock for {item.product_name}")
                 variant.stock -= item.quantity
@@ -476,12 +459,12 @@ class VerifyRazorpayPayment(LoginRequiredMixin, View):
         ])
 
         # Apply coupon usage successful payment
-        if order.coupon_code:
-            try:
-                coupon = Coupon.objects.get(coupon_code=order.coupon_code)
-                CouponUsage.objects.create(coupon=coupon, user=request.user, order=order)
-            except Coupon.DoesNotExist:
-                logger.warning(f"Coupon {order.coupon_code} missing during verification")
+        if order.coupon_id:
+            CouponUsage.objects.get_or_create(
+                coupon=order.coupon,
+                user=request.user,
+                order=order
+            )
 
         # Cleanup
         Cart.objects.filter(user=request.user).delete()
