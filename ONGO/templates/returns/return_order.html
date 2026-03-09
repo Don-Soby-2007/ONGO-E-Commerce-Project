@@ -44,7 +44,6 @@
                             <th>Select</th>
                             <th>Product</th>
                             <th>Quantity</th>
-                            <th>Return Qty</th>
                             <th>Item Reason (Optional)</th>
                         </tr>
                     </thead>
@@ -71,29 +70,12 @@
                                         <div class="variant-text">
                                             Size: {{ item.variant_options.size }} | Color: {{ item.variant_options.color}}
                                         </div>
-                                        {% comment %}
-                                        <!-- If backend provides already returned quantity, display it here -->
-                                        {% if item.returned_quantity %}
-                                        <div class="already-returned">
-                                            Already returned: {{ item.returned_quantity }} of {{ item.quantity }}
-                                        </div>
-                                        {% endif %}
-                                        {% endcomment %}
                                     </div>
                                 </div>
                             </td>
 
                             <!-- Ordered Quantity -->
                             <td>{{ item.quantity }}</td>
-
-                            <!-- Return Quantity Input (Hidden by default) -->
-                            <td>
-                                <div id="qty-wrapper-{{ item.id }}" class="qty-input-wrapper">
-                                    <input type="number" name="item_{{ item.id }}_quantity"
-                                        id="item_{{ item.id }}_quantity" class="qty-input form-control" min="1"
-                                        max="{{ item.quantity }}" placeholder="Qty">
-                                </div>
-                            </td>
 
                             <!-- Item-specific Reason (Hidden by default) -->
                             <td>

@@ -8,31 +8,16 @@ document.addEventListener('DOMContentLoaded', () => {
     itemCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function () {
             const itemId = this.dataset.itemId;
-            const qtyWrapper = document.getElementById(`qty-wrapper-${itemId}`);
             const reasonWrapper = document.getElementById(`reason-wrapper-${itemId}`);
-            const qtyInput = document.getElementById(`item_${itemId}_quantity`);
 
             if (this.checked) {
-                qtyWrapper.classList.add('active');
                 reasonWrapper.classList.add('active');
-                // Set default quantity to 1
-                if (!qtyInput.value) {
-                    qtyInput.value = 1;
-                }
             } else {
-                qtyWrapper.classList.remove('active');
                 reasonWrapper.classList.remove('active');
-                qtyInput.value = '';
             }
 
             validateForm();
         });
-    });
-
-    // Validate quantity inputs on change
-    const qtyInputs = document.querySelectorAll('.qty-input');
-    qtyInputs.forEach(input => {
-        input.addEventListener('input', validateForm);
     });
 
     // Validate return reason on input
@@ -67,23 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Validate selected items
         if (!anyItemSelected) {
             isValid = false;
-        } else {
-            // Validate quantities for selected items
-            itemCheckboxes.forEach(checkbox => {
-                if (checkbox.checked) {
-                    const itemId = checkbox.dataset.itemId;
-                    const qtyInput = document.getElementById(`item_${itemId}_quantity`);
-                    const maxQty = parseInt(qtyInput.max);
-                    const currentQty = parseInt(qtyInput.value);
-
-                    if (!currentQty || currentQty < 1 || currentQty > maxQty) {
-                        isValid = false;
-                        qtyInput.classList.add('error');
-                    } else {
-                        qtyInput.classList.remove('error');
-                    }
-                }
-            });
         }
 
         // Enable/disable submit button
