@@ -102,4 +102,4 @@ class ReturnItem(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.quantity}x {self.order_item.product.name} from Return #{self.return_request.id}"
+        return f"{self.quantity}x {self.order_item.product_name} from Return #{self.return_request.id}"

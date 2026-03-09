@@ -58,7 +58,7 @@
                             </div>
                         </div>
                         <div class="text-sm font-medium text-gray-900">
-                            ₹{{ item.final_line_price }}
+                            ₹{{ item.price_at_purchase }}
                         </div>
                     </div>
                     {% endfor %}
@@ -174,7 +174,7 @@
                             <span>Subtotal</span>
                             <span>₹{{ order.sub_total }}</span>
                         </div>
-                        {% if order.discount_amount > 0 %}
+                        {% if order.promotional_discount > 0 %}
                         <div class="flex justify-between text-green-600">
                             <span>Discount</span>
                             <span>-₹{{ order.promotional_discount }}</span>

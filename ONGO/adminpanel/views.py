@@ -1328,9 +1328,17 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
 
                 refund_amount = Decimal('0.00')
 
+                return_items = list(returns.return_items.select_related('order_item__product_variant'))
+                print(return_items)
+                if not return_items:
+                    return JsonResponse({'error': 'No return items found for this request'}, status=400)
+
                 if new_status == 'rejected':
                     returns.status = 'rejected'
                     returns.save(update_fields=['status'])
+                    for return_item in return_items:
+                        return_item.order_item.status = 'delivered'
+                        return_item.order_item.save(update_fields=['status'])
                     return JsonResponse({
                         'success': True,
                         'new_status': 'rejected',
@@ -1341,10 +1349,6 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
 
                 if new_status != 'accepted':
                     return JsonResponse({'error': 'Invalid status change'}, status=400)
-
-                return_items = list(returns.return_items.select_related('order_item__product_variant'))
-                if not return_items:
-                    return JsonResponse({'error': 'No return items found for this request'}, status=400)
 
                 order_items = list(order.items.select_related('product_variant'))
                 if not order_items:
@@ -1358,7 +1362,7 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
                     if not order_item:
                         return JsonResponse({'error': 'Order item not found for return entry'}, status=404)
 
-                    if order_item.order_id != order.id:
+                    if order_item.order != order:
                         return JsonResponse({'error': 'Return item does not belong to the linked order'}, status=400)
 
                     if return_item.quantity <= 0 or return_item.quantity > order_item.quantity:
@@ -1420,7 +1424,8 @@ class ReturnStatusToggleView(LoginRequiredMixin, UserPassesTestMixin, View):
 
                         order_item.refunded_amount = (Decimal(str(order_item.refunded_amount or 0)) + line_refund)
                         order_item.refunded_at = timezone.now()
-                        order_item.save(update_fields=['refunded_amount', 'refunded_at'])
+                        order_item.status = 'returned'
+                        order_item.save(update_fields=['refunded_amount', 'refunded_at', 'status'])
 
                     refund_amount = refund_amount.quantize(Decimal('0.01'))
                     if order.items.exclude(status='returned').count() == 0 and order.status != 'returned':

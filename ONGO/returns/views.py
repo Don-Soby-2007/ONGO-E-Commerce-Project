@@ -57,7 +57,7 @@ class ReturnOrderView(LoginRequiredMixin, View):
             return redirect('order_detail', order_id=order_id)
 
         selected_items = []
-        for order_item in order.items.filter('delivered'):
+        for order_item in order.items.filter(status='delivered'):
             item_key = f'item_{order_item.id}'
             if request.POST.get(f'{item_key}_select'):
                 try:
@@ -89,15 +89,17 @@ class ReturnOrderView(LoginRequiredMixin, View):
                 )
 
                 for item_data in selected_items:
+                    order_item = item_data['order_item']
+
                     ReturnItem.objects.create(
                         return_request=return_request,
-                        order_item=item_data['order_item'],
+                        order_item=order_item,
                         quantity=item_data['quantity'],
                         item_reason=item_data['item_reason'] or return_reason
                     )
 
-                order.status = 'return requested'
-                order.save(update_fields=['status'])
+                    order_item.status = 'return requested'
+                    order_item.save(update_fields=['status'])
 
             messages.success(
                 request,
