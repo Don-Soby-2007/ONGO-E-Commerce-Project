@@ -61,11 +61,14 @@ class CategoryOffer(TimedModel):
     )
     discount_type = models.CharField(
         max_length=20,
-        choices=[('percent', 'Percentage'), ('fixed_per_item', 'Fixed per item')],
+        choices=[('percent', 'Percentage')],
         default='percent'
     )
     value = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
-    min_items = models.PositiveSmallIntegerField(default=1, help_text="Minimum quantity in cart to qualify")
+    max_discount_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True,
+        help_text="Cap for percentage discounts"
+    )
 
     def __str__(self):
         return f"{self.name} → {self.category.name}"
