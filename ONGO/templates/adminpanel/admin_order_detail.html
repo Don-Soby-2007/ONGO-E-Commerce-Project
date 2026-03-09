@@ -55,7 +55,7 @@
                         <label>Total Amount</label>
                         <p class="text-lg font-bold text-gray-900">₹{{ order.total_amount }}</p>
                         {% if order.discount_amount > 0 %}
-                        <p class="text-xs text-green-600 mt-0.5">- ₹{{ order.discount_amount }} discount</p>
+                        <p class="text-xs text-green-600 mt-0.5">- ₹{{ order.promotional_discount }} discount</p>
                         {% endif %}
                     </div>
                 </div>
@@ -112,10 +112,10 @@
                             <span><strong class="capitalize">{{ key }}:</strong> {{ value }}</span>
                             {% endfor %}
                             <span><strong>Qty:</strong> {{ item.quantity }}</span>
-                            <span><strong>Price:</strong> ₹{{ item.price_at_time_of_order }}</span>
+                            <span><strong>Price:</strong> ₹{{ item.price_at_purchase }}</span>
                         </div>
                         <div class="mt-1 text-sm font-medium text-gray-900">
-                            Total: ₹{{ item.total_price }}
+                            Total: ₹{{ item.final_line_price }}
                         </div>
                     </div>
 
