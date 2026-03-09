@@ -1,6 +1,7 @@
 from decimal import Decimal, ROUND_HALF_UP
 from cart.models import Cart
 from offers.models import GlobalOffer
+from products.utils import calculate_discount
 
 
 def _to_decimal(value, default='0'):
@@ -58,15 +59,10 @@ def get_cart_items_for_user(request, user):
             has_offer = True
             offer_scope = 'product'
 
-            if offer_type == 'percent':
-                discounted = original_price * (offer_value / Decimal('100'))
-                print('Debug discounted:', discounted)
-                if product_offer.max_discount_amount:
-                    max_disc = _to_decimal(product_offer.max_discount_amount)
-                    discounted = min(discounted, max_disc)
-                offer_price = max(Decimal('0'), (original_price - discounted))
-            elif offer_type == 'fixed':
-                offer_price = max(Decimal('0'), original_price - offer_value)
+            discounted = calculate_discount(original_price, product_offer)
+            print('Debug discounted:', discounted)
+
+            offer_price = max(Decimal('0'), discounted)
 
             print('DEBUG offer_price: ', offer_price)
 
@@ -83,11 +79,7 @@ def get_cart_items_for_user(request, user):
         if category_offer and category_offer.is_active_now():
             cat_value = _to_decimal(category_offer.value)
             cat_type = category_offer.discount_type
-
-            if cat_type == 'percent':
-                cat_price = original_price * (Decimal('1') - cat_value / Decimal('100'))
-            else:
-                cat_price = original_price
+            cat_price = calculate_discount(original_price, category_offer)
 
             if cat_price < offer_price:
                 offer_price = cat_price
