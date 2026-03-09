@@ -1,7 +1,6 @@
 from decimal import Decimal, ROUND_HALF_UP
 from cart.models import Cart
 from offers.models import GlobalOffer
-from collections import defaultdict
 
 
 def _to_decimal(value, default='0'):
@@ -28,14 +27,8 @@ def get_cart_items_for_user(request, user):
     )
 
     cart_items = []
-    category_quantities = defaultdict(int)
     items_subtotal_exact = Decimal('0')
     total_payable_exact = Decimal('0')
-
-    for cart_item in cart:
-        if cart_item.product_variant.product.category:
-            cat_id = cart_item.product_variant.product.category.id
-            category_quantities[cat_id] += cart_item.quantity
 
     for cart_item in cart:
         variant = cart_item.product_variant
@@ -47,6 +40,7 @@ def get_cart_items_for_user(request, user):
         offer_value = None
         offer_scope = None
         has_offer = False
+        print('Debug: offer_price: ', offer_price)
 
         # PRODUCT OFFER
         product_offer = None
@@ -78,7 +72,6 @@ def get_cart_items_for_user(request, user):
 
         # CATEGORY OFFER
         category_offer = None
-        category_eligible = False
         if product.category and hasattr(product.category, 'offer') and product.category.offer:
             category_offer = (
                 product.category.offer
@@ -88,18 +81,11 @@ def get_cart_items_for_user(request, user):
             )
 
         if category_offer and category_offer.is_active_now():
-            required_min = category_offer.min_items or 0
-            actual_in_cart = category_quantities.get(product.category.id, 0)
-            category_eligible = actual_in_cart >= required_min
-
-        if category_eligible and category_offer:
             cat_value = _to_decimal(category_offer.value)
             cat_type = category_offer.discount_type
 
             if cat_type == 'percent':
                 cat_price = original_price * (Decimal('1') - cat_value / Decimal('100'))
-            elif cat_type == 'fixed_per_item':
-                cat_price = max(Decimal('0'), original_price - cat_value)
             else:
                 cat_price = original_price
 
@@ -109,6 +95,8 @@ def get_cart_items_for_user(request, user):
                 offer_value = cat_value
                 has_offer = True
                 offer_scope = 'category'
+
+            print('Debug: offer_price: ', offer_price, offer_type, offer_value, offer_scope, cat_price)
 
         # IMAGE HANDLING
         image_obj = variant.images.filter(is_primary=True).first() or variant.images.first()

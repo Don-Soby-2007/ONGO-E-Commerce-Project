@@ -133,7 +133,7 @@ class ProductListView(ListView):
             ),
             Prefetch(
                 'category__offer',
-                queryset=CategoryOffer.objects.filter(active_offer_filter, min_items=1).order_by('-priority'),
+                queryset=CategoryOffer.objects.filter(active_offer_filter).order_by('-priority'),
                 to_attr='prefetched_category_offers'
             )
         )
@@ -191,7 +191,7 @@ class ProductListView(ListView):
                     }
 
             cat_offers = getattr(product.category, 'prefetched_category_offers', [])
-            if cat_offers and cat_offers[0].min_items == 1:
+            if cat_offers:
                 offer = cat_offers[0]
                 discounted = calculate_discount(base_price, offer)
                 if discounted < best_discount['price']:
@@ -260,7 +260,7 @@ class ProductDetailView(DetailView):
             )
         category_offer = (
                 category.offer
-                .filter(active=True, min_items=1)
+                .filter(active=True)
                 .order_by('-priority')
                 .first()
             )
@@ -310,17 +310,18 @@ class ProductDetailView(DetailView):
                     offer_price = max(0, variant_price - offer_value)
 
             if category_offer and category_offer.is_active_now():
+                category_offer_price = None
+                cat_offer_type = category_offer.discount_type
+                cat_offer_value = float(category_offer.value)
 
-                if offer_type == 'percent':
-                    category_offer_price = variant_price * (1 - offer_value / 100)
-                elif offer_type == 'fixed':
-                    category_offer_price = max(0, variant_price - offer_value)
+                if cat_offer_type == 'percent':
+                    category_offer_price = variant_price * (1 - cat_offer_value / 100)
 
                 if category_offer_price < offer_price:
                     offer_price = category_offer_price
 
                     offer_type = category_offer.discount_type
-                    offer_value = float(category_offer.value)
+                    offer_value = float(cat_offer_value)
                     has_offer = True
 
             in_wishlist = variant.id in user_wishlist_variant_ids

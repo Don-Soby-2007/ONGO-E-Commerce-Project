@@ -1662,7 +1662,7 @@ class CategoryOfferCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVie
     model = CategoryOffer
     fields = [
         'name', 'start_date', 'end_date', 'priority',
-        'category', 'discount_type', 'value', 'min_items'
+        'category', 'discount_type', 'value', 'max_discount_amount'
     ]
     template_name = 'offers/category_offer_create.html'
     success_url = reverse_lazy('catego_offer_list')
