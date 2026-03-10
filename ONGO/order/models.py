@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 from accounts.models import User, Address
 from django.core.validators import MinValueValidator
-from products.models import ProductVariant
+from products.models import ProductVariant, Product
 
 
 class Order(models.Model):
@@ -152,3 +152,34 @@ class Invoice(models.Model):
                 new_number = 1
             self.invoice_number = f"INV-{timezone.now().year}-{new_number:05d}"
         super().save(*args, **kwargs)
+
+
+class ProductReview(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
+    variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name='reviews_variant')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
+
+    review = models.TextField()
+    star = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ('product', 'user', 'variant')  # One review per variant per user
+
+    def __str__(self):
+        return f"Review by {self.user.username} on {self.product.name}"
+
+class ProductReviewImage(models.Model):
+    review = models.ForeignKey(ProductReview, on_delete=models.CASCADE, related_name='images')
+    image_url = models.URLField()
+    public_id = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+        
+    def __str__(self):
+        return f"Image for Review #{self.review.id}"
