@@ -87,4 +87,9 @@ urlpatterns = [
     # referral
 
     path('referral/', views.ReferralView, name='referral'),
+
+    # Product Reviews
+    path('add-review/<uuid:product_id>/', views.AddReviewView.as_view(), name='add_review'),
+    path('edit-review/<int:review_id>/', views.EditReviewView.as_view(), name='edit_review'),
+    path('delete-review/<int:review_id>/', views.DeleteReviewView.as_view(), name='delete_review'),
 ]

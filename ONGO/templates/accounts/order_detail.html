@@ -3,6 +3,7 @@
 
 {% block extra_css %}
 {{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
 <link rel="stylesheet" href="{% static 'css/accounts/order_detail.css' %}">
 {% endblock %}
 
@@ -72,9 +73,19 @@
                                 onclick="openCancelModal('{% url 'cancel_order_item' order.order_id item.id %}', 'Item')">Cancel
                                 Item</button>
                             {% elif item.status == 'delivered' %}
-                            <button type="button" class="text-yellow-500" title='Review Item' >
-                                <i data-lucide="star" ></i>
-                            </button>
+                                {% if item.review %}
+                                <button type="button" class="text-yellow-500 hover:text-yellow-600 transition-colors" title='Edit Review' onclick="openReviewModal('edit', '{{ item.product_variant.product.id }}', '{{ item.product_variant_id }}', '{{ item.review.id }}', '{{ item.review.star }}', '{{ item.review.review|escapejs }}', [
+                                    {% for img in item.review.images.all %}
+                                        { id: '{{ img.id }}', url: '{{ img.image_url|escapejs }}' }{% if not forloop.last %},{% endif %}
+                                    {% endfor %}
+                                ])">
+                                    <i data-lucide="star" fill="currentColor"></i>
+                                </button>
+                                {% else %}
+                                <button type="button" class="text-yellow-500 hover:text-yellow-600 transition-colors" title='Review Item' onclick="openReviewModal('add', '{{ item.product_variant.product.pro_id }}', '{{ item.product_variant_id }}')">
+                                    <i data-lucide="star"></i>
+                                </button>
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>
@@ -298,9 +309,109 @@
         </form>
     </div>
 </div>
+
+<!-- Review Modal -->
+<div id="reviewModal" class="modal-overlay">
+    <div class="modal-content !max-w-lg">
+        <div class="modal-header">
+            <h3 id="reviewModalTitle" class="modal-title">Write a Review</h3>
+        </div>
+        <form id="reviewForm" onsubmit="submitReview(event)">
+            {% csrf_token %}
+            <div class="modal-body pb-0">
+                <input type="hidden" id="reviewProductId" name="product_id">
+                <input type="hidden" id="reviewVariantId" name="variant_id">
+                <input type="hidden" id="reviewId" name="review_id">
+                <input type="hidden" id="reviewMode" name="mode" value="add">
+
+                <!-- Star Rating -->
+                <div style="margin-bottom: 1rem;">
+                    <label class="info-label" style="display:block; margin-bottom: 0.5rem;">Rating</label>
+                    <div class="flex gap-2" id="starRatingContainer">
+                        <button type="button" class="star-btn text-gray-300 hover:text-yellow-500 transition-colors" data-rating="1" onclick="setRating(1)">
+                            <i data-lucide="star" class="w-8 h-8"></i>
+                        </button>
+                        <button type="button" class="star-btn text-gray-300 hover:text-yellow-500 transition-colors" data-rating="2" onclick="setRating(2)">
+                            <i data-lucide="star" class="w-8 h-8"></i>
+                        </button>
+                        <button type="button" class="star-btn text-gray-300 hover:text-yellow-500 transition-colors" data-rating="3" onclick="setRating(3)">
+                            <i data-lucide="star" class="w-8 h-8"></i>
+                        </button>
+                        <button type="button" class="star-btn text-gray-300 hover:text-yellow-500 transition-colors" data-rating="4" onclick="setRating(4)">
+                            <i data-lucide="star" class="w-8 h-8"></i>
+                        </button>
+                        <button type="button" class="star-btn text-gray-300 hover:text-yellow-500 transition-colors" data-rating="5" onclick="setRating(5)">
+                            <i data-lucide="star" class="w-8 h-8"></i>
+                        </button>
+                    </div>
+                    <input type="hidden" id="reviewStar" name="star" required>
+                    <p id="starError" class="text-sm text-red-500 mt-1 hidden">Please select a rating.</p>
+                </div>
+
+                <!-- Review Text -->
+                <div style="margin-bottom: 1rem;">
+                    <label for="reviewText" class="info-label" style="display:block; margin-bottom: 0.5rem;">Your Review</label>
+                    <textarea id="reviewText" name="review" class="cancel-reason-input" placeholder="What did you like or dislike? (minimum 20 characters)" required></textarea>
+                    <p id="textError" class="text-sm text-red-500 mt-1 hidden">Review must be at least 20 characters long.</p>
+                </div>
+
+                <!-- Image Upload with Cropper -->
+                <div style="margin-bottom: 1rem;">
+                    <label class="info-label" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span>Add Photos (Optional)</span>
+                        <span id="imageCountBadge" class="text-xs text-gray-500">0/5 images</span>
+                    </label>
+                    
+                    <div id="reviewImagesContainer" class="flex flex-wrap gap-3 mb-3">
+                        <!-- Dynamic images will be inserted here by JS -->
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        <div class="flex-1">
+                            <input type="file" id="reviewImage" name="image" accept=".jpg, .jpeg, .png, .svg" class="hidden" onchange="handleImageSelect(event)">
+                            <button type="button" id="addPhotoBtn" onclick="document.getElementById('reviewImage').click()" class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+                                Choose Image
+                            </button>
+                            <p class="mt-1 text-xs text-gray-500">JPG, PNG, SVG up to 5MB. Max 5 allowed.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer" style="display: flex; justify-content: space-between;">
+                <div>
+                    <button type="button" id="deleteReviewBtn" class="modal-btn" style="background-color: #fef2f2; color: #ef4444; display: none;" onclick="deleteReview()">Delete</button>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" class="modal-btn modal-btn-cancel" onclick="closeReviewModal()">Cancel</button>
+                    <button type="submit" id="submitReviewBtn" class="modal-btn modal-btn-confirm">Submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Cropper Modal -->
+<div id="cropperModal" class="modal-overlay" style="z-index: 60;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Crop Image (1:1 Aspect Ratio)</h3>
+        </div>
+        <div class="modal-body">
+            <div class="w-full h-64 bg-gray-100 flex items-center justify-center overflow-hidden">
+                <img id="cropperImage" src="" class="max-w-full max-h-full" alt="To Crop">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="modal-btn modal-btn-cancel" onclick="closeCropperModal()">Cancel</button>
+            <button type="button" class="modal-btn modal-btn-confirm" onclick="cropImage()">Apply Crop</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 {{ block.super }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 <script src="{% static 'js/accounts/order_detail.js' %}"></script>
 {% endblock %}

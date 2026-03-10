@@ -26,8 +26,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from decimal import Decimal
 
 from .models import User, Address, Wishlist, WalletTransaction, Wallet
-from order.models import Order, OrderItem
-from products.models import ProductVariant
+from order.models import Order, OrderItem, ProductReview, ProductReviewImage
+from products.models import ProductVariant, Product
+import cloudinary.uploader
+import uuid
 from cart.models import Cart
 
 from django.shortcuts import get_object_or_404
@@ -799,8 +801,30 @@ class OrderDetailView(LoginRequiredMixin, DetailView):
     slug_url_kwarg = 'order_id'
 
     def get_queryset(self):
-        queryset = Order.objects.filter(user=self.request.user).select_related('address').prefetch_related('items')
+        queryset = Order.objects.filter(
+            user=self.request.user
+            ).select_related('address').prefetch_related('items__product_variant__product')
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        order = self.object
+
+        # Pre-fetch user reviews for variants in this order
+        variant_ids = [item.product_variant_id for item in order.items.all()]
+        user_reviews = ProductReview.objects.filter(
+            user=self.request.user,
+            variant_id__in=variant_ids
+        ).prefetch_related('images')
+
+        # Create a dictionary mapping variant_id to the review object for quick lookup
+        reviews_dict = {review.variant_id: review for review in user_reviews}
+
+        # Annotate items with their corresponding review
+        for item in order.items.all():
+            item.review = reviews_dict.get(item.product_variant_id)
+
+        return context
 
 
 @method_decorator(never_cache, name='dispatch')
@@ -1134,3 +1158,189 @@ def ReferralView(request):
         }
 
         return render(request, 'accounts/referral.html', context)
+
+
+@method_decorator(never_cache, name='dispatch')
+class AddReviewView(LoginRequiredMixin, View):
+    def post(self, request, product_id):
+        try:
+            variant_id = request.POST.get('variant_id')
+            if not variant_id:
+                return JsonResponse({'success': False, 'message': 'Variant ID is required.'}, status=400)
+
+            product = get_object_or_404(Product, pro_id=product_id)
+            variant = get_object_or_404(ProductVariant, id=variant_id, product=product)
+
+            # Check if user actually bought and it's delivered
+            has_delivered_item = OrderItem.objects.filter(
+                order__user=request.user,
+                order__status='delivered',
+                product_variant=variant
+            ).exists()
+
+            if not has_delivered_item:
+                return JsonResponse({
+                    'success': False, 'message': 'You can only review products that have been delivered to you.'
+                    }, status=403)
+
+            # Check if review already exists
+            if ProductReview.objects.filter(user=request.user, product=product, variant=variant).exists():
+                return JsonResponse({
+                    'success': False, 'message': 'You have already reviewed this product variant.'
+                    }, status=400)
+
+            star = request.POST.get('star')
+            review_text = request.POST.get('review', '').strip()
+            images = request.FILES.getlist('images')
+
+            if not star or not star.isdigit() or not (1 <= int(star) <= 5):
+                return JsonResponse({
+                    'success': False, 'message': 'Invalid star rating. Must be 1-5.'
+                    }, status=400)
+
+            if len(review_text) < 20:
+                return JsonResponse({
+                    'success': False, 'message': 'Review text must be at least 20 characters long.'
+                    }, status=400)
+
+            if len(images) > 5:
+                return JsonResponse({
+                    'success': False, 'message': 'You can only upload up to 5 images.'
+                    }, status=400)
+
+            review_obj = ProductReview.objects.create(
+                user=request.user,
+                product=product,
+                variant=variant,
+                star=int(star),
+                review=review_text
+            )
+
+            # Handle Image Upload using Cloudinary directly
+            for image in images:
+                if not image.content_type.startswith('image/'):
+                    continue  # Skip invalid files
+
+                try:
+                    upload_result = cloudinary.uploader.upload(
+                        image,
+                        folder="product_reviews",
+                        public_id=f"review_{review_obj.id}_{uuid.uuid4().hex[:8]}",
+                        overwrite=True,
+                        resource_type="image"
+                    )
+                    ProductReviewImage.objects.create(
+                        review=review_obj,
+                        image_url=upload_result['secure_url'],
+                        public_id=upload_result['public_id']
+                    )
+                except Exception as e:
+                    logger.error(f"Cloudinary upload failed for review {review_obj.id}: {e}")
+
+            return JsonResponse({'success': True, 'message': 'Review added successfully.', 'review_id': review_obj.id})
+
+        except Exception as e:
+            logger.error(f'Error adding review for user {request.user.id}: {str(e)}')
+            return JsonResponse({
+                'success': False, 'message': 'An unexpected error occurred. Please try again later.'
+                }, status=500)
+
+
+@method_decorator(never_cache, name='dispatch')
+class EditReviewView(LoginRequiredMixin, View):
+    def post(self, request, review_id):
+        try:
+            review_obj = get_object_or_404(ProductReview, id=review_id, user=request.user)
+
+            star = request.POST.get('star')
+            review_text = request.POST.get('review', '').strip()
+            new_images = request.FILES.getlist('images')
+            deleted_images = request.POST.getlist('deleted_images')  # List of Image IDs to delete
+
+            # 1. Update basic fields
+            if star and star.isdigit() and (1 <= int(star) <= 5):
+                review_obj.star = int(star)
+
+            if len(review_text) < 20:
+                return JsonResponse({
+                    'success': False, 'message': 'Review text must be at least 20 characters long.'
+                    }, status=400)
+
+            review_obj.review = review_text
+
+            # 2. Delete requested old images
+            if deleted_images:
+                images_to_delete = ProductReviewImage.objects.filter(review=review_obj, id__in=deleted_images)
+                for img in images_to_delete:
+                    if img.public_id:
+                        try:
+                            cloudinary.uploader.destroy(img.public_id)
+                        except Exception as e:
+                            logger.error(f"Failed to delete review image from Cloudinary: {e}")
+                    img.delete()
+
+            # 3. Check image limit (remaining + new)
+            remaining_images_count = review_obj.images.count()
+            if remaining_images_count + len(new_images) > 5:
+                message = (f'You can only have up to 5 images. You currently have {remaining_images_count} and are '
+                           + 'trying to add {len(new_images)}.')
+                return JsonResponse({
+                    'success': False,
+                    'message': message
+                    }, status=400)
+
+            # 4. Upload new images
+            for image in new_images:
+                if not image.content_type.startswith('image/'):
+                    continue
+
+                try:
+                    upload_result = cloudinary.uploader.upload(
+                        image,
+                        folder="product_reviews",
+                        public_id=f"review_{review_obj.id}_{uuid.uuid4().hex[:8]}",
+                        overwrite=True,
+                        resource_type="image"
+                    )
+                    ProductReviewImage.objects.create(
+                        review=review_obj,
+                        image_url=upload_result['secure_url'],
+                        public_id=upload_result['public_id']
+                    )
+                except Exception as e:
+                    logger.error(f"Cloudinary upload failed for review update: {e}")
+
+            review_obj.save()
+
+            return JsonResponse({'success': True, 'message': 'Review updated successfully.'})
+
+        except Exception as e:
+            logger.error(f'Error updating review for user {request.user.id}: {str(e)}')
+            return JsonResponse({
+                'success': False, 'message': 'An unexpected error occurred. Please try again later.'
+                }, status=500)
+
+
+@method_decorator(never_cache, name='dispatch')
+class DeleteReviewView(LoginRequiredMixin, View):
+    def post(self, request, review_id):
+        try:
+            review_obj = get_object_or_404(ProductReview, id=review_id, user=request.user)
+
+            # Delete all associated images from Cloudinary first
+            for img in review_obj.images.all():
+                if img.public_id:
+                    try:
+                        cloudinary.uploader.destroy(img.public_id)
+                    except Exception as e:
+                        logger.error(f"Failed to delete review image from Cloudinary during deletion: {e}")
+
+            # Delete the parent object, cascades correctly to the ProductReviewImage models
+            review_obj.delete()
+            return JsonResponse({'success': True, 'message': 'Review deleted successfully.'})
+
+        except Exception as e:
+            logger.error(f'Error deleting review for user {request.user.id}: {str(e)}')
+            return JsonResponse({
+                'success': False, 'message': 'An unexpected error occurred. Please try again later.'
+                }, status=500)
