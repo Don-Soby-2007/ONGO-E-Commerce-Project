@@ -7,10 +7,11 @@ from .models import Product, ProductVariant, ProductImage, Category
 from cart.models import Cart
 from accounts.models import Wishlist
 from offers.models import ProductOffer, CategoryOffer
+from order.models import ProductReview
 
 from django.contrib.auth.models import AnonymousUser
 
-from django.db.models import Prefetch, Min, Case, When, DecimalField
+from django.db.models import Prefetch, Min, Case, When, DecimalField, Avg, Count
 from django.db.models.functions import Coalesce
 from django.db import transaction
 from django.views.decorators.cache import never_cache
@@ -363,6 +364,55 @@ class ProductDetailView(DetailView):
             'display_price': product.get_display_price(),
         })
 
+        # Review section
+        reviews_queryset = (
+            ProductReview.objects
+            .filter(product=product)
+            .select_related('user')
+            .order_by('-created_at')
+        )
+        reviews_to_show = reviews_queryset[:3]
+
+        review_summary = reviews_queryset.aggregate(
+            total_reviews=Count('id'),
+            average_rating=Avg('star'),
+        )
+        total_reviews = review_summary['total_reviews'] or 0
+        average_rating = float(review_summary['average_rating'] or 0)
+
+        rating_distribution = {
+            'five_star': 0,
+            'four_star': 0,
+            'three_star': 0,
+            'two_star': 0,
+            'one_star': 0,
+        }
+        star_key_map = {5: 'five_star', 4: 'four_star', 3: 'three_star', 2: 'two_star', 1: 'one_star'}
+        for item in reviews_queryset.values('star').annotate(count=Count('id')):
+            key = star_key_map.get(item['star'])
+            if key:
+                rating_distribution[key] += item['count']
+
+        rating_percentages = {
+            key: round((value / total_reviews) * 100) if total_reviews else 0
+            for key, value in rating_distribution.items()
+        }
+        review_chart_data = [
+            rating_distribution['five_star'],
+            rating_distribution['four_star'],
+            rating_distribution['three_star'],
+            rating_distribution['two_star'],
+            rating_distribution['one_star'],
+        ]
+
+        context['reviews'] = reviews_to_show
+        context['avg_reviews'] = average_rating
+        context['avg_rating_rounded'] = round(average_rating)
+        context['total_reviews'] = total_reviews
+        context['review_stats'] = rating_distribution
+        context['review_percentages'] = rating_percentages
+        context['review_chart_data'] = review_chart_data
+        context['stat_of_reviews'] = rating_distribution
         return context
 
 

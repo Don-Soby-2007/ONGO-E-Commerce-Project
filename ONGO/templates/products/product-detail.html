@@ -113,13 +113,11 @@
             </span>
             <div class="flex items-center mt-2">
                 <div class="flex text-amber-400">
-                    <i data-lucide="star" class="fill-current w-5 h-5"></i>
-                    <i data-lucide="star" class="fill-current w-5 h-5"></i>
-                    <i data-lucide="star" class="fill-current w-5 h-5"></i>
-                    <i data-lucide="star" class="fill-current w-5 h-5"></i>
-                    <i data-lucide="star" class="w-5 h-5"></i>
+                    {% for _ in "12345"|make_list %}
+                    <i data-lucide="star" class="w-5 h-5 {% if forloop.counter <= avg_rating_rounded %}fill-current{% endif %}"></i>
+                    {% endfor %}
                 </div>
-                <span class="ml-2 text-gray-600">(128 reviews)</span>
+                <span class="ml-2 text-gray-600">({{ total_reviews }} review{{ total_reviews|pluralize }})</span>
             </div>
 
             <div class="mt-6 space-y-6">
@@ -234,120 +232,105 @@
             <!-- Summary Card -->
             <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border">
                 <div class="text-center">
-                    <div class="text-4xl font-bold text-orange-500 mb-1">4.3</div>
+                    <div class="text-4xl font-bold text-orange-500 mb-1">{{ avg_reviews|floatformat:1 }}</div>
                     <div class="flex justify-center text-amber-400 mb-2">
-                        <i data-lucide="star" class="fill-current w-5 h-5"></i>
-                        <i data-lucide="star" class="fill-current w-5 h-5"></i>
-                        <i data-lucide="star" class="fill-current w-5 h-5"></i>
-                        <i data-lucide="star" class="fill-current w-5 h-5"></i>
-                        <i data-lucide="star" class="w-5 h-5"></i>
+                        {% for _ in "12345"|make_list %}
+                        <i data-lucide="star" class="w-5 h-5 {% if forloop.counter <= avg_rating_rounded %}fill-current{% endif %}"></i>
+                        {% endfor %}
                     </div>
-                    <p class="text-gray-500 text-sm">128 reviews</p>
+                    <p class="text-gray-500 text-sm">{{ total_reviews }} review{{ total_reviews|pluralize }}</p>
 
                     <div class="mt-4 space-y-2 text-left">
                         <div class="flex items-center">
                             <span class="text-xs w-8 text-gray-600">5★</span>
                             <div class="flex-1 bg-gray-200 rounded-full h-1.5 mx-2">
-                                <div class="bg-amber-400 h-1.5 rounded-full w-4/5"></div>
+                                <div class="bg-amber-400 h-1.5 rounded-full"
+                                    style="width: {{ review_percentages.five_star }}%;"></div>
                             </div>
-                            <span class="text-xs w-6 text-right text-gray-600">78%</span>
+                            <span class="text-xs w-8 text-right text-gray-600">{{ review_percentages.five_star }}%</span>
                         </div>
                         <div class="flex items-center">
                             <span class="text-xs w-8 text-gray-600">4★</span>
                             <div class="flex-1 bg-gray-200 rounded-full h-1.5 mx-2">
-                                <div class="bg-amber-400 h-1.5 rounded-full w-1/3"></div>
+                                <div class="bg-amber-400 h-1.5 rounded-full"
+                                    style="width: {{ review_percentages.four_star }}%;"></div>
                             </div>
-                            <span class="text-xs w-6 text-right text-gray-600">16%</span>
+                            <span class="text-xs w-8 text-right text-gray-600">{{ review_percentages.four_star }}%</span>
                         </div>
                         <div class="flex items-center">
                             <span class="text-xs w-8 text-gray-600">3★</span>
                             <div class="flex-1 bg-gray-200 rounded-full h-1.5 mx-2">
-                                <div class="bg-amber-400 h-1.5 rounded-full w-1/6"></div>
+                                <div class="bg-amber-400 h-1.5 rounded-full"
+                                    style="width: {{ review_percentages.three_star }}%;"></div>
                             </div>
-                            <span class="text-xs w-6 text-right text-gray-600">4%</span>
+                            <span class="text-xs w-8 text-right text-gray-600">{{ review_percentages.three_star }}%</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-xs w-8 text-gray-600">2★</span>
+                            <div class="flex-1 bg-gray-200 rounded-full h-1.5 mx-2">
+                                <div class="bg-amber-400 h-1.5 rounded-full"
+                                    style="width: {{ review_percentages.two_star }}%;"></div>
+                            </div>
+                            <span class="text-xs w-8 text-right text-gray-600">{{ review_percentages.two_star }}%</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-xs w-8 text-gray-600">1★</span>
+                            <div class="flex-1 bg-gray-200 rounded-full h-1.5 mx-2">
+                                <div class="bg-amber-400 h-1.5 rounded-full"
+                                    style="width: {{ review_percentages.one_star }}%;"></div>
+                            </div>
+                            <span class="text-xs w-8 text-right text-gray-600">{{ review_percentages.one_star }}%</span>
                         </div>
                     </div>
+                    
                 </div>
             </div>
 
             <!-- Review Cards -->
             <div class="lg:col-span-3 space-y-5">
-                <!-- Review 1 -->
+                {% if reviews %}
+                {% for review in reviews %}
                 <div class="bg-white p-5 rounded-xl shadow-sm border">
                     <div class="flex items-start">
+                        {% if review.user.profile_picture %}
+                        <img src="{{ review.user.get_profile_picture_url }}" alt="{{ review.user.username }}"
+                            class="rounded-xl w-10 h-10 flex-shrink-0 object-cover">
+                        {% else %}
                         <div class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 flex-shrink-0"></div>
-                        <div class="ml-4">
-                            <div class="flex justify-between">
-                                <h3 class="font-semibold text-gray-900">Rahul S.</h3>
-                                <div class="flex text-amber-400">
-                                    <i data-lucide="star" class="fill-current w-4 h-4"></i>
-                                    <i data-lucide="star" class="fill-current w-4 h-4"></i>
-                                    <i data-lucide="star" class="fill-current w-4 h-4"></i>
-                                    <i data-lucide="star" class="fill-current w-4 h-4"></i>
-                                    <i data-lucide="star" class="w-4 h-4"></i>
+                        {% endif %}
+                        <div class="ml-4 flex-1">
+                            <div class="flex justify-between gap-3">
+                                <h3 class="font-semibold text-gray-900">
+                                    {% if review.user.first_name %}
+                                    {{ review.user.first_name }}{% if review.user.last_name %} {{ review.user.last_name|first }}.{% endif %}
+                                    {% else %}
+                                    {{ review.user.username }}
+                                    {% endif %}
+                                </h3>
+                                <div class="flex text-amber-400 flex-shrink-0">
+                                    {% for _ in "12345"|make_list %}
+                                    <i data-lucide="star" class="w-4 h-4 {% if forloop.counter <= review.star %}fill-current{% endif %}"></i>
+                                    {% endfor %}
                                 </div>
                             </div>
-                            <p class="text-gray-500 text-sm mt-0.5">3 days ago • Verified Purchase</p>
-                            <p class="mt-2 text-gray-700">
-                                Love the fit and print! Fabric is super soft and doesn’t wrinkle easily. Got many
-                                compliments at the office.
-                            </p>
+                            <p class="text-gray-500 text-sm mt-0.5">{{ review.updated_at|timesince }} ago • Verified Purchase</p>
+                            <p class="mt-2 text-gray-700">{{ review.review }}</p>
                         </div>
                     </div>
                 </div>
-
-                <!-- Review 2 -->
+                {% endfor %}
+                {% else %}
                 <div class="bg-white p-5 rounded-xl shadow-sm border">
-                    <div class="flex items-start">
-                        <div class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 flex-shrink-0"></div>
-                        <div class="ml-4">
-                            <div class="flex justify-between">
-                                <h3 class="font-semibold text-gray-900">Priya M.</h3>
-                                <div class="flex text-amber-400">
-                                    <i data-lucide="star" class="fill-current w-4 h-4"></i>
-                                    <i data-lucide="star" class="fill-current w-4 h-4"></i>
-                                    <i data-lucide="star" class="fill-current w-4 h-4"></i>
-                                    <i data-lucide="star" class="fill-current w-4 h-4"></i>
-                                    <i data-lucide="star" class="fill-current w-4 h-4"></i>
-                                </div>
-                            </div>
-                            <p class="text-gray-500 text-sm mt-0.5">1 week ago • Verified Purchase</p>
-                            <p class="mt-2 text-gray-700">
-                                Bought for my husband — he’s obsessed! Washed 3x, color still vibrant. Will buy in other
-                                colors.
-                            </p>
-                        </div>
+                    <div class="text-center py-4 text-gray-500">
+                        No reviews yet for this product.
                     </div>
                 </div>
-
-                <!-- Review 3 -->
-                <div class="bg-white p-5 rounded-xl shadow-sm border">
-                    <div class="flex items-start">
-                        <div class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 flex-shrink-0"></div>
-                        <div class="ml-4">
-                            <div class="flex justify-between">
-                                <h3 class="font-semibold text-gray-900">Arjun K.</h3>
-                                <div class="flex text-amber-400">
-                                    <i data-lucide="star" class="fill-current w-4 h-4"></i>
-                                    <i data-lucide="star" class="fill-current w-4 h-4"></i>
-                                    <i data-lucide="star" class="fill-current w-4 h-4"></i>
-                                    <i data-lucide="star" class="fill-current w-4 h-4"></i>
-                                    <i data-lucide="star" class="fill-current w-4 h-4"></i>
-                                </div>
-                            </div>
-                            <p class="text-gray-500 text-sm mt-0.5">2 weeks ago • Verified Purchase</p>
-                            <p class="mt-2 text-gray-700">
-                                Great shirt, but sleeves are slightly long for me (5'8"). Otherwise, quality is
-                                top-notch.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                {% endif %}
             </div>
         </div>
 
         <button class="mt-6 flex items-center text-orange-500 font-medium hover:underline">
-            View all 128 reviews
+            View all {{ total_reviews }} review{{ total_reviews|pluralize }}
             <i data-lucide="chevron-right" class="ml-1 w-4 h-4"></i>
         </button>
     </div>
@@ -355,6 +338,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     let selectedColor = null;
     let selectedSize = null;
@@ -419,6 +403,59 @@
         const imagesByColor = {{ images_by_color_json|to_json| safe }};
         const availableColors = {{ all_colors| safe }};
         const wishlistStatus = {{ wishlist_status_json|to_json|safe }};
+        const reviewChartData = {{ review_chart_data|to_json|safe }};
+
+        const reviewChartCanvas = document.getElementById('reviewDistributionChart');
+        if (reviewChartCanvas && typeof Chart !== 'undefined') {
+            new Chart(reviewChartCanvas, {
+                type: 'bar',
+                data: {
+                    labels: ['5★', '4★', '3★', '2★', '1★'],
+                    datasets: [{
+                        data: reviewChartData,
+                        backgroundColor: '#fbbf24',
+                        borderRadius: 10,
+                        borderSkipped: false,
+                        barThickness: 10
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.raw} review${context.raw === 1 ? '' : 's'}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0,
+                                color: '#6b7280'
+                            },
+                            grid: {
+                                color: '#f3f4f6'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#4b5563'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
 
         //Quantity checker
         const qtyInput = document.getElementById('quantity-input');
