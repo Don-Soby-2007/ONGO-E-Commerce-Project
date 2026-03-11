@@ -76,6 +76,12 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+            console.error('Payment failed:', response.error);
+            let errorMsg = response.error.description || 'Payment failed. Please try again.';
+            window.location.href = '/checkout/order-failed/?reason=' + encodeURIComponent(errorMsg) + '&order_id=' + data.internal_order_id;
+            resetButton();
+        });
         rzp.open();
         console.log("razorpay opend");
     }
@@ -94,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (response.ok && data.success) {
-                window.location.href = data.redirect_url;
+                window.location.href = data.redirect_url + '?order_id=' + paymentData.internal_order_id;
             } else {
                 throw new Error(data.error || 'Verification failed');
             }

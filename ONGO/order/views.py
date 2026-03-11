@@ -217,6 +217,8 @@ class PlaceOrder(LoginRequiredMixin, View):
         payment_methode = checkout_information.get('payment_methode')
         user = request.user
         checkout_step = request.session.get('checkout_step')
+        retry_payment = request.session.get('retry_payment', 'false')
+        retry_order_id = request.session.get('retry_order_id', None)
 
         if not address_id or not payment_methode or checkout_step != 'confirmation':
             return JsonResponse({
@@ -271,13 +273,25 @@ class PlaceOrder(LoginRequiredMixin, View):
             try:
                 rzp_order = create_razorpay_order(total_payable)
                 print('DEBUG: rzp_order: ', rzp_order)
+                order = None
 
-                order = self._create_order_and_deduct_stock(
-                    user, address, cart_list, locked_variants,
-                    items_subtotal, total_payable, discount_amount,
-                    payment_methode, coupon, coupon_discount_amount, shipping,
-                    razorpay_order_id=rzp_order['id']
-                )
+                if retry_payment == 'true' and retry_order_id:
+                    try:
+                        existing_order = Order.objects.get(order_id=retry_order_id, user=user)
+                        existing_order.razorpay_order_id = rzp_order['id']
+                        existing_order.save(update_fields=['razorpay_order_id'])
+                        order = existing_order
+                        print('-------------------------------------------')
+                        print(f"Updated existing order {existing_order.order_id} with new Razorpay order ID")
+                    except Order.DoesNotExist:
+                        logger.warning(f"Retry order ID {retry_order_id} not found for user {user.username}")
+                else:
+                    order = self._create_order_and_deduct_stock(
+                        user, address, cart_list, locked_variants,
+                        items_subtotal, total_payable, discount_amount,
+                        payment_methode, coupon, coupon_discount_amount, shipping,
+                        razorpay_order_id=rzp_order['id']
+                    )
 
                 amount_in_paisa = int((total_payable * 100).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
                 print(amount_in_paisa, '----', type(amount_in_paisa))
@@ -475,7 +489,7 @@ class VerifyRazorpayPayment(LoginRequiredMixin, View):
 
         return JsonResponse({
             'success': True,
-            'redirect_url': '/checkout/order-success/'
+            'redirect_url': '/checkout/order-success/',
         })
 
 
@@ -487,7 +501,9 @@ class OrderSuccess(LoginRequiredMixin, View):
 
         user = request.user
 
-        order = Order.objects.filter(user=user).order_by('-created_at').first()
+        order_id = request.GET.get('order_id')
+
+        order = Order.objects.get(user=user, order_id=order_id)
 
         if not order:
             return redirect('order-failed')
@@ -495,13 +511,27 @@ class OrderSuccess(LoginRequiredMixin, View):
         address = order.address
 
         order_items = order.items.all()
+        request.session.pop('retry_payment', None)
+        request.session.pop('retry_order_id', None)
+        request.session.modified = True
 
         return render(request, self.template_name, {'address': address, 'order': order, 'order_items': order_items})
 
 
-def orderFailed(request):
+@method_decorator(never_cache, name='dispatch')
+class OrderFailed(LoginRequiredMixin, View):
 
-    return render(request, 'checkout/order_failed.html')
+    template_name = 'checkout/order_failed.html'
+
+    def get(self, request):
+
+        reason = request.GET.get('reason')
+        order_id = request.GET.get('order_id')
+        request.session['retry_payment'] = 'true'
+        request.session['retry_order_id'] = order_id
+        print('session set for retry payment..!!!', request.session['retry_payment'], request.session['retry_order_id'])
+
+        return render(request, self.template_name, {'reason': reason, 'order_id': order_id})
 
 
 @login_required

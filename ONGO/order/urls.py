@@ -14,6 +14,6 @@ urlpatterns = [
     path('verify-payment/', views.VerifyRazorpayPayment.as_view(), name='verify_razorpay_payment'),
 
     path('order-success/', views.OrderSuccess.as_view(), name='order-success'),
-    path('order-failed/', views.orderFailed, name='order-failed'),
+    path('order-failed/', views.OrderFailed.as_view(), name='order-failed'),
     path('invoice/<uuid:order_id>/', views.download_invoice, name='download_invoice'),
 ]

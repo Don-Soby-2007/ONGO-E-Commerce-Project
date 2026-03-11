@@ -172,6 +172,7 @@ class ProductReview(models.Model):
     def __str__(self):
         return f"Review by {self.user.username} on {self.product.name}"
 
+
 class ProductReviewImage(models.Model):
     review = models.ForeignKey(ProductReview, on_delete=models.CASCADE, related_name='images')
     image_url = models.URLField()
@@ -180,6 +181,6 @@ class ProductReviewImage(models.Model):
 
     class Meta:
         ordering = ['created_at']
-        
+
     def __str__(self):
         return f"Image for Review #{self.review.id}"
