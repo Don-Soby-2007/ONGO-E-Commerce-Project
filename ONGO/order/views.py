@@ -30,7 +30,7 @@ from django.conf import settings
 from cart.models import Cart
 from .models import Order, OrderItem
 from products.models import ProductVariant
-from accounts.models import Address
+from accounts.models import Address, WalletTransaction
 from coupons.models import Coupon, CouponUsage
 
 from .utils import validate_and_apply_coupon, create_razorpay_order, verify_razorpay_signature
@@ -59,7 +59,7 @@ class CheckoutInformation(LoginRequiredMixin, View):
 
         for item in cart_items:
             if item.get('stock') < item.get('quantity'):
-                messages.error(request, f'Insufficient Stock for {item.get('product_name')}')
+                messages.error(request, f"Insufficient Stock for {item.get('product_name')}")
                 return redirect('cart')
 
         total_payable = cart_summary['total_payable']
@@ -133,38 +133,69 @@ class PaymentMethode(LoginRequiredMixin, View):
 
     template_name = 'checkout/payment.html'
 
+    def _build_payment_context(self, request, checkout_information):
+        user = request.user
+        address_id = checkout_information.get('address_id')
+
+        address = get_object_or_404(Address, user=user, id=address_id)
+        cart_items, cart_summary = get_cart_items_for_user(request, user)
+
+        for item in cart_items:
+            if item.get('stock') < item.get('quantity'):
+                messages.error(request, f"Insufficient Stock for {item.get('product_name')}")
+                return None, redirect('cart')
+
+        wallet = user.wallet.first()
+        wallet_balance = wallet.balance if wallet else Decimal('0.00')
+        total_payable = Decimal(str(cart_summary.get('total_payable', 0)))
+        wallet_has_sufficient_balance = wallet_balance >= total_payable
+
+        context = {
+            'address': address,
+            'cart_items': cart_items,
+            'cart_summary': cart_summary,
+            'wallet_balance': wallet_balance,
+            'wallet_has_sufficient_balance': wallet_has_sufficient_balance,
+            'selected_payment_method': checkout_information.get('payment_methode', ''),
+        }
+        return context, None
+
     def get(self, request):
 
-        user = request.user
         checkout_information = request.session.get('checkout_information')
 
         if checkout_information is None:
             return redirect('checkout_information')
 
-        address_id = checkout_information.get('address_id')
+        context, redirect_response = self._build_payment_context(request, checkout_information)
+        if redirect_response:
+            return redirect_response
 
-        address = Address.objects.get(user=user, id=address_id)
-
-        cart_items, cart_summary = get_cart_items_for_user(request, user)
-
-        for item in cart_items:
-            if item.get('stock') < item.get('quantity'):
-                messages.error(request, f'Insufficient Stock for {item.get('product_name')}')
-                return redirect('cart')
-
-        return render(request, self.template_name, {'address': address, 'cart_items': cart_items,
-                                                    'cart_summary': cart_summary})
+        return render(request, self.template_name, context)
 
     def post(self, request):
         payment_methode = request.POST.get('payment_method', '').strip()
+        checkout_information = request.session.get('checkout_information')
+
+        if checkout_information is None:
+            return redirect('checkout_information')
+
+        context, redirect_response = self._build_payment_context(request, checkout_information)
+        if redirect_response:
+            return redirect_response
 
         payment_methodes = ['cod', 'online', 'wallet']
 
         if payment_methode not in payment_methodes:
             messages.error(request, 'Select correct Payment methode')
-            return render(request, self.template_name)
+            return render(request, self.template_name, context)
 
-        checkout_information = request.session.get('checkout_information')
+        context['selected_payment_method'] = payment_methode
+
+        if payment_methode == 'wallet':
+            if not context['wallet_has_sufficient_balance']:
+                messages.error(request, 'Insufficient wallet balance. Please choose another payment method.')
+                return render(request, self.template_name, context)
 
         checkout_information["payment_methode"] = payment_methode
 
@@ -196,7 +227,7 @@ class OrderConfirmation(LoginRequiredMixin, View):
 
         for item in cart_items:
             if item.get('stock') < item.get('quantity'):
-                messages.error(request, f'Insufficient Stock for {item.get('product_name')}')
+                messages.error(request, f"Insufficient Stock for {item.get('product_name')}")
                 return redirect('cart')
 
         request.session["checkout_step"] = "confirmation"
@@ -317,11 +348,82 @@ class PlaceOrder(LoginRequiredMixin, View):
                     'error': 'Payment gateway unavailable. Please try COD.'
                 }, status=500)
 
-        _ = self._create_order_and_deduct_stock(
-            user, address, cart_list, locked_variants,
-            items_subtotal, total_payable, discount_amount,
-            payment_methode, coupon, coupon_discount_amount, shipping
-        )
+        elif payment_methode == 'wallet':
+
+            wallet = user.wallet.first()
+            if not wallet or wallet.balance < total_payable:
+                return JsonResponse({'error': 'Insufficient wallet balance'}, status=400)
+
+            wallet.balance -= total_payable
+            wallet.save(update_fields=['balance'])
+            order = None
+
+            if retry_payment == 'true' and retry_order_id:
+                try:
+                    existing_order = Order.objects.get(order_id=retry_order_id, user=user)
+                    order = existing_order
+                    update_fields = []
+                    if order.payment_method == 'online':
+                        order.razorpay_order_id = None
+                        order.razorpay_payment_id = None
+                        order.razorpay_signature = None
+                        update_fields = ['razorpay_order_id', 'razorpay_payment_id', 'razorpay_signature']
+                    order.payment_method = 'wallet'
+                    order.payment_status = 'paid'
+                    order.save(update_fields=['payment_method', 'payment_status'] + update_fields)
+                    print('-------------------------------------------')
+                    print(f"Retrying payment for existing order {existing_order.order_id} using wallet")
+                except Order.DoesNotExist:
+                    logger.warning(f"Retry order ID {retry_order_id} not found for user {user.username}")
+                    return JsonResponse({'error': 'Previous order not found. Please try again.'}, status=400)
+            else:
+
+                order = self._create_order_and_deduct_stock(
+                    user, address, cart_list, locked_variants,
+                    items_subtotal, total_payable, discount_amount,
+                    payment_methode, coupon, coupon_discount_amount, shipping
+                )
+
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                order=order,
+                amount=total_payable,
+                transaction_type='debit',
+                source_type='order_payment',
+                description=f'Payment for Order {order.order_id}'
+            )
+
+        else:  # COD
+
+            if retry_payment == 'true' and retry_order_id:
+                try:
+                    existing_order = Order.objects.get(order_id=retry_order_id, user=user)
+                    order = existing_order
+                    if order.payment_method == 'online':
+                        order.razorpay_order_id = None
+                        order.razorpay_payment_id = None
+                        order.razorpay_signature = None
+                    elif order.payment_method == 'wallet':
+                        wallet_txns = WalletTransaction.objects.filter(order=order, source_type='order_payment')
+                        for txn in wallet_txns:
+                            wallet = txn.wallet
+                            wallet.balance += txn.amount
+                            wallet.save(update_fields=['balance'])
+                            txn.delete()
+                    order.payment_method = 'cod'
+                    order.payment_status = 'pending'
+                    order.save(update_fields=['payment_method', 'payment_status'])
+                    print('-------------------------------------------')
+                    print(f"Retrying payment for existing order {existing_order.order_id} using COD")
+                except Order.DoesNotExist:
+                    logger.warning(f"Retry order ID {retry_order_id} not found for user {user.username}")
+                    return JsonResponse({'error': 'Previous order not found. Please try again.'}, status=400)
+            else:
+                order = self._create_order_and_deduct_stock(
+                    user, address, cart_list, locked_variants,
+                    items_subtotal, total_payable, discount_amount,
+                    payment_methode, coupon, coupon_discount_amount, shipping
+                )
 
         request.session.pop('checkout_information', None)
         request.session.pop('checkout_step', None)
@@ -331,7 +433,7 @@ class PlaceOrder(LoginRequiredMixin, View):
         return JsonResponse({
             'success': True,
             'order_placed': True,
-            'redirect_url': '/checkout/order-success/'
+            'redirect_url': f'/checkout/order-success/?order_id={order.order_id}'
         })
 
     def _create_order_and_deduct_stock(self, user, address, cart_list, locked_variants,
@@ -346,6 +448,7 @@ class PlaceOrder(LoginRequiredMixin, View):
             total_amount=total_amount,
             status='confirmed' if payment_method != 'online' else 'pending',
             payment_method=payment_method,
+            payment_status='paid' if payment_method != 'online' else 'pending',
             coupon=coupon,
             coupon_discount=coupon_discount_amount,
             shipping=shipping,
@@ -529,6 +632,7 @@ class OrderFailed(LoginRequiredMixin, View):
         order_id = request.GET.get('order_id')
         request.session['retry_payment'] = 'true'
         request.session['retry_order_id'] = order_id
+        request.session.modified = True
         print('session set for retry payment..!!!', request.session['retry_payment'], request.session['retry_order_id'])
 
         return render(request, self.template_name, {'reason': reason, 'order_id': order_id})

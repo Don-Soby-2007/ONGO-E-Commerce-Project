@@ -3,9 +3,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitButton = document.getElementById('review-order-btn');
     const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
 
-    // Function to update button state
+    function syncCardStyles() {
+        paymentCards.forEach(card => {
+            const radio = card.querySelector('input[type="radio"]');
+            if (!radio) {
+                return;
+            }
+
+            if (radio.checked) {
+                card.classList.remove('border-gray-200');
+                card.classList.add('border-red-500', 'bg-red-50');
+            } else {
+                card.classList.remove('border-red-500', 'bg-red-50');
+                card.classList.add('border-gray-200');
+            }
+        });
+    }
+
     function updateSubmitButton() {
-        const isChecked = Array.from(paymentRadios).some(radio => radio.checked);
+        const isChecked = Array.from(paymentRadios).some(radio => radio.checked && !radio.disabled);
         if (isChecked) {
             submitButton.disabled = false;
             submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -17,47 +33,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Initialize button state
-    updateSubmitButton();
+    function syncUI() {
+        syncCardStyles();
+        updateSubmitButton();
+    }
 
-    // Re-check whenever a radio is clicked
+    updateSubmitButton();
+    syncCardStyles();
+
     paymentRadios.forEach(radio => {
-        radio.addEventListener('change', updateSubmitButton);
+        radio.addEventListener('change', syncUI);
     });
 
-    // Optional: Also handle card click (though change event should suffice)
     paymentCards.forEach(card => {
         const radio = card.querySelector('input[type="radio"]');
-        const cardDetails = card.querySelector('.card-details');
+        if (!radio) {
+            return;
+        }
 
-        card.addEventListener('click', (e) => {
-            // Unselect all
-            paymentCards.forEach(c => {
-                c.classList.remove('border-red-500', 'bg-red-50');
-                c.classList.add('border-gray-200');
-                const r = c.querySelector('input[type="radio"]');
-                const details = c.querySelector('.card-details');
-                if (r) r.checked = false;
-                if (details) details.classList.add('hidden');
-            });
-
-            // Select current
-            card.classList.remove('border-gray-200');
-            card.classList.add('border-red-500', 'bg-red-50');
-            if (radio) radio.checked = true;
-
-            if (cardDetails) {
-                cardDetails.classList.remove('hidden');
+        card.addEventListener('click', () => {
+            if (radio.disabled) {
+                return;
             }
 
-            // Update button after selection
-            updateSubmitButton();
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change', { bubbles: true }));
         });
-
-        if (cardDetails) {
-            cardDetails.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-        }
     });
+
+    syncUI();
 });
