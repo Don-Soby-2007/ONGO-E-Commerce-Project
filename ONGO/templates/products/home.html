@@ -1,297 +1,376 @@
 {% extends 'common/base_header.html' %}
 {% load static %}
 
-{% block title %}Header and Slider Example{% endblock %}
+{% block title %}ONGO | Your Fashion Feed{% endblock %}
 
 {% block extra_css %}
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <style>
-    .slide-enter-active,
-    .slide-leave-active {
-        transition: opacity 1s ease;
+    :root {
+        --primary: #ef4444;
+        --glass: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.3);
+    }
+
+    .glass {
+        background: var(--glass);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+    }
+
+    .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(2, 300px);
+        gap: 1.5rem;
+    }
+
+    @media (max-width: 1024px) {
+        .bento-grid {
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(4, 250px);
+        }
+    }
+
+    @media (max-width: 640px) {
+        .bento-grid {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto;
+        }
+        .bento-item { height: 300px; }
+    }
+
+    .bento-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 1.5rem;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .bento-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.7s ease;
+    }
+
+    .bento-item:hover img {
+        transform: scale(1.05);
+    }
+
+    /* Swiper custom navigation */
+    .swiper-button-next, .swiper-button-prev {
+        color: #000;
+        background: rgba(255, 255, 255, 0.8);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        backdrop-filter: blur(5px);
+    }
+    .swiper-button-next:after, .swiper-button-prev:after {
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    /* Product Card Hover */
+    .product-card .add-wishlist-btn {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+    }
+    .product-card:hover .add-wishlist-btn {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Parallax Section */
+    .parallax-section {
+        background-attachment: fixed;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
+
+    /* Animations */
+    [data-aos="fade-up"] {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.8s ease-out;
+    }
+    [data-aos="fade-up"].aos-animate {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .wishlist-active {
+        background-color: #ef4444 !important;
+        color: white !important;
+        border-color: #ef4444 !important;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Slider Section -->
-<div class="container mx-auto px-4 py-12 mt-20">
-    <div class="relative overflow-hidden max-w-6xl mx-auto rounded-lg">
-        <!-- Slider Container -->
-        <div id="slider" class="relative h-96">
+<!-- Full-Bleed Hero Slider -->
+<section class="relative w-full h-[85vh] overflow-hidden mt-16">
+    <div class="swiper heroSwiper w-full h-full">
+        <div class="swiper-wrapper">
             <!-- Slide 1 -->
-            <div class="absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-100">
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=1232,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-Uber-HP-Desktop-HeroBanner4-16DEC25.png"
-                    class="w-full h-full object-cover">
+            <div class="swiper-slide relative">
+                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=1232,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-Uber-HP-Desktop-HeroBanner3-16DEC25.png" class="w-full h-full object-cover" alt="Hero 1">
+                <div class="absolute inset-0 bg-black/20 flex items-center px-8 md:px-24">
+                    <div class="max-w-2xl text-white">
+                        <span class="inline-block px-4 py-1 bg-red-500 rounded-full text-xs font-bold uppercase tracking-widest mb-10">Welcome back, {{ request.user.first_name|default:request.user.username }}</span>
+                        <br>
+                        <div class='h-20'></div>
+                        <a href="{% url 'product_list' %}" class="inline-block px-10 py-4 bg-white text-black font-bold rounded-full hover:scale-105 transition-transform duration-300 mt-20">Explore New Drops</a>
+                    </div>
+                </div>
             </div>
             <!-- Slide 2 -->
-            <div class="absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0">
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=1232,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-Uber-HP-Desktop-HeroBanner2-16DEC25.png"
-                    class="w-full h-full object-cover">
-            </div>
-            <!-- Slide 3 -->
-            <div class="absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0">
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=1232,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-Uber-HP-Desktop-HeroBanner3-16DEC25.png"
-                    class="w-full h-full object-cover">
-                <div class="absolute inset-0 flex items-center bg-black bg-opacity-30 px-12">
-
+            <div class="swiper-slide relative">
+                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=1232,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-Uber-HP-Desktop-HeroBanner4-16DEC25.png" class="w-full h-full object-cover" alt="Hero 2">
+                <div class="absolute inset-0 bg-black/30 flex items-center justify-center text-center px-8">
+                    <div class="max-w-3xl text-white">
+                        <h1 class="text-5xl md:text-7xl font-bold mb-6 italic underline decoration-red-500 underline-offset-8">Urban Luxe</h1>
+                        <p class="text-lg md:text-xl mb-8">Premium comfort for the modern explorer. Sustainable, stylish, sophisticated.</p>
+                        <a href="{% url 'product_list' %}" class="inline-block px-10 py-4 bg-red-500 text-white font-bold rounded-full hover:bg-red-600 transition-all">Shop Luxe</a>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <!-- Navigation Dots -->
-        <div class="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
-            <button id="dot-0" class="h-3 w-3 rounded-full bg-white"></button>
-            <button id="dot-1" class="h-3 w-3 rounded-full bg-gray-400"></button>
-            <button id="dot-2" class="h-3 w-3 rounded-full bg-gray-400"></button>
-        </div>
-
-        <!-- Navigation Arrows -->
-        <button id="prev"
-            class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white p-2 rounded-full shadow-md">
-            <i data-lucide="chevron-left"></i>
-        </button>
-        <button id="next"
-            class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white p-2 rounded-full shadow-md">
-            <i data-lucide="chevron-right"></i>
-        </button>
+        <div class="swiper-pagination"></div>
     </div>
-</div>
+</section>
 
-<div class="container mx-auto px-4 py-12">
-    <!-- Heading -->
-    <h2 class="text-2xl font-bold text-gray-800 mb-8 border-l-4 border-yellow-500 pl-4">
-        Party Edit
-    </h2>
-
-    <!-- Cards Container -->
-    <div class="flex justify-center space-x-8">
-        <!-- Women's Dresses Card -->
-        <div
-            class="w-64 bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
-            <a href='{% url "product_list" %}?category=Women'>
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-SWTSTNONE-Desk-Banner1-09Dec2025.png"
-                    alt="Women's Dresses" class="w-full h-full object-cover">
-            </a>
+<!-- Personalised Categories: Bento Grid -->
+<section class="container mx-auto px-4 py-20">
+    <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+        <div>
+            <h2 class="text-4xl font-bold text-gray-900 mb-2">Shop Your Vibe</h2>
+            <div class="h-1.5 w-20 bg-red-500 rounded-full"></div>
         </div>
-
-        <!-- Men's Dresses Card -->
-        <div
-            class="w-64 bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
-            <a href='{% url "product_list" %}?category=Men'>
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-SWTSTNTWO-Desk-Banner2-09Dec2025.png"
-                    alt="Men's Dresses" class="w-full h-full object-cover">
-            </a>
-        </div>
-
-        <!-- Kids Dresses Card -->
-        <div
-            class="w-64 bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
-            <a href='{% url "product_list" %}?category=Girls'>
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-SWTSTNTHREE-Desk-Banner3-09Dec2025.png"
-                    alt="Girls Dresses" class="w-full h-full object-cover">
-            </a>
-        </div>
-        <div
-            class="w-64 bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
-            <a href='{% url "product_list" %}?category=Boys'>
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-SWTSTNFOUR-Desk-Banner4-11Dec2025.png"
-                    alt="Boys Dresses" class="w-full h-full object-cover">
-            </a>
-
+        <div class="flex gap-4">
+            <a href="{% url 'product_list' %}" class="px-6 py-2 border border-gray-200 rounded-full hover:border-red-500 hover:text-red-500 transition-all text-sm font-medium">Clearance Sale</a>
+            <a href="{% url 'product_list' %}" class="px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-all text-sm font-medium">Daily Deals</a>
         </div>
     </div>
-</div>
-<section class="container mx-auto px-4 py-12">
-    <!-- Section Heading -->
-    <h2 class="text-2xl font-bold text-gray-800 mb-8 border-l-4 border-yellow-600 pl-4">
-        Ethnic Elegance
-    </h2>
 
-    <!-- Banner -->
-    <div class="flex justify-center mb-12">
-        <a href='{% url "product_list"  %}'>
-            <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=1232,q=85,fit=cover/MAX-Friday/MAX2.O/desktop-MAX-UBERHP-13modblock-oneBythree-A-16DEC25.png"
-                alt="Ethnic Elegance Banner" class="w-full h-auto">
-        </a>
+    <div class="bento-grid">
+        {% if categories %}
+            <!-- Large Item -->
+            <div class="bento-item col-span-1 md:col-span-2 row-span-2 group">
+                <a href="{% url 'product_list' %}?category={{ categories.0.name }}">
+                    <img src="https://images.unsplash.com/photo-1552874869-5c39ec9288dc?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="{{ categories.0.name }}">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-10">
+                        <h3 class="text-5xl font-black text-white uppercase tracking-tighter">{{ categories.0.name }}</h3>
+                        <p class="text-white/80 mt-2 font-medium">Curated collection for you</p>
+                    </div>
+                </a>
+            </div>
+            
+            {% for cat in categories|slice:"1:5" %}
+                <div class="bento-item border-4 border-white">
+                    <a href="{% url 'product_list' %}?category={{ cat.name }}">
+                        {% if forloop.counter == 1 %}
+                            <img src="https://images.unsplash.com/photo-1656695230389-01185e6fbff8?q=80&w=688&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="{{ cat.name }}">
+                        {% elif forloop.counter == 2 %}
+                            <img src="https://images.unsplash.com/photo-1681551210432-228395e59420?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Ym95JTIwZmFzaGlvbnxlbnwwfHwwfHx8Mg%3D%3D" alt="{{ cat.name }}">
+                        {% elif forloop.counter == 3 %}
+                            <img src="https://images.unsplash.com/photo-1695263977095-b47f7c44b8ba?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="{{ cat.name }}">
+                        {% else %}
+                            <img src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=2070&auto=format&fit=crop" alt="{{ cat.name }}">
+                        {% endif %}
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <h3 class="text-2xl font-bold text-white bg-black/40 px-6 py-2 backdrop-blur-sm rounded-lg">{{ cat.name }}</h3>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        {% endif %}
     </div>
+</section>
 
-    <!-- Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        <!-- Card 1: Suits & Sets -->
-        <div
-            class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
-            <a href='{% url "product_list" %}'>
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-TrendsOnOffer-Desk-Banner1-16DEC25.png"
-                    alt="Suits & Sets" class="w-full h-full object-cover">
-            </a>
-
+<!-- New Arrivals Carousel -->
+<section class="bg-gray-50 py-20 overflow-hidden">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-end mb-12">
+            <div>
+                <h2 class="text-4xl font-bold text-gray-900 mb-2 italic">New Drops</h2>
+                <div class="h-1 w-12 bg-gray-300"></div>
+            </div>
+            <div class="flex gap-4">
+                <button class="swiper-prev-btn p-3 glass rounded-full hover:bg-white transition-all shadow-sm"><i data-lucide="arrow-left"></i></button>
+                <button class="swiper-next-btn p-3 glass rounded-full hover:bg-white transition-all shadow-sm"><i data-lucide="arrow-right"></i></button>
+            </div>
         </div>
 
-        <!-- Card 2: Printed Kurtas -->
-        <div
-            class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
-            <a href='{% url "product_list" %}'>
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-TrendsOnOffer-Desk-Banner2-16DEC25.png"
-                    alt="Printed Kurtas" class="w-full h-full object-cover">
-            </a>
-        </div>
-
-        <!-- Card 3: Dresses -->
-        <div
-            class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
-            <a href='{% url "product_list" %}'>
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-TrendsOnOffer-Desk-Banner3-16DEC25.png"
-                    alt="Dresses" class="w-full h-full object-cover">
-            </a>
-        </div>
-
-        <!-- Card 4: Winter Kurtas -->
-        <div
-            class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
-            <a href='{% url "product_list" %}'>
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-TrendsOnOffer-Desk-Banner4-16DEC25.png"
-                    alt="Winter Kurtas" class="w-full h-full object-cover">
-            </a>
-
-        </div>
-
-        <!-- Card 5: Ethnic Tops -->
-        <div
-            class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
-            <a href='{% url "product_list" %}'>
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/MAX-UberHP-TrendsOnOffer-Desk-Banner5-16DEC25.png"
-                    alt="Ethnic Tops" class="w-full h-full object-cover">
-            </a>
+        <div class="swiper productSwiper">
+            <div class="swiper-wrapper">
+                {% for product in new_arrivals %}
+                <div class="swiper-slide">
+                    <div class="product-card group bg-white rounded-[2rem] overflow-hidden border border-gray-100 p-3 hover:shadow-2xl transition-all duration-500">
+                        <div class="relative h-[380px] rounded-[1.5rem] overflow-hidden">
+                            <a href="{% url 'product_detail' product.pro_id %}">
+                                <img src="{{ product.primary_image|default:'https://placehold.co/600x800' }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="{{ product.name }}">
+                            </a>
+                            
+                            {% if product.offer_price %}
+                            <div class="absolute top-4 left-4 glass px-4 py-1.5 rounded-full text-red-600 text-xs font-black">
+                                SALE {{ product.offer_value }}{% if product.offer_type == 'percent' %}%{% endif %}
+                            </div>
+                            {% endif %}
+                            
+                        </div>
+                        <div class="pt-6 pb-2 px-4">
+                            <h4 class="text-lg font-bold text-gray-900 truncate mb-1">{{ product.name }}</h4>
+                            <p class="text-sm text-gray-400 mb-3">{{ product.category.name }}</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    {% if product.offer_price %}
+                                        <span class="text-2xl font-black text-gray-900">₹{{ product.offer_price|floatformat:0 }}</span>
+                                        <span class="text-sm text-gray-400 line-through">₹{{ product.base_price|floatformat:0 }}</span>
+                                    {% else %}
+                                        <span class="text-2xl font-black text-gray-900">₹{{ product.base_price|floatformat:0 }}</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'product_detail' product.pro_id %}" class="p-2 border border-gray-100 rounded-full hover:bg-black hover:text-white transition-all">
+                                    <i data-lucide="plus" class="w-4 h-4"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </section>
 
-<section class="container mx-auto px-4 py-12">
-    <!-- Section Heading -->
-    <h2 class="text-2xl font-bold text-gray-800 mb-8 border-l-4 border-yellow-600 pl-4">
-        Winter Must-haves
-    </h2>
-
-    <!-- Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Sweatshirts Card -->
-        <div
-            class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
-            <a href='{% url "product_list" %}'>
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/desktop-MAX-UBERHP-oneBythree-A-16DEC25.png"
-                    alt="Sweatshirts" class="w-full h-full object-cover">
-            </a>
+<!-- Parallax Promo Banner -->
+<section class="parallax-section relative w-full h-[550px] flex items-center justify-center my-0" style="background-image: url('https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?q=80&w=2070&auto=format&fit=crop');">
+    <div class="absolute inset-0 bg-gradient-to-r from-red-600/30 to-black/60"></div>
+    <div class="relative z-10 container mx-auto px-4" data-aos="fade-up">
+        <div class="max-w-xl">
+            <h2 class="text-6xl md:text-8xl font-black text-white mb-6 uppercase leading-none tracking-tighter">THE <br>URBAN <br>EDIT</h2>
+            <p class="text-xl text-white/90 mb-10 font-medium">Limited edition collaborations and high-street essentials that set the pace.</p>
+            <div class="flex gap-4">
+                <a href="{% url 'product_list' %}" class="px-10 py-4 bg-white text-black font-extrabold rounded-full hover:bg-gray-100 transition-all shadow-2xl">Shop The Collection</a>
+                <button class="p-4 glass rounded-full text-white hover:bg-white/20 transition-all"><i data-lucide="play-circle"></i></button>
+            </div>
         </div>
+    </div>
+</section>
 
-        <!-- Jackets Card -->
-        <div
-            class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
-            <a href='{% url "product_list" %}'>
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/desktop-MAX-UBERHP-twoBythree-B-17DEC25.png"
-                    alt="Jackets" class="w-full h-full object-cover">
-            </a>
+<!-- Trending Carousel -->
+<section class="container mx-auto px-4 py-24">
+    <div class="flex justify-between items-end mb-16">
+        <div>
+            <h2 class="text-4xl font-bold text-gray-900 mb-2 tracking-tight">Best Sellers</h2>
+            <p class="text-gray-500 font-medium">Styles you shouldn't miss</p>
         </div>
+        <a href="{% url 'product_list' %}?sort=trending" class="px-8 py-3 bg-black text-white font-bold rounded-2xl hover:bg-gray-800 transition-all">View All</a>
+    </div>
 
-        <!-- Sweaters Card -->
-        <div
-            class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
-            <a href='{% url "product_list" %}'>
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/desktop-MAX-UBERHP-threeBythree-C-16DEC25.png"
-                    alt="Sweaters" class="w-full h-full object-cover">
-            </a>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {% for product in trending_products %}
+        <div class="product-card group" data-aos="fade-up">
+            <div class="relative h-[480px] rounded-[2.5rem] overflow-hidden mb-6 shadow-sm group-hover:shadow-3xl transition-all duration-700 border-8 border-transparent group-hover:border-white">
+                <a href="{% url 'product_detail' product.pro_id %}">
+                    <img src="{{ product.primary_image|default:'https://placehold.co/600x800' }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="{{ product.name }}">
+                </a>
+                
+                <div class="absolute inset-x-0 bottom-0 p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
+                    <button onclick="window.location.href='{% url 'product_detail' product.pro_id %}'" class="w-full py-4 bg-white/90 backdrop-blur-md text-black font-black rounded-2xl shadow-2xl hover:bg-white transition-all uppercase tracking-widest text-xs">Quick Shop</button>
+                </div>
+                
+            </div>
+            <div class="px-2">
+                <h4 class="text-xl font-black text-gray-900 mb-1">{{ product.name }}</h4>
+                <div class="flex items-center gap-3">
+                    {% if product.offer_price %}
+                        <span class="text-xl font-bold text-red-600">₹{{ product.offer_price|floatformat:0 }}</span>
+                        <span class="text-sm text-gray-400 line-through font-medium">₹{{ product.base_price|floatformat:0 }}</span>
+                    {% else %}
+                        <span class="text-xl font-bold text-gray-900">₹{{ product.base_price|floatformat:0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
         </div>
+        {% endfor %}
+    </div>
+</section>
 
-        <!-- Add-ons Card -->
-        <div
-            class="bg-white rounded-xl overflow-hidden shadow-md shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
-            <a href='{% url "product_list" %}'>
-                <img src="https://cms.landmarkshops.in/cdn-cgi/image/w=616,q=85,fit=cover/MAX-Friday/MAX2.O/desktop-MAX-UBERHP-fourBythree-D-16DEC25.png"
-                    alt="Add-ons" class="w-full h-full object-cover">
-            </a>
+<!-- Trust Section -->
+<section class="bg-black py-20 text-white overflow-hidden rounded-[3rem] mx-4 mb-10">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-12 text-center">
+            <div class="space-y-4" data-aos="fade-up">
+                <div class="flex justify-center"><i data-lucide="refresh-ccw" class="w-12 h-12 text-red-500"></i></div>
+                <h6 class="text-xl font-bold tracking-tight">Easy Returns</h6>
+                <p class="text-gray-400 text-sm">7-day hassle-free return policy</p>
+            </div>
+            <div class="space-y-4" data-aos="fade-up">
+                <div class="flex justify-center"><i data-lucide="shield-check" class="w-12 h-12 text-blue-500"></i></div>
+                <h6 class="text-xl font-bold tracking-tight">100% Authentic</h6>
+                <p class="text-gray-400 text-sm">Directly from brand partners</p>
+            </div>
+            <div class="space-y-4" data-aos="fade-up">
+                <div class="flex justify-center"><i data-lucide="zap" class="w-12 h-12 text-yellow-500"></i></div>
+                <h6 class="text-xl font-bold tracking-tight">Fastest Delivery</h6>
+                <p class="text-gray-400 text-sm">2-3 day transit across metro cities</p>
+            </div>
+            <div class="space-y-4" data-aos="fade-up">
+                <div class="flex justify-center"><i data-lucide="headphones" class="w-12 h-12 text-green-500"></i></div>
+                <h6 class="text-xl font-bold tracking-tight">24/7 Support</h6>
+                <p class="text-gray-400 text-sm">We are here to help any time</p>
+            </div>
         </div>
     </div>
 </section>
 {% endblock %}
 
 {% block extra_js %}
+<!-- Swiper & SweetAlert Integration -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
-    const slides = document.querySelectorAll('#slider > div');
-    const dots = document.querySelectorAll('[id^="dot-"]');
-    const prevBtn = document.getElementById('prev');
-    const nextBtn = document.getElementById('next');
-    let currentSlide = 0;
-    let slideInterval;
-
-    // Show the current slide
-    function showSlide(index) {
-        slides.forEach((slide, i) => {
-            slide.classList.add('opacity-0');
-            slide.classList.remove('opacity-100');
-            dots[i].classList.remove('bg-white');
-            dots[i].classList.add('bg-gray-400');
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize Hero Swiper
+        const heroSwiper = new Swiper('.heroSwiper', {
+            loop: true,
+            effect: 'fade',
+            speed: 1200,
+            autoplay: { delay: 6000, disableOnInteraction: false },
+            pagination: { el: '.swiper-pagination', clickable: true },
         });
 
-        slides[index].classList.remove('opacity-0');
-        slides[index].classList.add('opacity-100');
-        dots[index].classList.remove('bg-gray-400');
-        dots[index].classList.add('bg-white');
-        currentSlide = index;
-    }
-
-    // Next slide
-    function nextSlide() {
-        let newSlide = currentSlide + 1;
-        if (newSlide >= slides.length) {
-            newSlide = 0;
-        }
-        showSlide(newSlide);
-    }
-
-    // Previous slide
-    function prevSlide() {
-        let newSlide = currentSlide - 1;
-        if (newSlide < 0) {
-            newSlide = slides.length - 1;
-        }
-        showSlide(newSlide);
-    }
-
-    // Auto slide every 10 seconds
-    function startSlideInterval() {
-        slideInterval = setInterval(nextSlide, 10000);
-    }
-
-    // Pause on hover
-    document.getElementById('slider').addEventListener('mouseenter', () => {
-        clearInterval(slideInterval);
-    });
-
-    document.getElementById('slider').addEventListener('mouseleave', startSlideInterval);
-
-    // Event listeners for navigation
-    nextBtn.addEventListener('click', () => {
-        clearInterval(slideInterval);
-        nextSlide();
-        startSlideInterval();
-    });
-
-    prevBtn.addEventListener('click', () => {
-        clearInterval(slideInterval);
-        prevSlide();
-        startSlideInterval();
-    });
-
-    // Event listeners for dots
-    dots.forEach((dot, index) => {
-        dot.addEventListener('click', () => {
-            clearInterval(slideInterval);
-            showSlide(index);
-            startSlideInterval();
+        // Initialize Products Swiper
+        const productSwiper = new Swiper('.productSwiper', {
+            slidesPerView: 1,
+            spaceBetween: 30,
+            navigation: {
+                nextEl: '.swiper-next-btn',
+                prevEl: '.swiper-prev-btn',
+            },
+            breakpoints: {
+                640: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 },
+                1280: { slidesPerView: 4 },
+            }
         });
-    });
 
-    // Initialize
-    showSlide(0);
-    startSlideInterval();
+        // Intersection Observer for animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('aos-animate');
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('[data-aos="fade-up"]').forEach(el => observer.observe(el));
+
+        lucide.createIcons();
+    });
 </script>
 {% endblock %}

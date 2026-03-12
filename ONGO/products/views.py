@@ -41,11 +41,133 @@ logger = logging.getLogger(__name__)
 # Create your views here.
 
 
+def get_homepage_context(request):
+    base_qs = Product.objects.filter(is_active=True, category__is_active=True).select_related('category')
+
+    now = timezone.now()
+    active_offer_filter = (
+        Q(active=True) &
+        Q(start_date__lte=now) &
+        (Q(end_date__isnull=True) | Q(end_date__gte=now))
+    )
+
+    products_qs = base_qs.prefetch_related(
+        Prefetch(
+            'variants',
+            queryset=ProductVariant.objects.prefetch_related(
+                Prefetch(
+                    'images',
+                    queryset=ProductImage.objects.order_by('-is_primary', '-created_at')
+                )
+            )
+        ),
+        Prefetch(
+            'offer',
+            queryset=ProductOffer.objects.filter(active_offer_filter).order_by('-priority'),
+            to_attr='prefetched_product_offers'
+        ),
+        Prefetch(
+            'category__offer',
+            queryset=CategoryOffer.objects.filter(active_offer_filter).order_by('-priority'),
+            to_attr='prefetched_category_offers'
+        )
+    )
+
+    new_arrivals_qs = products_qs.order_by('-created_at')[:8]
+    trending_products_qs = products_qs.annotate(
+        review_count=Count('reviews')
+        ).order_by('-review_count', '-created_at')[:8]
+    categories = Category.objects.filter(is_active=True)[:6]
+
+    new_arrivals = list(new_arrivals_qs)
+    trending_products = list(trending_products_qs)
+
+    def attach_offer_and_wishlist(products):
+        rep_variant_ids = []
+        product_rep_map = {}
+
+        for product in products:
+            rep_variant = product.variants.first()
+            if rep_variant:
+                rep_variant_ids.append(rep_variant.id)
+                product_rep_map[product.id] = rep_variant.id
+            else:
+                product_rep_map[product.id] = None
+
+        wishlist_variant_ids = set()
+        if request.user.is_authenticated:
+            wishlist_variant_ids = set(
+                Wishlist.objects.filter(
+                    user=request.user,
+                    product_variant_id__in=rep_variant_ids
+                ).values_list('product_variant_id', flat=True)
+            )
+
+        for product in products:
+            rep_id = product_rep_map[product.id]
+            product.rep_variant_id = rep_id
+            product.in_wishlist = (rep_id in wishlist_variant_ids)
+
+            if not rep_id:
+                product.offer_price = None
+                product.offer_type = None
+                product.offer_value = None
+                product.primary_image = None
+                product.base_price = None
+                continue
+
+            rep_variant = next((v for v in product.variants.all() if v.id == rep_id), None)
+
+            if rep_variant and rep_variant.images.all():
+                product.primary_image = rep_variant.images.all()[0].image_url
+            else:
+                product.primary_image = None
+
+            base_price = Decimal(rep_variant.final_price) if rep_variant else Decimal('0.00')
+            product.base_price = base_price
+            best_discount = {'price': base_price, 'type': None, 'value': None}
+
+            if product.prefetched_product_offers:
+                offer = product.prefetched_product_offers[0]
+                discounted = calculate_discount(base_price, offer)
+                if discounted < best_discount['price']:
+                    best_discount = {
+                        'price': discounted,
+                        'type': offer.discount_type,
+                        'value': offer.value
+                    }
+
+            cat_offers = getattr(product.category, 'prefetched_category_offers', [])
+            if cat_offers:
+                offer = cat_offers[0]
+                discounted = calculate_discount(base_price, offer)
+                if discounted < best_discount['price']:
+                    best_discount = {
+                        'price': discounted,
+                        'type': offer.discount_type,
+                        'value': offer.value
+                    }
+
+            product.offer_price = best_discount['price'] if best_discount['price'] < base_price else None
+            product.offer_type = best_discount['type']
+            product.offer_value = best_discount['value']
+
+    attach_offer_and_wishlist(new_arrivals)
+    attach_offer_and_wishlist(trending_products)
+
+    return {
+        'new_arrivals': new_arrivals,
+        'trending_products': trending_products,
+        'categories': categories,
+    }
+
+
 @login_required
 @never_cache
 def HomeView(request):
     if request.user.is_authenticated and request.user.is_staff is False:
-        return render(request, 'products/home.html')
+        context = get_homepage_context(request)
+        return render(request, 'products/home.html', context)
 
     return redirect('login')
 
@@ -215,7 +337,6 @@ class ProductListView(ListView):
 
         # Current active filters (for UI state)
         context['selected_categories'] = self.request.GET.getlist('category')
-
         return context
 
 
@@ -223,7 +344,8 @@ class ProductListView(ListView):
 def LandingView(request):
     if request.user.is_authenticated:
         return redirect('home')
-    return render(request, 'products/landing.html')
+    context = get_homepage_context(request)
+    return render(request, 'products/landing.html', context)
 
 
 class ProductDetailView(DetailView):
@@ -233,12 +355,13 @@ class ProductDetailView(DetailView):
     pk_url_kwarg = 'pro_id'
 
     def get_object(self, queryset=None):
+        if queryset is None:
+            queryset = self.get_queryset()
 
-        queryset = queryset or self.get_queryset()
         pro_id = self.kwargs.get(self.pk_url_kwarg)
 
         try:
-            obj = queryset.get(pro_id=pro_id)
+            obj = queryset.get(pro_id=pro_id)  # Restore to pro_id field
         except Product.DoesNotExist:
             raise Http404('No Product matches the given query.')
 
