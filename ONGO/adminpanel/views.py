@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views import View
 from django.db.models import Q, F, Count, Case, When, Value, IntegerField, Sum
-from django.db.models.functions import TruncMonth, TruncDate, TruncYear
+from django.db.models.functions import TruncMonth, TruncDate, TruncYear, TruncHour
 from django.views.generic import ListView, DetailView
 from django.views.generic.edit import CreateView, UpdateView
 from django.contrib.auth import authenticate, login, logout
@@ -2303,9 +2303,7 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, View):
     def test_func(self):
         return self.request.user.is_staff
 
-    def get(self, request, *args, **kwargs):
-
-        from django.db.models.functions import TruncHour
+    def get(self, request):
 
         # Universal Filter
         filter_type = request.GET.get('filter', 'monthly')
@@ -2331,7 +2329,7 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, View):
             order_items_qs = order_items_qs.filter(order__created_at__date=today.date())
             cat_order_items_qs = cat_order_items_qs.filter(order__created_at__date=today.date())
         elif filter_type == 'all':
-            pass  # No date filtering to get all records
+            pass
         else:  # monthly
             orders = orders.filter(created_at__year=today.year, created_at__month=today.month)
             order_items_qs = order_items_qs.filter(
@@ -2394,7 +2392,7 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, View):
         # 5. LATEST 5 ORDERS
         latest_orders = Order.objects.select_related('user').order_by('-created_at')[:5]
 
-        # 6. KPI CARDS (Calculated based on universal filter or globally?)
+        # 6. KPI CARDS
         total_orders_count = orders.count()
         total_revenue_calc = orders.aggregate(total=Sum('total_amount'))['total'] or 0
         total_pending_returns = Return.objects.filter(status='pending').count()
