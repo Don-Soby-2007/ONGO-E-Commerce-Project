@@ -1,0 +1,33 @@
+/* dashboard.css */
+.chart-container {
+    position: relative;
+    height: 380px; 
+    width: 100%;
+}
+
+.max-w-\[200px\] {
+    max-width: 200px;
+}
+
+/* Custom scrollbar for tables */
+.overflow-x-auto::-webkit-scrollbar {
+    height: 6px;
+}
+.overflow-x-auto::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+.overflow-x-auto::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.transition-shadow {
+    transition: box-shadow 0.3s ease;
+}
+.transition-colors {
+    transition: background-color 0.2s ease, color 0.2s ease;
+}

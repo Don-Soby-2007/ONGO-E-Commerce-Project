@@ -46,7 +46,7 @@
             <aside id="sidebar"
                 class="w-64 bg-white border-r border-gray-200 p-4 flex flex-col justify-between overflow-y-auto">
                 <nav class="space-y-1 inline-grid grid-cols-1 gap-y-5">
-                    <a class="nav-link flex items-center space-x-3 py-2 px-3" href="#" data-page="dashboard">
+                    <a class="nav-link flex items-center space-x-3 py-2 px-3 {% if 'dashboard' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'admin_dashboard' %}" data-page="dashboard">
                         <i data-lucide="layout-dashboard" class="icon w-5 h-5 mr-3"></i>
                         <h2>Dashboard</h2>
                     </a>

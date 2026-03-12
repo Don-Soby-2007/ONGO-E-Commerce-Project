@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views import View
 from django.db.models import Q, F, Count, Case, When, Value, IntegerField, Sum
+from django.db.models.functions import TruncMonth, TruncDate, TruncYear
 from django.views.generic import ListView, DetailView
 from django.views.generic.edit import CreateView, UpdateView
 from django.contrib.auth import authenticate, login, logout
@@ -2292,3 +2293,129 @@ class AnalyticsView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         context['product_total_net'] = sum(p['net_revenue'] for p in context['product_breakdown'])
 
         return context
+
+
+@method_decorator(never_cache, name="dispatch")
+class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, View):
+
+    login_url = 'admin_login'
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get(self, request, *args, **kwargs):
+
+        from django.db.models.functions import TruncHour
+
+        # Universal Filter
+        filter_type = request.GET.get('filter', 'monthly')
+        today = timezone.now()
+
+        # Base Querysets
+        orders = Order.objects.filter(status='delivered')
+        order_items_qs = OrderItem.objects.all()
+        cat_order_items_qs = OrderItem.objects.select_related('product_variant__product__category')
+
+        # Apply Global Date Filter
+        if filter_type == 'yearly':
+            orders = orders.filter(created_at__year=today.year)
+            order_items_qs = order_items_qs.filter(order__created_at__year=today.year)
+            cat_order_items_qs = cat_order_items_qs.filter(order__created_at__year=today.year)
+        elif filter_type == 'weekly':
+            start_of_week = today - timedelta(days=today.weekday())
+            orders = orders.filter(created_at__gte=start_of_week)
+            order_items_qs = order_items_qs.filter(order__created_at__gte=start_of_week)
+            cat_order_items_qs = cat_order_items_qs.filter(order__created_at__gte=start_of_week)
+        elif filter_type == 'daily':
+            orders = orders.filter(created_at__date=today.date())
+            order_items_qs = order_items_qs.filter(order__created_at__date=today.date())
+            cat_order_items_qs = cat_order_items_qs.filter(order__created_at__date=today.date())
+        elif filter_type == 'all':
+            pass  # No date filtering to get all records
+        else:  # monthly
+            orders = orders.filter(created_at__year=today.year, created_at__month=today.month)
+            order_items_qs = order_items_qs.filter(
+                order__created_at__year=today.year,
+                order__created_at__month=today.month)
+            cat_order_items_qs = cat_order_items_qs.filter(
+                order__created_at__year=today.year, order__created_at__month=today.month
+                )
+
+        # 1. SALES CHART DATA
+        chart_labels = []
+        chart_values = []
+
+        if filter_type == 'all':
+            sales_data = orders.annotate(period=TruncYear('created_at')).values('period').annotate(
+                revenue=Sum('total_amount')).order_by('period')
+            for entry in sales_data:
+                if entry['period']:
+                    chart_labels.append(entry['period'].strftime('%Y'))
+                    chart_values.append(float(entry['revenue'] or 0))
+        elif filter_type == 'yearly':
+            sales_data = orders.annotate(period=TruncMonth('created_at')).values('period').annotate(
+                revenue=Sum('total_amount')).order_by('period')
+            for entry in sales_data:
+                if entry['period']:
+                    chart_labels.append(entry['period'].strftime('%b %Y'))
+                    chart_values.append(float(entry['revenue'] or 0))
+        elif filter_type == 'monthly' or filter_type == 'weekly':
+            sales_data = orders.annotate(period=TruncDate('created_at')).values('period').annotate(
+                revenue=Sum('total_amount')).order_by('period')
+            for entry in sales_data:
+                if entry['period']:
+                    chart_labels.append(entry['period'].strftime('%d %b'))
+                    chart_values.append(float(entry['revenue'] or 0))
+        elif filter_type == 'daily':
+            sales_data = orders.annotate(period=TruncHour('created_at')).values('period').annotate(
+                revenue=Sum('total_amount')).order_by('period')
+            for entry in sales_data:
+                if entry['period']:
+                    chart_labels.append(entry['period'].strftime('%H:%M'))
+                    chart_values.append(float(entry['revenue'] or 0))
+
+        # 2. BEST SELLING PRODUCTS (TOP 10)
+        best_products_qs = order_items_qs.values('product_name').annotate(total_sold=Sum('quantity')).order_by(
+            '-total_sold')[:10]
+
+        product_labels = [p['product_name'] for p in best_products_qs]
+        product_values = [p['total_sold'] for p in best_products_qs]
+
+        # 3. BEST SELLING CATEGORIES (TOP 10)
+        best_categories_qs = cat_order_items_qs.values(cat_name=F('product_variant__product__category__name')).annotate(
+            total_sold=Sum('quantity')).order_by('-total_sold')[:10]
+
+        category_labels = [c['cat_name'] if c['cat_name'] else 'Uncategorized' for c in best_categories_qs]
+        category_values = [c['total_sold'] for c in best_categories_qs]
+
+        # 4. PENDING RETURN REQUESTS
+        pending_returns = Return.objects.select_related('order', 'user').filter(status='pending')[:10]
+
+        # 5. LATEST 5 ORDERS
+        latest_orders = Order.objects.select_related('user').order_by('-created_at')[:5]
+
+        # 6. KPI CARDS (Calculated based on universal filter or globally?)
+        total_orders_count = orders.count()
+        total_revenue_calc = orders.aggregate(total=Sum('total_amount'))['total'] or 0
+        total_pending_returns = Return.objects.filter(status='pending').count()
+        total_products_count = Product.objects.count()
+
+        context = {
+            'chart_labels': chart_labels,
+            'chart_values': chart_values,
+            'product_labels': product_labels,
+            'product_values': product_values,
+            'category_labels': category_labels,
+            'category_values': category_values,
+
+            'pending_returns': pending_returns,
+            'latest_orders': latest_orders,
+            'selected_filter': filter_type,
+
+            'total_orders_count': total_orders_count,
+            'total_revenue_calc': total_revenue_calc,
+            'total_pending_returns': total_pending_returns,
+            'total_products_count': total_products_count,
+        }
+
+        return render(request, 'adminpanel/dashboard.html', context)

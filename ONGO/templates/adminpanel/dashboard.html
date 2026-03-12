@@ -1,0 +1,222 @@
+{% extends 'common/base_admin_list.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/adminpanel/dashboard.css' %}">
+{% endblock style %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800 tracking-tight">Admin Dashboard</h1>
+            <p class="text-sm text-gray-500 mt-1">Overview of store performance</p>
+        </div>
+        <form method="GET" class="flex items-center gap-3">
+            <label for="filter" class="text-sm font-medium text-gray-700">Filter:</label>
+            <select name="filter" id="filter" onchange="this.form.submit()" class="border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-32 px-3 py-2 cursor-pointer shadow-sm border bg-gray-50">
+                <option value="all" {% if selected_filter == 'all' %}selected{% endif %}>All Time</option>
+                <option value="daily" {% if selected_filter == 'daily' %}selected{% endif %}>Today</option>
+                <option value="weekly" {% if selected_filter == 'weekly' %}selected{% endif %}>This Week</option>
+                <option value="monthly" {% if selected_filter == 'monthly' %}selected{% endif %}>This Month</option>
+                <option value="yearly" {% if selected_filter == 'yearly' %}selected{% endif %}>This Year</option>
+            </select>
+        </form>
+    </div>
+
+    <!-- ROW 1 - KPI CARDS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Card 1 -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+            <div class="flex items-center space-x-4">
+                <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+                    <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">Total Orders</h3>
+                    <p class="text-2xl font-bold text-gray-800">{{ total_orders_count }}</p>
+                </div>
+            </div>
+        </div>
+        <!-- Card 2 -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+            <div class="flex items-center space-x-4">
+                <div class="p-3 bg-green-50 text-green-600 rounded-lg">
+                    <i data-lucide="indian-rupee" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">Total Revenue</h3>
+                    <p class="text-2xl font-bold text-gray-800">₹{{ total_revenue_calc|default:0|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+        <!-- Card 3 -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+            <div class="flex items-center space-x-4">
+                <div class="p-3 bg-red-50 text-red-600 rounded-lg">
+                    <i data-lucide="rotate-ccw" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">Pending Returns</h3>
+                    <p class="text-2xl font-bold text-gray-800">{{ total_pending_returns }}</p>
+                </div>
+            </div>
+        </div>
+        <!-- Card 4 -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+            <div class="flex items-center space-x-4">
+                <div class="p-3 bg-violet-50 text-violet-600 rounded-lg">
+                    <i data-lucide="package" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">Total Products</h3>
+                    <p class="text-2xl font-bold text-gray-800">{{ total_products_count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 2 - SALES CHART -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="p-6 border-b border-gray-100">
+            <h2 class="text-lg font-bold text-gray-800">Revenue Overview</h2>
+        </div>
+        <div class="p-6 chart-container relative w-full h-80">
+            <canvas id="salesChart"></canvas>
+            <!-- passing data to js securely -->
+            {{ chart_labels|json_script:"chartDataLabels" }}
+            {{ chart_values|json_script:"chartDataValues" }}
+        </div>
+    </div>
+
+    <!-- ROW 3 & 4 - BEST SELLING CHARTS -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        
+        <!-- ROW 3 - TOP 10 PRODUCTS -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-6 border-b border-gray-100">
+                <h2 class="text-lg font-bold text-gray-800">Best Selling Products</h2>
+            </div>
+            <div class="p-6 chart-container relative w-full h-80">
+                <canvas id="productsChart"></canvas>
+                {{ product_labels|json_script:"productDataLabels" }}
+                {{ product_values|json_script:"productDataValues" }}
+            </div>
+        </div>
+
+        <!-- ROW 4 - BEST SELLING CATEGORIES -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-6 border-b border-gray-100">
+                <h2 class="text-lg font-bold text-gray-800">Best Selling Categories</h2>
+            </div>
+            <div class="p-6 chart-container relative w-full h-80">
+                <canvas id="categoriesChart"></canvas>
+                {{ category_labels|json_script:"categoryDataLabels" }}
+                {{ category_values|json_script:"categoryDataValues" }}
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 5 - PENDING RETURNS -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-6">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-red-50/30">
+            <div class="flex items-center gap-3">
+                <div class="bg-red-100 p-2 rounded-full text-red-600">
+                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                </div>
+                <h2 class="text-lg font-bold text-gray-800">Pending Return Requests</h2>
+            </div>
+            <a href="{% url 'returns_list' %}" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">View All</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100 text-gray-500 text-xs uppercase tracking-wider">
+                        <th class="p-4 font-medium">Return ID</th>
+                        <th class="p-4 font-medium">Order</th>
+                        <th class="p-4 font-medium">Customer</th>
+                        <th class="p-4 font-medium text-right">Amount</th>
+                        <th class="p-4 font-medium text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for return_req in pending_returns %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="p-4 text-sm font-medium text-gray-900">#RET-{{ return_req.id }}</td>
+                        <td class="p-4 text-sm text-blue-600 font-medium"><a href="{% url 'admin_order_detail' return_req.order.order_id %}">{{ return_req.order.order_id|truncatechars:13 }}</a></td>
+                        <td class="p-4 text-sm text-gray-700">{{ return_req.user.get_full_name|default:return_req.user.email }}</td>
+                        <td class="p-4 text-sm font-medium text-gray-900 text-right">₹{{ return_req.refund_amount|floatformat:2 }}</td>
+                        <td class="p-4 text-center">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                                Pending
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="p-8 text-center text-gray-500">
+                            <div class="flex flex-col items-center">
+                                <i data-lucide="check-circle" class="w-8 h-8 text-green-400 mb-2"></i>
+                                <span class="text-sm">No pending returns</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ROW 6 - LATEST ORDERS -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8 mt-6">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-gray-800">Latest Orders</h2>
+            <a href="{% url 'admin_orders' %}" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">View All</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100 text-gray-500 text-xs uppercase tracking-wider">
+                        <th class="p-4 font-medium">Order ID</th>
+                        <th class="p-4 font-medium">Customer</th>
+                        <th class="p-4 font-medium text-right">Total</th>
+                        <th class="p-4 font-medium text-center">Payment</th>
+                        <th class="p-4 font-medium text-right">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for order in latest_orders %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="p-4 text-sm font-medium"><a href="{% url 'admin_order_detail' order.order_id %}" class="text-blue-600 hover:underline">{{ order.order_id|truncatechars:15 }}</a></td>
+                        <td class="p-4 text-sm text-gray-700">{{ order.user.get_full_name|default:order.user.email }}</td>
+                        <td class="p-4 text-sm font-bold text-gray-900 text-right">₹{{ order.total_amount|floatformat:2 }}</td>
+                        <td class="p-4 text-center">
+                            {% if order.payment_method == 'cod' %}
+                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">COD</span>
+                            {% elif order.payment_method == 'online' %}
+                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">Online</span>
+                            {% elif order.payment_method == 'wallet' %}
+                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">Wallet</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-sm text-gray-500 text-right">{{ order.created_at|date:"M d, Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="p-6 text-center text-gray-500 text-sm">No recent orders</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/adminpanel/dashboard.js' %}"></script>
+{% endblock %}
