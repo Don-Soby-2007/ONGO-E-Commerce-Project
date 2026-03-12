@@ -94,19 +94,9 @@ def get_homepage_context(request):
             else:
                 product_rep_map[product.id] = None
 
-        wishlist_variant_ids = set()
-        if request.user.is_authenticated:
-            wishlist_variant_ids = set(
-                Wishlist.objects.filter(
-                    user=request.user,
-                    product_variant_id__in=rep_variant_ids
-                ).values_list('product_variant_id', flat=True)
-            )
-
         for product in products:
             rep_id = product_rep_map[product.id]
             product.rep_variant_id = rep_id
-            product.in_wishlist = (rep_id in wishlist_variant_ids)
 
             if not rep_id:
                 product.offer_price = None
