@@ -2,12 +2,13 @@ from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView
 from django.utils import timezone
 from django.db.models import Q
+from django_extensions import settings
 
 from .models import Product, ProductVariant, ProductImage, Category
 from cart.models import Cart
 from accounts.models import Wishlist
 from offers.models import ProductOffer, CategoryOffer
-from order.models import ProductReview
+from order.models import ProductReview, Order
 
 from django.contrib.auth.models import AnonymousUser
 
@@ -33,6 +34,8 @@ from .utils import calculate_discount
 
 # from django.shortcuts import get_object_or_404
 
+from django.core.mail import EmailMultiAlternatives
+import re
 import logging
 import json
 
@@ -677,3 +680,75 @@ class ToggleWishlistView(LoginRequiredMixin, View):
 
 def legal_view(request):
     return render(request, 'products/legal.html')
+
+
+class ContactView(View):
+    def post(self, requesst):
+        name = requesst.POST.get('name')
+        email = requesst.POST.get('email')
+        subject = requesst.POST.get('subject')
+        message = requesst.POST.get('message')
+        order_id = requesst.POST.get('order_id')
+        attachments = requesst.FILES.getlist('attachments')
+
+        if not all([name, email, subject, message]):
+            return JsonResponse({'success': False, 'message': 'All fields are required.'}, status=400)
+
+        if re.match(r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$', email) is None:
+            return JsonResponse({'success': False, 'message': 'Invalid email format.'}, status=400)
+
+        if len(message.strip()) < 50:
+            return JsonResponse({'success': False, 'message': 'Message must be at least 50 characters long.'},
+                                status=400)
+
+        if order_id:
+            try:
+                _ = Order.objects.get(order_id=order_id, user=requesst.user).exist()
+            except Order.DoesNotExist:
+                return JsonResponse({'success': False, 'message': 'Invalid order ID.'}, status=400)
+
+        if attachments:
+            if len(attachments) > 3:
+                return JsonResponse({'success': False, 'message': 'You can upload a maximum of 3 attachments.'},
+                                    status=400)
+            for file in attachments:
+                if file.size > 5 * 1024 * 1024:
+                    return JsonResponse({'success': False, 'message': 'Each attachment must be under 5MB.'}, status=400)
+
+                if file.content_type not in ['image/jpeg', 'image/png', 'image/svg']:
+                    return JsonResponse({'success': False, 'message': 'Only JPEG, PNG and SVG files are allowed.'},
+                                        status=400)
+
+        subjects = f"Support Issue: {subject}"
+        from_email = settings.EMAIL_HOST_USER
+        to_email = ['info.ongo.styles@gmail.com']
+
+        text_content = f"""
+        Name: {name}
+        Email: {email}
+        Order ID: {order_id or 'N/A'}
+        Category: {subject}
+
+        Message:
+        {message}"""
+
+        msg = EmailMultiAlternatives(subjects, text_content, from_email, to_email)
+
+        for f in attachments:
+            msg.attach(f.name, f.read(), f.content_type)
+
+        try:
+            msg.send()
+            return JsonResponse({
+                'success': True,
+                'message': 'Your message has been sent successfully!'
+            }, status=200)
+
+        except Exception as e:
+            logger.exception("Failed to send contact email from user : " +
+                             f"{requesst.user.id if requesst.user.is_authenticated else 'Anonymous'}: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'message': 'Failed to send email. Please try again later.',
+                'error': str(e) if settings.DEBUG else None  # Hide details in production
+            }, status=500)
