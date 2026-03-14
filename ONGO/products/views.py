@@ -673,3 +673,7 @@ class ToggleWishlistView(LoginRequiredMixin, View):
             'message': message,
             'variant_id': variant_id
         })
+
+
+def legal_view(request):
+    return render(request, 'products/legal.html')

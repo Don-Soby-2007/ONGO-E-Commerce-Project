@@ -1,0 +1,248 @@
+{% extends "common/base_header.html" %}
+{% load static %}
+
+{% block title %}Terms & Conditions and Privacy Policy | ONGO{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-16 px-4 sm:px-6 lg:px-8">
+    <div class="container mx-auto max-w-4xl">
+        <!-- Page Header -->
+        <header class="text-center mb-16 space-y-4">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight">
+                Terms & Conditions and Privacy Policy
+            </h1>
+            <p class="text-sm font-medium text-gray-500 bg-gray-100 inline-block px-4 py-1.5 rounded-full">
+                Last updated: {% now "Y" %}
+            </p>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                This page explains the terms of using the ONGO demo e-commerce platform and how user information is handled.
+            </p>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12 space-y-12">
+            
+            <!-- SECTION 1 — ABOUT THIS PROJECT -->
+            <section class="space-y-4">
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="p-2 bg-blue-50 rounded-lg">
+                        <i data-lucide="info" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900">1. About This Project</h2>
+                </div>
+                <div class="prose prose-blue text-gray-700 max-w-none">
+                    <p>
+                        <strong>ONGO</strong> is a <span class="text-blue-600 font-semibold">demo e-commerce project</span> built strictly for learning and portfolio purposes. It is not a real commercial store.
+                    </p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>This website is a demonstration of web development skills and platform architecture.</li>
+                        <li><strong>No real payments</strong> are processed on this site.</li>
+                        <li>Payment integrations (Razorpay) are used only in <strong>test mode</strong> for demonstration of the checkout flow.</li>
+                    </ul>
+                    <div class="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                        <p class="font-medium text-gray-900 mb-2">Developed and maintained by:</p>
+                        <p class="text-lg font-bold text-gray-800">Don Soby</p>
+                        <div class="flex flex-wrap gap-4 mt-3">
+                            <a href="https://github.com/Don-Soby-2007/" target="_blank" class="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                                <i data-lucide="github" class="w-4 h-4 mr-2"></i> GitHub
+                            </a>
+                            <a href="https://www.linkedin.com/in/donsoby/" target="_blank" class="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                                <i data-lucide="linkedin" class="w-4 h-4 mr-2"></i> LinkedIn
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <hr class="border-gray-100 mt-10">
+            </section>
+
+            <!-- SECTION 2 — TERMS OF USE -->
+            <section class="space-y-4">
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="p-2 bg-green-50 rounded-lg">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-green-600"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900">2. Terms of Use</h2>
+                </div>
+                <div class="prose prose-green text-gray-700 max-w-none">
+                    <p>By accessing this platform, users are permitted to utilize the following features for testing purposes:</p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>Browse and search through our mock product catalog.</li>
+                        <li>Add items to a persistent shopping cart and manage wishlists.</li>
+                        <li>Place demonstration orders to experience the workflow.</li>
+                        <li>Manage personal profile information and address books.</li>
+                    </ul>
+                    <div class="bg-amber-50 border-l-4 border-amber-400 p-4 mt-4">
+                        <p class="text-amber-800 text-sm italic">
+                            <strong>Note:</strong> Orders placed on this site <strong>do not represent real purchases</strong>. No items will be shipped, and no real currency will be exchanged. The platform is intended for demonstration and educational use only.
+                        </p>
+                    </div>
+                </div>
+                <hr class="border-gray-100 mt-10">
+            </section>
+
+            <!-- SECTION 3 — ACCOUNT INFORMATION -->
+            <section class="space-y-4">
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="p-2 bg-purple-50 rounded-lg">
+                        <i data-lucide="user-plus" class="w-6 h-6 text-purple-600"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900">3. Account Information</h2>
+                </div>
+                <div class="prose prose-purple text-gray-700 max-w-none">
+                    <p>Users may create and access accounts through:</p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>Standard Email/Password authentication.</li>
+                        <li>Google OAuth 2.0 authentication.</li>
+                    </ul>
+                    <p>When using Google login, the following information may be retrieved from your Google account:</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Username / Full Name</li>
+                        <li>Profile Picture</li>
+                        <li>Email Address</li>
+                        <li>Phone Number (if provided and shared by Google)</li>
+                    </ul>
+                    <p>This data is used <strong>only to create and manage the user account inside the platform</strong> and to provide a personalized user experience within this demo environment.</p>
+                </div>
+                <hr class="border-gray-100 mt-10">
+            </section>
+
+            <!-- SECTION 4 — PRIVACY POLICY -->
+            <section class="space-y-4">
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="p-2 bg-indigo-50 rounded-lg">
+                        <i data-lucide="lock" class="w-6 h-6 text-indigo-600"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900">4. Privacy Policy</h2>
+                </div>
+                <div class="prose prose-indigo text-gray-700 max-w-none">
+                    <p>As a demo platform, we store basic user data to maintain session continuity and simulate a real e-commerce experience. Data stored includes:</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <h4 class="font-bold text-gray-900 text-sm uppercase tracking-wider mb-2">Data Collected</h4>
+                            <ul class="text-sm space-y-1">
+                                <li>• Email & Username</li>
+                                <li>• Profile Photo</li>
+                                <li>• Shipping & Billing Addresses</li>
+                                <li>• Order History & Preferences</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <h4 class="font-bold text-gray-900 text-sm uppercase tracking-wider mb-2">Usage Purpose</h4>
+                            <ul class="text-sm space-y-1">
+                                <li>• Account Management</li>
+                                <li>• Order Processing Simulation</li>
+                                <li>• UX Personalization</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p class="font-medium text-gray-800">We do not sell, rent, or share your data with third parties for marketing purposes.</p>
+                </div>
+                <hr class="border-gray-100 mt-10">
+            </section>
+
+            <!-- SECTION 5 — PAYMENT DISCLAIMER -->
+            <section class="space-y-4 text-gray-700">
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="p-2 bg-red-50 rounded-lg">
+                        <i data-lucide="credit-card" class="w-6 h-6 text-red-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900">5. Payment Disclaimer</h3>
+                </div>
+                <p>This website uses <strong>Razorpay test mode</strong> for demonstration of the payment flow.</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>No real payments are ever processed.</li>
+                    <li>Any payment pages shown are <strong>mock testing interfaces only</strong>.</li>
+                    <li>Do not enter actual credit card, debit card, or net banking credentials. Use only the provided test credentials in the Razorpay sandbox.</li>
+                </ul>
+                <hr class="border-gray-100 mt-10">
+            </section>
+
+            <!-- SECTION 6 — DATA SECURITY -->
+            <section class="space-y-4">
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="p-2 bg-teal-50 rounded-lg">
+                        <i data-lucide="shield" class="w-6 h-6 text-teal-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900">6. Data Security</h3>
+                </div>
+                <p>User data is handled securely within the context of this application. We implement industry-standard authentication and access controls to protect your dummy account data.</p>
+                <div class="bg-red-50 p-4 rounded-lg border border-red-100">
+                    <p class="text-red-800 text-sm">
+                        <strong>Warning:</strong> Since this is a portfolio/demo project, it should <strong>not</strong> be used to store sensitive, critical, or real-world private data.
+                    </p>
+                </div>
+                <hr class="border-gray-100 mt-10">
+            </section>
+
+            <!-- SECTION 7 — COOKIES & TRACKING -->
+            <section class="space-y-4">
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="p-2 bg-orange-50 rounded-lg">
+                        <i data-lucide="cookie" class="w-6 h-6 text-orange-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900">7. Cookies & Tracking</h3>
+                </div>
+                <p>The platform uses basic session cookies for:</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>Maintaining login sessions.</li>
+                    <li>Cart and session management.</li>
+                    <li>Security and authentication.</li>
+                </ul>
+                <p>We do <strong>not</strong> use third-party advertising or tracking cookies.</p>
+                <hr class="border-gray-100 mt-10">
+            </section>
+
+            <!-- SECTION 8 — CONTACT INFORMATION -->
+            <section class="space-y-4">
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="p-2 bg-pink-50 rounded-lg">
+                        <i data-lucide="mail" class="w-6 h-6 text-pink-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900">8. Contact Information</h3>
+                </div>
+                <p>For questions about the project, feedback, or technical inquiries, please contact the developer at:</p>
+                <a href="mailto:info.ongo.styles@gmail.com" class="inline-flex items-center text-blue-600 font-bold hover:underline">
+                    info.ongo.styles@gmail.com
+                    <i data-lucide="external-link" class="w-4 h-4 ml-1"></i>
+                </a>
+                <hr class="border-gray-100 mt-10">
+            </section>
+
+            <!-- SECTION 9 — CHANGES TO POLICY -->
+            <section class="space-y-4">
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="p-2 bg-gray-50 rounded-lg">
+                        <i data-lucide="refresh-cw" class="w-6 h-6 text-gray-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900">9. Changes to Policy</h3>
+                </div>
+                <p>These policies may be updated as the project evolves and new features are integrated. Users are encouraged to review this page periodically to stay informed about how we handle data.</p>
+            </section>
+
+            <!-- Final Note -->
+            <div class="pt-8 border-t border-gray-100 mt-12 text-center">
+                <p class="text-gray-400 text-sm italic">
+                    "This website is a demonstration project created for educational and portfolio purposes."
+                </p>
+            </div>
+        </div>
+        
+        <!-- Back to Top / Navigation -->
+        <div class="mt-8 text-center">
+            <a href="{% url 'home' %}" class="inline-flex items-center text-gray-500 hover:text-gray-800 transition-colors font-medium">
+                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                Back to Shopping
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize Lucide icons if not already done by base template
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}
