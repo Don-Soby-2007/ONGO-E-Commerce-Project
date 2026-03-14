@@ -156,6 +156,7 @@ class PaymentMethode(LoginRequiredMixin, View):
             'cart_summary': cart_summary,
             'wallet_balance': wallet_balance,
             'wallet_has_sufficient_balance': wallet_has_sufficient_balance,
+            'cod_possible': total_payable < 1000,
             'selected_payment_method': checkout_information.get('payment_methode', ''),
         }
         return context, None
