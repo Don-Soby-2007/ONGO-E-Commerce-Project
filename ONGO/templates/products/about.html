@@ -1,0 +1,597 @@
+{% extends "common/base_header.html" %}
+{% load static %}
+
+{% block title %}About ONGO | Fashion E-Commerce Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Gradient text utility */
+  .gradient-text {
+    background: linear-gradient(135deg, #dc2626, #f97316);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Hero gradient background */
+  .hero-gradient {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 60%, #1c1917 100%);
+  }
+
+  /* Subtle card hover lift */
+  .card-hover {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Tech badge glow on hover */
+  .tech-badge:hover {
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+  }
+
+  /* Feature icon animation */
+  .feature-icon-wrap {
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+  .feature-card:hover .feature-icon-wrap {
+    background: #dc2626;
+    transform: scale(1.1) rotate(5deg);
+  }
+  .feature-card:hover .feature-icon-wrap svg {
+    color: #fff !important;
+  }
+
+  /* Input focus ring */
+  .form-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+  }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="hero-gradient text-white py-28 px-4 relative overflow-hidden mt-20">
+  <!-- Decorative blobs -->
+  <div class="absolute top-0 right-0 w-96 h-96 bg-red-600 rounded-full opacity-10 blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+  <div class="absolute bottom-0 left-0 w-72 h-72 bg-orange-500 rounded-full opacity-10 blur-3xl translate-y-1/2 -translate-x-1/3"></div>
+
+  <div class="container mx-auto max-w-6xl text-center relative z-10">
+    <!-- Badge -->
+    <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-sm text-gray-300 mb-8">
+      <i data-lucide="sparkles" class="w-4 h-4 text-orange-400"></i>
+      Portfolio &amp; Learning Project
+    </div>
+
+    <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight">
+      About <span class="gradient-text">ONGO</span>
+    </h1>
+    <p class="text-xl md:text-2xl text-gray-300 font-light max-w-3xl mx-auto mb-6 leading-relaxed">
+      A modern fashion e-commerce demo platform built for learning and portfolio development.
+    </p>
+    <p class="text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+      ONGO is a demonstration fashion store where users can browse products, explore categories, and simulate the complete online shopping experience — from cart to checkout.
+    </p>
+
+    <!-- CTA Buttons -->
+    <div class="flex flex-wrap gap-4 justify-center">
+      <a href="https://github.com/Don-Soby-2007/" target="_blank" rel="noopener noreferrer"
+         class="inline-flex items-center gap-2 bg-white text-gray-900 px-6 py-3 rounded-xl font-semibold text-sm hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl">
+        <i data-lucide="github" class="w-5 h-5"></i>
+        View GitHub
+      </a>
+      <a href="https://www.linkedin.com/in/donsoby/" target="_blank" rel="noopener noreferrer"
+         class="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl">
+        <i data-lucide="linkedin" class="w-5 h-5"></i>
+        View LinkedIn
+      </a>
+    </div>
+
+    <!-- Scroll cue -->
+    <div class="mt-16 flex justify-center">
+      <div class="w-6 h-10 border-2 border-white/30 rounded-full flex items-start justify-center p-1">
+        <div class="w-1 h-2 bg-white/60 rounded-full animate-bounce"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===============================================
+     SECTION 2 — ABOUT THE PROJECT
+=============================================== -->
+<section class="py-20 px-4 bg-white">
+  <div class="container mx-auto max-w-6xl reveal">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <!-- Left — text -->
+      <div class="space-y-6">
+        <div class="inline-flex items-center gap-2 bg-red-50 text-red-600 px-3 py-1 rounded-full text-sm font-medium">
+          <i data-lucide="layers" class="w-4 h-4"></i>
+          Full-Stack Project
+        </div>
+        <h2 class="text-4xl font-extrabold text-gray-900">
+          About the <span class="gradient-text">Project</span>
+        </h2>
+        <p class="text-gray-600 leading-relaxed text-lg">
+          ONGO is a <strong>full-stack e-commerce learning project</strong> designed to replicate the core aspects of a real-world fashion shopping platform — from product discovery all the way through checkout and order management.
+        </p>
+        <ul class="space-y-3">
+          {% for feature in feature_list %}
+          <li class="flex items-center gap-3 text-gray-700">
+            <div class="flex-shrink-0 w-5 h-5 bg-red-100 rounded-full flex items-center justify-center">
+              <i data-lucide="check" class="w-3 h-3 text-red-600"></i>
+            </div>
+            {{ feature }}
+          </li>
+          {% empty %}
+          <li class="flex items-center gap-3 text-gray-700"><div class="flex-shrink-0 w-5 h-5 bg-red-100 rounded-full flex items-center justify-center"><i data-lucide="check" class="w-3 h-3 text-red-600"></i></div>Product browsing &amp; search</li>
+          <li class="flex items-center gap-3 text-gray-700"><div class="flex-shrink-0 w-5 h-5 bg-red-100 rounded-full flex items-center justify-center"><i data-lucide="check" class="w-3 h-3 text-red-600"></i></div>User authentication &amp; Google OAuth</li>
+          <li class="flex items-center gap-3 text-gray-700"><div class="flex-shrink-0 w-5 h-5 bg-red-100 rounded-full flex items-center justify-center"><i data-lucide="check" class="w-3 h-3 text-red-600"></i></div>Shopping cart &amp; checkout flow</li>
+          <li class="flex items-center gap-3 text-gray-700"><div class="flex-shrink-0 w-5 h-5 bg-red-100 rounded-full flex items-center justify-center"><i data-lucide="check" class="w-3 h-3 text-red-600"></i></div>Coupon &amp; offer system</li>
+          <li class="flex items-center gap-3 text-gray-700"><div class="flex-shrink-0 w-5 h-5 bg-red-100 rounded-full flex items-center justify-center"><i data-lucide="check" class="w-3 h-3 text-red-600"></i></div>Wallet system</li>
+          <li class="flex items-center gap-3 text-gray-700"><div class="flex-shrink-0 w-5 h-5 bg-red-100 rounded-full flex items-center justify-center"><i data-lucide="check" class="w-3 h-3 text-red-600"></i></div>Order management</li>
+          <li class="flex items-center gap-3 text-gray-700"><div class="flex-shrink-0 w-5 h-5 bg-red-100 rounded-full flex items-center justify-center"><i data-lucide="check" class="w-3 h-3 text-red-600"></i></div>Admin analytics dashboard</li>
+          {% endfor %}
+        </ul>
+
+        <!-- Payment disclaimer -->
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5"></i>
+          <div>
+            <p class="text-amber-800 font-semibold text-sm mb-0.5">Test Mode Only</p>
+            <p class="text-amber-700 text-sm">Payments use <strong>Razorpay test mode</strong> exclusively. No real payments are ever processed.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right — stat cards -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-6 text-white card-hover">
+          <i data-lucide="shopping-bag" class="w-8 h-8 mb-3 opacity-90"></i>
+          <p class="text-3xl font-extrabold">10+</p>
+          <p class="text-red-100 text-sm mt-1">Core Features</p>
+        </div>
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 text-white card-hover">
+          <i data-lucide="layers" class="w-8 h-8 mb-3 opacity-90"></i>
+          <p class="text-3xl font-extrabold">Full</p>
+          <p class="text-gray-400 text-sm mt-1">Stack App</p>
+        </div>
+        <div class="bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl p-6 text-white card-hover">
+          <i data-lucide="credit-card" class="w-8 h-8 mb-3 opacity-90"></i>
+          <p class="text-3xl font-extrabold">Razorpay</p>
+          <p class="text-orange-100 text-sm mt-1">Test Mode</p>
+        </div>
+        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-6 text-white card-hover">
+          <i data-lucide="shield-check" class="w-8 h-8 mb-3 opacity-90"></i>
+          <p class="text-3xl font-extrabold">OAuth</p>
+          <p class="text-blue-100 text-sm mt-1">Google Login</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===============================================
+     SECTION 3 — ABOUT THE DEVELOPER
+=============================================== -->
+<section class="py-20 px-4 bg-gray-50">
+  <div class="container mx-auto max-w-6xl reveal">
+    <div class="text-center mb-12">
+      <div class="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-sm font-medium mb-4">
+        <i data-lucide="user" class="w-4 h-4"></i>
+        The Developer
+      </div>
+      <h2 class="text-4xl font-extrabold text-gray-900">
+        Meet the <span class="gradient-text">Developer</span>
+      </h2>
+    </div>
+
+    <!-- Developer card -->
+    <div class="max-w-3xl mx-auto">
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden card-hover">
+        <!-- Top banner with social links -->
+        <div class="h-28 bg-gradient-to-r from-gray-900 via-gray-800 to-red-900 relative">
+          <div class="absolute inset-0 opacity-20"
+               style="background-image:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(255,255,255,.05) 10px,rgba(255,255,255,.05) 11px)">
+          </div>
+          <!-- Social links on banner -->
+          <div class="absolute bottom-3 right-4 flex gap-2">
+            <a href="https://github.com/Don-Soby-2007/" target="_blank" rel="noopener noreferrer"
+               class="inline-flex items-center gap-1.5 bg-gray-900/90 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-lg hover:bg-gray-700 transition-colors border border-gray-700">
+              <i data-lucide="github" class="w-3.5 h-3.5"></i>
+              GitHub
+            </a>
+            <a href="https://www.linkedin.com/in/donsoby/" target="_blank" rel="noopener noreferrer"
+               class="inline-flex items-center gap-1.5 bg-blue-600/90 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors border border-blue-500">
+              <i data-lucide="linkedin" class="w-3.5 h-3.5"></i>
+              LinkedIn
+            </a>
+          </div>
+        </div>
+
+        <div class="px-8 pb-8 relative">
+          <!-- Avatar overlapping banner -->
+          <div class="-mt-12 mb-6">
+            <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-red-500 to-orange-400 flex items-center justify-center shadow-lg text-white font-extrabold text-3xl border-4 border-white">
+              D
+            </div>
+          </div>
+
+          <h3 class="text-2xl font-bold text-gray-900 mb-1">Don Soby</h3>
+          <p class="text-red-500 text-sm font-medium mb-4">Full-Stack Developer &amp; Creator of ONGO</p>
+          <p class="text-gray-600 leading-relaxed mb-4">
+            Don Soby is a developer building modern web applications and exploring full-stack development.
+            ONGO was created as a learning project to practice building real-world systems such as authentication,
+            cart logic, payment flow, admin dashboards, and analytics.
+          </p>
+
+          <!-- Tags -->
+          <div class="flex flex-wrap gap-2">
+            <span class="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">Django</span>
+            <span class="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">Python</span>
+            <span class="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">JavaScript</span>
+            <span class="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">TailwindCSS</span>
+            <span class="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">PostgreSQL</span>
+            <span class="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">Razorpay</span>
+            <span class="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">OAuth 2.0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===============================================
+     SECTION 4 — PROJECT FEATURES
+=============================================== -->
+<section class="py-20 px-4 bg-white">
+  <div class="container mx-auto max-w-6xl reveal">
+    <div class="text-center mb-12">
+      <div class="inline-flex items-center gap-2 bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-sm font-medium mb-4">
+        <i data-lucide="zap" class="w-4 h-4"></i>
+        What's Inside
+      </div>
+      <h2 class="text-4xl font-extrabold text-gray-900">
+        Project <span class="gradient-text">Features</span>
+      </h2>
+      <p class="text-gray-500 mt-3 max-w-xl mx-auto">A full-featured e-commerce experience built with real-world complexity in mind.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+      <!-- Feature Card Helper: icon | title | desc -->
+      <div class="feature-card bg-gray-50 border border-gray-100 rounded-xl p-6 card-hover">
+        <div class="feature-icon-wrap w-11 h-11 bg-red-100 rounded-xl flex items-center justify-center mb-4">
+          <i data-lucide="search" class="w-5 h-5 text-red-600"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-1">Product Search</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Filter and search across the full product catalog by name, category, and price.</p>
+      </div>
+
+      <div class="feature-card bg-gray-50 border border-gray-100 rounded-xl p-6 card-hover">
+        <div class="feature-icon-wrap w-11 h-11 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+          <i data-lucide="shield-check" class="w-5 h-5 text-blue-600"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-1">Secure Authentication</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Email + password login, OTP verification, and Google OAuth 2.0 sign-in.</p>
+      </div>
+
+      <div class="feature-card bg-gray-50 border border-gray-100 rounded-xl p-6 card-hover">
+        <div class="feature-icon-wrap w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center mb-4">
+          <i data-lucide="shopping-cart" class="w-5 h-5 text-green-600"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-1">Shopping Cart</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Persistent cart with real-time item count, quantity management, and subtotals.</p>
+      </div>
+
+      <div class="feature-card bg-gray-50 border border-gray-100 rounded-xl p-6 card-hover">
+        <div class="feature-icon-wrap w-11 h-11 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+          <i data-lucide="credit-card" class="w-5 h-5 text-purple-600"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-1">Checkout System</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Full checkout flow with address selection, coupon entry, and payment simulation.</p>
+      </div>
+
+      <div class="feature-card bg-gray-50 border border-gray-100 rounded-xl p-6 card-hover">
+        <div class="feature-icon-wrap w-11 h-11 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
+          <i data-lucide="tag" class="w-5 h-5 text-orange-600"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-1">Coupon System</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Apply discount coupons with percentage or fixed-amount offers at checkout.</p>
+      </div>
+
+      <div class="feature-card bg-gray-50 border border-gray-100 rounded-xl p-6 card-hover">
+        <div class="feature-icon-wrap w-11 h-11 bg-indigo-100 rounded-xl flex items-center justify-center mb-4">
+          <i data-lucide="layout-dashboard" class="w-5 h-5 text-indigo-600"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-1">Admin Dashboard</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Analytics charts, sales reports, order management, and inventory controls.</p>
+      </div>
+
+      <div class="feature-card bg-gray-50 border border-gray-100 rounded-xl p-6 card-hover">
+        <div class="feature-icon-wrap w-11 h-11 bg-rose-100 rounded-xl flex items-center justify-center mb-4">
+          <i data-lucide="percent" class="w-5 h-5 text-rose-600"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-1">Offer Management</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Product and category-level offers with priority control and time-bound activation.</p>
+      </div>
+
+      <div class="feature-card bg-gray-50 border border-gray-100 rounded-xl p-6 card-hover">
+        <div class="feature-icon-wrap w-11 h-11 bg-teal-100 rounded-xl flex items-center justify-center mb-4">
+          <i data-lucide="wallet" class="w-5 h-5 text-teal-600"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-1">Wallet System</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">In-platform wallet with credit/debit transactions and refund processing.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ===============================================
+     SECTION 5 — TECHNOLOGY STACK
+=============================================== -->
+<section class="py-20 px-4 bg-gray-50">
+  <div class="container mx-auto max-w-6xl reveal">
+    <div class="text-center mb-12">
+      <div class="inline-flex items-center gap-2 bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm font-medium mb-4">
+        <i data-lucide="cpu" class="w-4 h-4"></i>
+        Under the Hood
+      </div>
+      <h2 class="text-4xl font-extrabold text-gray-900">
+        Technology <span class="gradient-text">Stack</span>
+      </h2>
+      <p class="text-gray-500 mt-3 max-w-xl mx-auto">Every layer of ONGO uses battle-tested, industry-standard technologies.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- Backend -->
+      <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm card-hover">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+            <i data-lucide="server" class="w-5 h-5 text-green-600"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 text-lg">Backend</h3>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="tech-badge bg-green-50 border border-green-200 text-green-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">Django</span>
+          <span class="tech-badge bg-green-50 border border-green-200 text-green-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">Python</span>
+          <span class="tech-badge bg-green-50 border border-green-200 text-green-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">Django ORM</span>
+        </div>
+      </div>
+
+      <!-- Frontend -->
+      <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm card-hover">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+            <i data-lucide="monitor" class="w-5 h-5 text-blue-600"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 text-lg">Frontend</h3>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="tech-badge bg-blue-50 border border-blue-200 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">HTML5</span>
+          <span class="tech-badge bg-blue-50 border border-blue-200 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">TailwindCSS</span>
+          <span class="tech-badge bg-blue-50 border border-blue-200 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">JavaScript</span>
+          <span class="tech-badge bg-blue-50 border border-blue-200 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">Lucide Icons</span>
+        </div>
+      </div>
+
+      <!-- Payments -->
+      <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm card-hover">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+            <i data-lucide="credit-card" class="w-5 h-5 text-orange-600"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 text-lg">Payments</h3>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="tech-badge bg-orange-50 border border-orange-200 text-orange-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">Razorpay</span>
+          <span class="tech-badge bg-amber-50 border border-amber-200 text-amber-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">Test Mode Only</span>
+        </div>
+      </div>
+
+      <!-- Auth -->
+      <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm card-hover">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+            <i data-lucide="key" class="w-5 h-5 text-red-600"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 text-lg">Authentication</h3>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="tech-badge bg-red-50 border border-red-200 text-red-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">Google OAuth</span>
+          <span class="tech-badge bg-red-50 border border-red-200 text-red-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">Email Login</span>
+          <span class="tech-badge bg-red-50 border border-red-200 text-red-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">OTP Verify</span>
+        </div>
+      </div>
+
+      <!-- Database -->
+      <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm card-hover">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+            <i data-lucide="database" class="w-5 h-5 text-indigo-600"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 text-lg">Database</h3>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="tech-badge bg-indigo-50 border border-indigo-200 text-indigo-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">PostgreSQL</span>
+          <span class="tech-badge bg-indigo-50 border border-indigo-200 text-indigo-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">Django ORM</span>
+        </div>
+      </div>
+
+      <!-- Tools -->
+      <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm card-hover">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+            <i data-lucide="tool-case" class="w-5 h-5 text-gray-600"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 text-lg">Tools &amp; Libs</h3>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="tech-badge bg-gray-100 border border-gray-200 text-gray-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">SweetAlert2</span>
+          <span class="tech-badge bg-gray-100 border border-gray-200 text-gray-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">Cloudinary</span>
+          <span class="tech-badge bg-gray-100 border border-gray-200 text-gray-800 text-sm font-semibold px-3 py-1 rounded-full transition-all">Chart.js</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ===============================================
+     SECTION 6 — CONTACT FORM
+=============================================== -->
+<section class="py-20 px-4 bg-white" id="contact">
+  <div class="container mx-auto max-w-6xl reveal">
+    <div class="text-center mb-12">
+      <div class="inline-flex items-center gap-2 bg-red-50 text-red-600 px-3 py-1 rounded-full text-sm font-medium mb-4">
+        <i data-lucide="mail" class="w-4 h-4"></i>
+        Get in Touch
+      </div>
+      <h2 class="text-4xl font-extrabold text-gray-900">
+        Contact <span class="gradient-text">Support</span>
+      </h2>
+      <p class="text-gray-500 mt-3 max-w-xl mx-auto">
+        You can contact us directly using the form below.
+      </p>
+      <a href="mailto:info.ongo.styles@gmail.com"
+         class="inline-flex items-center gap-2 mt-3 text-red-600 font-semibold hover:underline">
+        <i data-lucide="mail" class="w-4 h-4"></i>
+        info.ongo.styles@gmail.com
+      </a>
+    </div>
+
+    <div class="max-w-2xl mx-auto">
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 md:p-10">
+
+        <form id="contact-form" novalidate>
+          {% csrf_token %}
+
+          <!-- Name + Email row -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+            <div>
+              <label for="contact-name" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                Full Name <span class="text-red-500">*</span>
+              </label>
+              <input id="contact-name" name="name" type="text" placeholder="Your name"
+                     class="form-input w-full border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 placeholder-gray-400 transition-all">
+            </div>
+            <div>
+              <label for="contact-email" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                Email Address <span class="text-red-500">*</span>
+              </label>
+              <input id="contact-email" name="email" type="email" placeholder="you@example.com"
+                     class="form-input w-full border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 placeholder-gray-400 transition-all">
+            </div>
+          </div>
+
+          <!-- Subject + Order ID row -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+            <div>
+              <label for="contact-subject" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                Subject <span class="text-red-500">*</span>
+              </label>
+              <select id="contact-subject" name="subject"
+                      class="form-input w-full border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 bg-white transition-all appearance-none">
+                <option value="" disabled selected>Select a subject</option>
+                <option value="General Inquiry">General Inquiry</option>
+                <option value="Order Issue">Order Issue</option>
+                <option value="Technical Issue">Technical Issue</option>
+                <option value="Feedback">Feedback</option>
+              </select>
+            </div>
+            <div>
+              <label for="contact-order-id" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                Order ID <span class="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <input id="contact-order-id" name="order_id" type="text" placeholder="ORD-XXXXXXXX"
+                     class="form-input w-full border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 placeholder-gray-400 transition-all">
+            </div>
+          </div>
+
+          <!-- Message -->
+          <div class="mb-5">
+            <label for="contact-message" class="block text-sm font-semibold text-gray-700 mb-1.5">
+              Message <span class="text-red-500">*</span>
+            </label>
+            <textarea id="contact-message" name="message" rows="5"
+                      placeholder="Describe your issue or inquiry in detail (at least 50 characters)..."
+                      class="form-input w-full border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-700 placeholder-gray-400 transition-all resize-none"></textarea>
+            <p id="msg-counter" class="mt-1 text-xs text-gray-400 text-right">0 / 50 min</p>
+          </div>
+
+          <!-- File Attachments — 3 slots -->
+          <div class="mb-7">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Attachments <span class="text-gray-400 font-normal">(optional)</span>
+            </label>
+
+            <!-- Note -->
+            <div class="bg-blue-50 border border-blue-100 rounded-lg px-4 py-2 flex gap-2 items-start mb-3">
+              <i data-lucide="info" class="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5"></i>
+              <p class="text-xs text-blue-700">
+                Maximum <strong>3 files</strong> &nbsp;·&nbsp; JPEG / PNG / SVG &nbsp;·&nbsp; Max <strong>5 MB</strong> each
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div id="file-slot-0"></div>
+              <div id="file-slot-1"></div>
+              <div id="file-slot-2"></div>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" id="contact-submit"
+                  class="w-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            Send Message
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+  /* ── Scroll reveal observer ─────────────────────────────── */
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  revealEls.forEach(el => observer.observe(el));
+
+  /* Re-init Lucide after dynamic content */
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+</script>
+<script src="{% static 'js/products/about.js' %}"></script>
+{% endblock %}

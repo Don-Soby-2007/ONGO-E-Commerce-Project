@@ -10,4 +10,7 @@ urlpatterns = [
     path('product/toggle-wishlist/<int:variant_id>/', views.ToggleWishlistView.as_view(), name='toggle_wishlist'),
 
     path('legal/', views.legal_view, name='legal'),
+
+    path('about/', views.about_view, name='about'),
+    path('contact/', views.ContactView.as_view(), name='contact'),
 ]

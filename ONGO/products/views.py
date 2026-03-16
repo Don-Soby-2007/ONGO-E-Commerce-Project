@@ -38,6 +38,10 @@ from django.core.mail import EmailMultiAlternatives
 import re
 import logging
 import json
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -682,6 +686,10 @@ def legal_view(request):
     return render(request, 'products/legal.html')
 
 
+def about_view(request):
+    return render(request, 'products/about.html')
+
+
 class ContactView(View):
     def post(self, requesst):
         name = requesst.POST.get('name')
@@ -719,8 +727,8 @@ class ContactView(View):
                     return JsonResponse({'success': False, 'message': 'Only JPEG, PNG and SVG files are allowed.'},
                                         status=400)
 
-        subjects = f"Support Issue: {subject}"
-        from_email = settings.EMAIL_HOST_USER
+        subjects = f"Contacted Support Issue: {subject}"
+        from_email = os.getenv("EMAIL_HOST_USER")
         to_email = ['info.ongo.styles@gmail.com']
 
         text_content = f"""

@@ -114,7 +114,7 @@
                 <div class="flex justify-center space-x-8 overflow-x-auto">
                     <a href="{% url 'home' %}" class="text-gray-700 hover:text-red-500 font-medium">Home</a>
                     <a href="{% url 'product_list' %}" class="text-gray-700 hover:text-red-500 font-medium">Products</a>
-                    <a href="#" class="text-gray-700 hover:text-red-500 font-medium">About</a>
+                    <a href="{% url 'about' %}" class="text-gray-700 hover:text-red-500 font-medium">About</a>
                 </div>
             </div>
         </div>
@@ -209,8 +209,8 @@
                 <div>
                     <h3 class="text-lg font-bold mb-4">About</h3>
                     <ul class="space-y-2">
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">About us</a></li>
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Write to us</a></li>
+                        <li><a href="{% url 'about' %}" class="hover-text text-gray-600 hover:text-orange-500">About us</a></li>
+                        <li><a href="{% url 'about' %}#contact" class="hover-text text-gray-600 hover:text-orange-500">Write to us</a></li>
                         <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Careers</a></li>
                         <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Take a Tour</a></li>
                         <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Blog</a></li>
@@ -225,7 +225,7 @@
                 <div>
                     <h3 class="text-lg font-bold mb-4">Help</h3>
                     <ul class="space-y-2">
-                        <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Contact us</a></li>
+                        <li><a href="{% url 'about' %}#contact" class="hover-text text-gray-600 hover:text-orange-500">Contact us</a></li>
                         <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Shipping</a></li>
                         <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Returns Process</a></li>
                         <li><a href="#" class="hover-text text-gray-600 hover:text-orange-500">Returns And Exchange
