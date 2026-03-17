@@ -13,7 +13,10 @@ class Banner(models.Model):
     title = models.CharField(max_length=200)
 
     desktop_image = models.URLField()
+    desktop_public_id = models.CharField(max_length=200, blank=True, null=True)
+
     mobile_image = models.URLField(blank=True, null=True)
+    mobile_public_id = models.CharField(max_length=200, blank=True, null=True)
 
     redirect_link = models.URLField(blank=True)
 

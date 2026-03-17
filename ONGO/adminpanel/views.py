@@ -11,6 +11,7 @@ from django.views.generic.edit import CreateView, UpdateView
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
+from .models import Banner
 from accounts.models import User, Wallet, WalletTransaction
 from products.models import Category, Product, ProductVariant, ProductImage
 from order.models import Order, OrderItem
@@ -480,7 +481,7 @@ class AdminProductsView(LoginRequiredMixin, ListView):
         return context
 
 
-ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"]
+ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml", "image/jpg"]
 MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
 
 
@@ -2414,3 +2415,245 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, View):
         }
 
         return render(request, 'adminpanel/dashboard.html', context)
+
+
+@method_decorator(never_cache, name='dispatch')
+class BannerListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+
+    template_name = 'admnpanel/banners.html'
+    model = Banner,
+    context_object_name = 'banners'
+    paginate_by = 6
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+
+@method_decorator(never_cache, name='dispatch')
+class BannerCreatView(LoginRequiredMixin, UserPassesTestMixin, View):
+
+    template_name = "adminpanel/add_banner.html"
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get(self, request):
+
+        return render(request, self.template_name)
+
+    def post(self, request):
+
+        title = request.POST.get('title')
+        desktop_image = request.FILES.get('desktop_image')
+        mobile_image = request.FILES.get('mobile_image')
+        redirect_link = request.POST.get('redirect_link')
+        location = request.POST.get('location')
+        priority = request.POST.get('priority')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        is_active = request.POST.get('is_active') == 'on'
+
+        if not title or len(title) < 8 or len(title) > 200:
+            messages.error(request, "Title is required and should be between 8 and 200 characters.")
+            return render(request, self.template_name)
+
+        if (
+            not desktop_image
+            or desktop_image.size > MAX_IMAGE_SIZE
+            or desktop_image.content_type not in ALLOWED_IMAGE_TYPES
+        ):
+            messages.error(request, "A valid desktop image is required.")
+            return render(request, self.template_name)
+
+        if mobile_image:
+            if (
+                not mobile_image.size > MAX_IMAGE_SIZE
+                or mobile_image.content_type not in ALLOWED_IMAGE_TYPES
+            ):
+                messages.error(request, "Mobile image must be a valid image file.")
+                return render(request, self.template_name)
+
+        if location not in dict(Banner.LOCATION_CHOICES):
+            messages.error(request, "Invalid location selected.")
+            return render(request, self.template_name)
+
+        try:
+            priority = int(priority)
+        except (ValueError, TypeError):
+            messages.error(request, "Priority must be a valid integer.")
+            return render(request, self.template_name)
+
+        try:
+            desktop_upload = cloudinary_upload(
+                        desktop_image,
+                        folder="products/variants",
+                        public_id=f"desktop_banner_{uuid.uuid4().hex[:8]}",
+                        resource_type="image"
+                    )
+
+            if mobile_image:
+                mobile_upload = cloudinary_upload(
+                    mobile_image,
+                    folder="products/variants",
+                    public_id=f"mobile_banner_{uuid.uuid4().hex[:8]}",
+                    resource_type="image"
+                )
+
+            Banner.objects.create(
+                title=title,
+                desktop_image=desktop_upload['secure_url'],
+                desktop_public_id=desktop_upload['public_id'],
+                mobile_image=mobile_upload['secure_url'] if mobile_image else None,
+                mobile_public_id=mobile_upload['public_id'] if mobile_image else None,
+                redirect_link=redirect_link,
+                location=location,
+                priority=priority,
+                start_date=start_date if start_date else None,
+                end_date=end_date if end_date else None,
+                is_active=is_active
+            )
+            messages.success(request, "Banner created successfully.")
+            return redirect('banner_list')
+
+        except Exception as e:
+            logger.error(request, f'Error creating banner: {e}')
+            messages.error(request, "An error occurred while creating the banner.")
+            return render(request, self.template_name)
+
+
+@method_decorator(never_cache, name='dispatch')
+class BannerEditView(LoginRequiredMixin, UserPassesTestMixin, View):
+
+    template_name = 'adminpanel/edit_banner.html'
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get(self, request, banner_id):
+
+        banner = get_object_or_404(Banner, id=banner_id)
+
+        context = {
+            'banner': banner
+        }
+
+        return render(request, self.template_name, context)
+
+    def post(self, request, banner_id):
+
+        banner = get_object_or_404(Banner, id=banner_id)
+
+        title = request.POST.get('title')
+        desktop_image = request.FILES.get('desktop_image')
+        mobile_image = request.FILES.get('mobile_image')
+        redirect_link = request.POST.get('redirect_link')
+        location = request.POST.get('location')
+        priority = request.POST.get('priority')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        is_active = request.POST.get('is_active') == 'on'
+
+        if not title or len(title) < 8 or len(title) > 200:
+            messages.error(request, "Title is required and should be between 8 and 200 characters.")
+            return render(request, self.template_name, {'banner': banner})
+
+        if desktop_image:
+            if (
+                not desktop_image.size > MAX_IMAGE_SIZE
+                or desktop_image.content_type not in ALLOWED_IMAGE_TYPES
+            ):
+                messages.error(request, "A valid desktop image is required.")
+                return render(request, self.template_name, {'banner': banner})
+
+        if mobile_image:
+            if (
+                not mobile_image.size > MAX_IMAGE_SIZE
+                or mobile_image.content_type not in ALLOWED_IMAGE_TYPES
+            ):
+                messages.error(request, "Mobile image must be a valid image file.")
+                return render(request, self.template_name, {'banner': banner})
+
+        if location not in dict(Banner.LOCATION_CHOICES):
+            messages.error(request, "Invalid location selected.")
+            return render(request, self.template_name, {'banner': banner})
+
+        try:
+            priority = int(priority)
+        except (ValueError, TypeError):
+            messages.error(request, "Priority must be a valid integer.")
+            return render(request, self.template_name, {'banner': banner})
+
+        try:
+
+            if desktop_image:
+                desktop_upload = cloudinary_upload(
+                    desktop_image,
+                    folder="products/variants",
+                    public_id=f"desktop_banner_{uuid.uuid4().hex[:8]}",
+                    resource_type="image"
+                )
+                banner.desktop_image = desktop_upload['secure_url']
+                banner.desktop_public_id = desktop_upload['public_id']
+
+            if mobile_image:
+                mobile_upload = cloudinary_upload(
+                    mobile_image,
+                    folder="products/variants",
+                    public_id=f"mobile_banner_{uuid.uuid4().hex[:8]}",
+                    resource_type="image"
+                )
+                banner.mobile_image = mobile_upload['secure_url']
+                banner.mobile_public_id = mobile_upload['public_id']
+
+            banner.title = title
+            banner.redirect_link = redirect_link
+            banner.location = location
+            banner.priority = priority
+            banner.start_date = start_date
+            banner.end_date = end_date
+            banner.is_active = is_active
+            banner.save()
+
+            messages.success(request, "Banner updated successfully.")
+            return redirect('banner_list')
+
+        except Exception as e:
+            logger.error(request, f'Error updating banner {banner_id}: {e}')
+            messages.error(request, "An error occurred while updating the banner.")
+            return render(request, self.template_name, {'banner': banner})
+
+
+class ToggleBannerStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def post(self, request, banner_id):
+
+        try:
+            banner = get_object_or_404(Banner, id=banner_id)
+
+            banner.is_active = not banner.is_active
+            banner.save(update_fields=['is_active'])
+
+            status = 'Active' if banner.is_active else 'Inactive'
+
+            return JsonResponse({
+                'success': True,
+                'message': f"Banner '{banner.title}' is now {status}",
+                'status': status
+            })
+
+        except DatabaseError as e:
+            logger.error(request, f'Database error occured while toggling banner status: {e}')
+            return JsonResponse({
+                'success': False,
+                'message': 'Database error occured while changing banner status.'
+            })
+
+        except Exception as e:
+            logger.error(request, f'Something went wrong while toggling banner status {banner_id}: {e}')
+            return JsonResponse({
+                'success': False,
+                'message': 'Something went wrong while changing banner status.'
+            })
