@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.db.models import Q
 from django_extensions import settings
 
+from adminpanel.models import Banner
 from .models import Product, ProductVariant, ProductImage, Category
 from cart.models import Cart
 from accounts.models import Wishlist
@@ -152,10 +153,16 @@ def get_homepage_context(request):
     attach_offer_and_wishlist(new_arrivals)
     attach_offer_and_wishlist(trending_products)
 
+    banners = Banner.objects.filter(
+        is_active=True,
+        start_date__lte=timezone.now(),
+        end_date__gte=timezone.now()).order_by('priority')
+
     return {
         'new_arrivals': new_arrivals,
         'trending_products': trending_products,
         'categories': categories,
+        'banners': banners,
     }
 
 

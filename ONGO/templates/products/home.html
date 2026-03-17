@@ -140,6 +140,24 @@
                     </div>
                 </div>
             </div>
+
+            {% if banners %}
+            {% for banner in banners %}
+            {% if banner.location == 'home_hero' %}
+            <div class="swiper-slide relative">
+                <a href="{{ banner.redirect_link }}">
+                    
+                    <picture>
+                        <source media="(max-width: 767px)" srcset="{{ banner.mobile_image }}">
+                        <img src="{{ banner.desktop_image }}" class="w-full h-full object-cover" alt="{{ banner.title }}">
+                    </picture>
+
+                </a>
+            </div>
+            {% endif %}
+            
+            {% endfor %}
+            {% endif %}
         </div>
         <div class="swiper-pagination"></div>
     </div>
