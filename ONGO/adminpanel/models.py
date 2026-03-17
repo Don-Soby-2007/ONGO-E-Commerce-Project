@@ -8,7 +8,6 @@ class Banner(models.Model):
     LOCATION_CHOICES = [
         ("home_hero", "Home Hero"),
         ("home_secondary", "Home Secondary"),
-        ("category_top", "Category Top"),
     ]
 
     title = models.CharField(max_length=200)
