@@ -74,5 +74,11 @@ urlpatterns = [
     path('analytics/', views.AnalyticsView.as_view(), name='analytics'),
     path('dashboard/', views.AdminDashboardView.as_view(), name='admin_dashboard'),
 
+    # banner management
+
+    path('banners/', views.BannerListView.as_view(), name='banner_list'),
+    path('banners/add/', views.BannerCreateView.as_view(), name='add_banner'),
+    path('banners/edit/<int:banner_id>/', views.BannerEditView.as_view(), name='edit_banner'),
+    path('banners/toggle-status/<int:banner_id>/', views.ToggleBannerStatusView.as_view(), name='toggle_banner_status'),
 
 ]
