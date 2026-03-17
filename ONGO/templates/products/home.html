@@ -211,6 +211,49 @@
     </div>
 </section>
 
+<!-- Promotional Banner Slider -->
+<section class="container mx-auto px-4 py-12">
+    <div class="swiper promoSwiper">
+        <div class="swiper-wrapper">
+            <!-- Dynamic Slides from Context (Optional) -->
+            {% if banners %}
+                {% for banner in banners %}
+                {% if banner.location == 'home_secondary' %}
+                <div class="swiper-slide">
+                    <a href="{{ banner.redirect_link }}" class="block relative h-48 md:h-64 lg:h-80 rounded-3xl overflow-hidden group">
+                        <picture>
+                            <source media="(max-width: 767px)" srcset="{{ banner.mobile_image }}">
+                            <img src="{{ banner.desktop_image }}" 
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                                 alt="{{ banner.title }}">
+                        </picture>
+                        {% if banner.title%}
+                        <div class="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex items-center px-6 md:px-12">
+                            <div class="text-white">
+                                <h3 class="text-2xl md:text-4xl font-black uppercase tracking-tight">{{ banner.title }}</h3>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </a>
+                </div>
+                {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <!-- Navigation Buttons -->
+        <button class="swiper-prev-btn absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 glass rounded-full flex items-center justify-center hover:bg-white transition-all shadow-md">
+            <i data-lucide="chevron-left" class="w-5 h-5 md:w-6 md:h-6"></i>
+        </button>
+        <button class="swiper-next-btn absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 glass rounded-full flex items-center justify-center hover:bg-white transition-all shadow-md">
+            <i data-lucide="chevron-right" class="w-5 h-5 md:w-6 md:h-6"></i>
+        </button>
+        
+        <!-- Pagination Dots -->
+        <div class="swiper-pagination !bottom-4 !left-1/2 !-translate-x-1/2"></div>
+    </div>
+</section>
+
 <!-- New Arrivals Carousel -->
 <section class="bg-gray-50 py-20 overflow-hidden">
     <div class="container mx-auto px-4">
@@ -387,6 +430,28 @@
         }, { threshold: 0.1 });
 
         document.querySelectorAll('[data-aos="fade-up"]').forEach(el => observer.observe(el));
+
+        const promoSwiper = new Swiper('.promoSwiper', {
+            loop: true,
+            speed: 800,
+            autoplay: { 
+                delay: 5000, 
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true 
+            },
+            slidesPerView: 1,
+            spaceBetween: 20,
+            navigation: {
+                nextEl: '.swiper-next-btn',
+                prevEl: '.swiper-prev-btn',
+            },
+            pagination: { 
+                el: '.swiper-pagination', 
+                clickable: true,
+                dynamicBullets: true 
+            },
+            effect: 'slide',
+        });
 
         lucide.createIcons();
     });
