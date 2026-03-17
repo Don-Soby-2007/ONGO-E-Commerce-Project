@@ -30,6 +30,7 @@ from django.core.exceptions import ValidationError
 from .utils import generate_analytics_excel, generate_analytics_pdf
 
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from datetime import timedelta
 from decimal import Decimal
 
@@ -2421,7 +2422,7 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, View):
 class BannerListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
     template_name = 'admnpanel/banners.html'
-    model = Banner,
+    model = Banner
     context_object_name = 'banners'
     paginate_by = 6
 
@@ -2430,7 +2431,7 @@ class BannerListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
 
 @method_decorator(never_cache, name='dispatch')
-class BannerCreatView(LoginRequiredMixin, UserPassesTestMixin, View):
+class BannerCreateView(LoginRequiredMixin, UserPassesTestMixin, View):
 
     template_name = "adminpanel/add_banner.html"
 
@@ -2449,8 +2450,8 @@ class BannerCreatView(LoginRequiredMixin, UserPassesTestMixin, View):
         redirect_link = request.POST.get('redirect_link')
         location = request.POST.get('location')
         priority = request.POST.get('priority')
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
+        start_date = parse_datetime(request.POST.get('start_date'))
+        end_date = parse_datetime(request.POST.get('end_date'))
         is_active = request.POST.get('is_active') == 'on'
 
         if not title or len(title) < 8 or len(title) > 200:
@@ -2467,7 +2468,7 @@ class BannerCreatView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         if mobile_image:
             if (
-                not mobile_image.size > MAX_IMAGE_SIZE
+                mobile_image.size > MAX_IMAGE_SIZE
                 or mobile_image.content_type not in ALLOWED_IMAGE_TYPES
             ):
                 messages.error(request, "Mobile image must be a valid image file.")
@@ -2477,6 +2478,14 @@ class BannerCreatView(LoginRequiredMixin, UserPassesTestMixin, View):
             messages.error(request, "Invalid location selected.")
             return render(request, self.template_name)
 
+        if not start_date:
+            messages.error(request, "Start date is required.")
+            return render(request, self.template_name)
+
+        if end_date and end_date <= start_date:
+            messages.error(request, "End date must be after start date.")
+            return render(request, self.template_name)
+
         try:
             priority = int(priority)
         except (ValueError, TypeError):
@@ -2484,36 +2493,39 @@ class BannerCreatView(LoginRequiredMixin, UserPassesTestMixin, View):
             return render(request, self.template_name)
 
         try:
-            desktop_upload = cloudinary_upload(
-                        desktop_image,
-                        folder="products/variants",
-                        public_id=f"desktop_banner_{uuid.uuid4().hex[:8]}",
+            with transaction.atomic():
+
+                desktop_upload = cloudinary_upload(
+                            desktop_image,
+                            folder="banners",
+                            public_id=f"desktop_banner_{uuid.uuid4().hex[:8]}",
+                            resource_type="image"
+                        )
+
+                if mobile_image:
+                    mobile_upload = cloudinary_upload(
+                        mobile_image,
+                        folder="banners",
+                        public_id=f"mobile_banner_{uuid.uuid4().hex[:8]}",
                         resource_type="image"
                     )
 
-            if mobile_image:
-                mobile_upload = cloudinary_upload(
-                    mobile_image,
-                    folder="products/variants",
-                    public_id=f"mobile_banner_{uuid.uuid4().hex[:8]}",
-                    resource_type="image"
+                Banner.objects.create(
+                    title=title,
+                    desktop_image=desktop_upload['secure_url'],
+                    desktop_public_id=desktop_upload['public_id'],
+                    mobile_image=mobile_upload['secure_url'] if mobile_image else None,
+                    mobile_public_id=mobile_upload['public_id'] if mobile_image else None,
+                    redirect_link=redirect_link,
+                    location=location,
+                    priority=priority,
+                    start_date=start_date if start_date else None,
+                    end_date=end_date if end_date else None,
+                    is_active=is_active
                 )
 
-            Banner.objects.create(
-                title=title,
-                desktop_image=desktop_upload['secure_url'],
-                desktop_public_id=desktop_upload['public_id'],
-                mobile_image=mobile_upload['secure_url'] if mobile_image else None,
-                mobile_public_id=mobile_upload['public_id'] if mobile_image else None,
-                redirect_link=redirect_link,
-                location=location,
-                priority=priority,
-                start_date=start_date if start_date else None,
-                end_date=end_date if end_date else None,
-                is_active=is_active
-            )
-            messages.success(request, "Banner created successfully.")
-            return redirect('banner_list')
+                messages.success(request, "Banner created successfully.")
+                return redirect('banner_list')
 
         except Exception as e:
             logger.error(request, f'Error creating banner: {e}')
@@ -2549,8 +2561,8 @@ class BannerEditView(LoginRequiredMixin, UserPassesTestMixin, View):
         redirect_link = request.POST.get('redirect_link')
         location = request.POST.get('location')
         priority = request.POST.get('priority')
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
+        start_date = parse_datetime(request.POST.get('start_date'))
+        end_date = parse_datetime(request.POST.get('end_date'))
         is_active = request.POST.get('is_active') == 'on'
 
         if not title or len(title) < 8 or len(title) > 200:
@@ -2559,7 +2571,7 @@ class BannerEditView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         if desktop_image:
             if (
-                not desktop_image.size > MAX_IMAGE_SIZE
+                desktop_image.size > MAX_IMAGE_SIZE
                 or desktop_image.content_type not in ALLOWED_IMAGE_TYPES
             ):
                 messages.error(request, "A valid desktop image is required.")
@@ -2567,7 +2579,7 @@ class BannerEditView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         if mobile_image:
             if (
-                not mobile_image.size > MAX_IMAGE_SIZE
+                mobile_image.size > MAX_IMAGE_SIZE
                 or mobile_image.content_type not in ALLOWED_IMAGE_TYPES
             ):
                 messages.error(request, "Mobile image must be a valid image file.")
@@ -2576,6 +2588,14 @@ class BannerEditView(LoginRequiredMixin, UserPassesTestMixin, View):
         if location not in dict(Banner.LOCATION_CHOICES):
             messages.error(request, "Invalid location selected.")
             return render(request, self.template_name, {'banner': banner})
+
+        if not start_date:
+            messages.error(request, "Start date is required.")
+            return render(request, self.template_name)
+
+        if end_date and end_date <= start_date:
+            messages.error(request, "End date must be after start date.")
+            return render(request, self.template_name)
 
         try:
             priority = int(priority)
@@ -2588,7 +2608,7 @@ class BannerEditView(LoginRequiredMixin, UserPassesTestMixin, View):
             if desktop_image:
                 desktop_upload = cloudinary_upload(
                     desktop_image,
-                    folder="products/variants",
+                    folder="banners",
                     public_id=f"desktop_banner_{uuid.uuid4().hex[:8]}",
                     resource_type="image"
                 )
@@ -2598,7 +2618,7 @@ class BannerEditView(LoginRequiredMixin, UserPassesTestMixin, View):
             if mobile_image:
                 mobile_upload = cloudinary_upload(
                     mobile_image,
-                    folder="products/variants",
+                    folder="banners",
                     public_id=f"mobile_banner_{uuid.uuid4().hex[:8]}",
                     resource_type="image"
                 )
