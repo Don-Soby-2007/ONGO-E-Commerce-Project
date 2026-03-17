@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views import View
 from django.db.models import Q, F, Count, Case, When, Value, IntegerField, Sum
@@ -99,9 +98,8 @@ class AdminLoginView(View):
             return render(request, self.template_name)
 
 
-@method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name='dispatch')
-class AdminCustomersView(ListView):
+class AdminCustomersView(LoginRequiredMixin, ListView):
     model = User
     template_name = 'adminpanel/customers_panel.html'
     context_object_name = 'users'
@@ -156,9 +154,8 @@ def admin_logout(request):
         return redirect('admin_login')
 
 
-@method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name='dispatch')
-class AdminCategoryView(ListView):
+class AdminCategoryView(LoginRequiredMixin, ListView):
     model = Category
     template_name = 'adminpanel/category_panel.html'
     context_object_name = 'category_list'
@@ -205,7 +202,7 @@ class AdminCategoryView(ListView):
 
 
 @method_decorator(never_cache, name='dispatch')
-class AddCategoryView(View, LoginRequiredMixin):
+class AddCategoryView(LoginRequiredMixin, View):
 
     login_url = 'admin_login'
 
@@ -362,7 +359,7 @@ class ToggleUserStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
             }, status=500)
 
 
-class EditCategoryView(View, LoginRequiredMixin):
+class EditCategoryView(LoginRequiredMixin, View):
 
     login_url = 'admin_login'
 
@@ -435,7 +432,7 @@ class EditCategoryView(View, LoginRequiredMixin):
 
 
 @method_decorator(never_cache, name='dispatch')
-class AdminProductsView(ListView, LoginRequiredMixin):
+class AdminProductsView(LoginRequiredMixin, ListView):
 
     model = Product
     template_name = 'adminpanel/products_panel.html'
@@ -574,7 +571,7 @@ def validate_images(uploaded_images, *, existing_count=0, mode="create"):
             raise ValidationError("Invalid image format. Use PNG, JPG, or WEBP.")
 
 
-class ProductCreateView(View):
+class ProductCreateView(LoginRequiredMixin, View):
 
     template_name = "adminpanel/add_product.html"
 
@@ -715,7 +712,7 @@ class ToggleProductStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
             }, status=500)
 
 
-class ProductEditView(View):
+class ProductEditView(LoginRequiredMixin, View):
 
     template_name = "adminpanel/edit_product.html"
 
