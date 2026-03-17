@@ -2429,6 +2429,29 @@ class BannerListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     def test_func(self):
         return self.request.user.is_staff
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search_query')
+        status = self.request.GET.get('status')
+
+        if search_query:
+            queryset = queryset.filter(title__icontains=search_query)
+
+        if status and status in ['active', 'inactive']:
+            if status == 'active':
+                queryset = queryset.filter(is_active=True)
+            elif status == 'inactive':
+                queryset = queryset.filter(is_active=False)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search_query', '')
+        context['status_filter'] = self.request.GET.get('status', '')
+        return context
+
 
 @method_decorator(never_cache, name='dispatch')
 class BannerCreateView(LoginRequiredMixin, UserPassesTestMixin, View):
