@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 # Create your models here.
 
@@ -24,7 +25,7 @@ class Banner(models.Model):
 
     priority = models.IntegerField(default=1)
 
-    start_date = models.DateTimeField(blank=True, null=True)
+    start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
