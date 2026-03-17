@@ -1,0 +1,114 @@
+{% extends 'common/base_admin_list.html' %}
+{% load static %}
+
+{% block title %}Banner Management{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-800">Banner Management</h1>
+    <a href="{% url 'add_banner' %}" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-sm transition inline-flex items-center">
+        <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+        Add Banner
+    </a>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border p-6">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50 border-b">
+                    <th class="p-4 font-semibold text-gray-600">Image</th>
+                    <th class="p-4 font-semibold text-gray-600">Title</th>
+                    <th class="p-4 font-semibold text-gray-600">Location</th>
+                    <th class="p-4 font-semibold text-gray-600">Priority</th>
+                    <th class="p-4 font-semibold text-gray-600">Dates</th>
+                    <th class="p-4 font-semibold text-gray-600 text-center">Status</th>
+                    <th class="p-4 font-semibold text-gray-600 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for banner in banners %}
+                <tr class="border-b hover:bg-gray-50 transition">
+                    <td class="p-4">
+                        {% if banner.desktop_image %}
+                        <img src="{{ banner.desktop_image}}" alt="{{ banner.title }}" class="w-24 h-12 object-cover rounded shadow-sm">
+                        {% else %}
+                        <div class="w-24 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">No Image</div>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 font-medium text-gray-800">{{ banner.title }}</td>
+                    <td class="p-4 text-gray-600">{{ banner.get_location_display|default:banner.location|title }}</td>
+                    <td class="p-4 text-gray-600">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                            {{ banner.priority }}
+                        </span>
+                    </td>
+                    <td class="p-4 text-gray-600 text-sm whitespace-nowrap">
+                        <span class="block text-gray-800">{{ banner.start_date|date:"M d, Y" }}</span>
+                        <span class="block text-gray-500 text-xs">{{ banner.end_date|date:"M d, Y" }}</span>
+                    </td>
+                    <td class="p-4 text-center">
+                        <label class="relative inline-flex items-center cursor-pointer status-toggle" data-url="{% url 'toggle_banner_status' banner.id %}">
+                            <input type="checkbox" class="sr-only peer" {% if banner.is_active %}checked{% endif %}>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none ring-0 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                        </label>
+                    </td>
+                    <td class="p-4 text-right">
+                        <a href="{% url 'edit_banner' banner.id %}" class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Edit">
+                            <i data-lucide="edit-2" class="w-5 h-5"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="p-12 text-center text-gray-500">
+                        <div class="flex flex-col items-center justify-center">
+                            <i data-lucide="image" class="w-12 h-12 text-gray-300 mb-3"></i>
+                            <p class="text-gray-500 mb-4">No banners found.</p>
+                            <a href="{% url 'add_banner' %}" class="btn bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition">
+                                Start by adding one!
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="mt-6 flex justify-end">
+            <nav class="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition">
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                </a>
+                {% endif %}
+                
+                {% for i in page_obj.paginator.page_range %}
+                    {% if page_obj.number == i %}
+                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-red-50 text-sm font-medium text-red-600">
+                        {{ i }}
+                    </span>
+                    {% else %}
+                    <a href="?page={{ i }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                        {{ i }}
+                    </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition">
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/adminpanel/banners.js' %}"></script>
+{% endblock %}

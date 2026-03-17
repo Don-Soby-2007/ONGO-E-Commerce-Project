@@ -1,0 +1,177 @@
+{% extends 'common/base_admin_list.html' %}
+{% load static %}
+
+{% block title %}Edit Banner{% endblock %}
+
+{% block style %}
+<!-- Cropper CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" rel="stylesheet">
+<style>
+    .image-preview-container {
+        width: 100%;
+        max-height: 200px;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        background-color: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed #d1d5db;
+        cursor: pointer;
+        position: relative;
+    }
+    .image-preview-container img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+    .image-preview-container:hover {
+        border-color: #ef4444; /* red-500 */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div class="flex items-center gap-4">
+        <a href="{% url 'banner_list' %}" class="p-2 text-gray-500 hover:text-gray-800 bg-white rounded-lg border shadow-sm transition">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </a>
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Edit Banner</h1>
+            <p class="text-sm text-gray-500">Update banner details and images</p>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border p-6 max-w-5xl mx-auto">
+    {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+                <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-700 border-l-4 border-red-500{% else %}bg-green-50 text-green-700 border-l-4 border-green-500{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form id="editBannerForm" method="POST" enctype="multipart/form-data" action="{% url 'edit_banner' banner.id %}" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+            <!-- Left Column: Details -->
+            <div class="md:col-span-7 space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Title <span class="text-red-500">*</span></label>
+                    <input type="text" name="title" value="{{ banner.title }}" class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:outline-none transition" required placeholder="E.g., Summer Sale Banner">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Location <span class="text-red-500">*</span></label>
+                    <select name="location" class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:outline-none transition bg-white" required>
+                        <option value="">Select location...</option>
+                        <option value="home_hero" {% if banner.location == 'home_hero' %}selected{% endif %}>Hero (Top Carousel)</option>
+                        <option value="home_secondary" {% if banner.location == 'home_secondary' %}selected{% endif %}>Middle Section</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Redirect Link <span class="text-red-500">*</span></label>
+                    <input type="url" name="redirect_link" value="{{ banner.redirect_link }}" class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:outline-none transition" required placeholder="https://ongo.com/shop/summer">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Start Date <span class="text-red-500">*</span></label>
+                        <input type="date" name="start_date" value="{{ banner.start_date|date:'Y-m-d' }}" class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:outline-none transition" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">End Date <span class="text-red-500">*</span></label>
+                        <input type="date" name="end_date" value="{{ banner.end_date|date:'Y-m-d' }}" class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:outline-none transition" required>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 pt-2">
+                    <div class="w-full sm:w-1/2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Priority <span class="text-xs text-gray-500 font-normal">(higher is first)</span></label>
+                        <input type="number" name="priority" value="{{ banner.priority }}" class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:outline-none transition" required>
+                    </div>
+                    
+                    <div class="w-full sm:w-1/2 pt-1 sm:pt-7">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="is_active" class="sr-only peer" {% if banner.is_active %}checked{% endif %}>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none ring-0 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                            <span class="ml-3 text-sm font-medium text-gray-700">Set as Active</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Images -->
+            <div class="md:col-span-5 space-y-6 bg-gray-50 p-6 rounded-xl border border-gray-100 h-fit">
+                <!-- Desktop Image -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm font-medium text-gray-800">
+                            Desktop Image
+                        </label>
+                        <span class="text-xs font-semibold text-gray-500 bg-gray-200 px-2 py-1 rounded">1920x700</span>
+                    </div>
+                    <input type="file" id="desktopImageInput" name="desktop_image" accept="image/*" class="hidden">
+                    <label for="desktopImageInput" class="image-preview-container h-32" id="desktopPreviewContainer">
+                        <div class="text-center p-4 text-gray-500 transition-colors duration-200 group-hover:text-red-500 {% if banner.desktop_image %}hidden{% endif %}">
+                            <i data-lucide="monitor-up" class="w-8 h-8 mx-auto mb-2 text-gray-400"></i>
+                            <span class="text-sm font-medium block">Change Desktop Image</span>
+                        </div>
+                        <img id="desktopPreview" src="{{ banner.desktop_image }}" class="{% if not banner.desktop_image %}hidden{% endif %} absolute inset-0 w-full h-full object-cover rounded-lg">
+                    </label>
+                    {% if banner.desktop_image %}
+                    <p class="text-xs text-gray-500 mt-2">Click image to change. Leave empty to keep current.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile Image -->
+                <div class="pt-2">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm font-medium text-gray-800">
+                            Mobile Image
+                        </label>
+                        <span class="text-xs font-semibold text-gray-500 bg-gray-200 px-2 py-1 rounded">768x900</span>
+                    </div>
+                    <input type="file" id="mobileImageInput" name="mobile_image" accept="image/*" class="hidden">
+                    <label for="mobileImageInput" class="image-preview-container h-48" id="mobilePreviewContainer">
+                        <div class="text-center p-4 text-gray-500 transition-colors duration-200 group-hover:text-red-500 {% if banner.mobile_image %}hidden{% endif %}">
+                            <i data-lucide="smartphone" class="w-8 h-8 mx-auto mb-2 text-gray-400"></i>
+                            <span class="text-sm font-medium block">Change Mobile Image</span>
+                        </div>
+                        <img id="mobilePreview" src="{{ banner.mobile_image }}" class="{% if not banner.mobile_image %}hidden{% endif %} absolute inset-0 w-full h-full object-cover rounded-lg">
+                    </label>
+                    {% if banner.mobile_image %}
+                    <p class="text-xs text-gray-500 mt-2">Click image to change. Leave empty to keep current.</p>
+                    {% endif %}
+                </div>
+                
+                <p class="text-xs text-center text-gray-500 mt-4 flex items-center justify-center">
+                    <i data-lucide="info" class="w-3.5 h-3.5 mr-1"></i>
+                    New images will be automatically cropped
+                </p>
+            </div>
+        </div>
+
+        <div class="pt-6 border-t border-gray-100 flex justify-end gap-4 mt-8">
+            <a href="{% url 'banner_list' %}" class="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition font-medium">
+                Cancel
+            </a>
+            <button type="submit" class="px-8 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition flex items-center font-medium shadow-sm">
+                <i data-lucide="check" class="w-5 h-5 mr-2"></i>
+                Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+<script src="{% static 'js/adminpanel/edit_banner.js' %}"></script>
+{% endblock %}

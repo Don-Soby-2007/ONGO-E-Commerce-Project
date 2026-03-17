@@ -2421,7 +2421,7 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, View):
 @method_decorator(never_cache, name='dispatch')
 class BannerListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
-    template_name = 'admnpanel/banners.html'
+    template_name = 'adminpanel/banners.html'
     model = Banner
     context_object_name = 'banners'
     paginate_by = 6
