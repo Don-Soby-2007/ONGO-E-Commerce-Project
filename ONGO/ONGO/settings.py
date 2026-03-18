@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'returns',
     'offers',
     'coupons',
+    'locations',
 ]
 
 MIDDLEWARE = [
