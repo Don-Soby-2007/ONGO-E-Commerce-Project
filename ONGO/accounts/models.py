@@ -163,6 +163,7 @@ class Address(models.Model):
 
     city = models.CharField(max_length=150)
     state = models.CharField(max_length=150)
+    district = models.CharField(max_length=150, default='kottyam')
     country = models.CharField(max_length=150)
     postal_code = models.CharField(max_length=20)
 

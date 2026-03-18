@@ -144,7 +144,7 @@ def get_cart_items_for_user(request, user):
         except Address.DoesNotExist:
             address = None
 
-        get_distance = get_distance_to_customer(address.pincode) if address else None
+        get_distance = get_distance_to_customer(address.postal_code) if address else None
 
         if get_distance is not None:
             if get_distance <= 50:
