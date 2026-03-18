@@ -2,6 +2,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from cart.models import Cart
 from offers.models import GlobalOffer
 from products.utils import calculate_discount
+from locations.views import get_distance_to_customer
 
 
 def _to_decimal(value, default='0'):
@@ -131,7 +132,30 @@ def get_cart_items_for_user(request, user):
 
         print('DEBUG cart_items: ', cart_items)
 
-    shipping = Decimal('100')
+    # shipping amount caluclation based on pincode.
+
+    shipping = Decimal('0')
+    checkout_information = request.session.get('checkout_information', {})
+    if checkout_information:
+        address = checkout_information.get('address_id')
+        try:
+            from accounts.models import Address
+            address = Address.objects.get(id=address) if address else None
+        except Address.DoesNotExist:
+            address = None
+
+        get_distance = get_distance_to_customer(address.pincode) if address else None
+
+        if get_distance is not None:
+            if get_distance <= 50:
+                shipping = Decimal('50')
+            elif get_distance <= 100:
+                shipping = Decimal('100')
+            else:
+                shipping = Decimal('500')
+
+    # Apply global offers
+
     applied_global_offers = []
     applicable_global_offers = []
 
