@@ -155,6 +155,10 @@ def get_cart_items_for_user(request, user):
                 shipping = Decimal('100')
             else:
                 shipping = Decimal('500')
+        else:
+            shipping = Decimal('100')
+    else:
+        shipping = Decimal('2')
 
     # Apply global offers
 

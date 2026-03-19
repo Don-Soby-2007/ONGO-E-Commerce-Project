@@ -111,15 +111,6 @@
                 </div>
 
                 <div class="summary-row">
-                    <span>Shipping</span>
-                    {% if summary.shipping == 0 %}
-                    <span class="text-green-600 font-medium">Free</span>
-                    {% else %}
-                    <span>₹{{ summary.shipping|floatformat:2 }}</span>
-                    {% endif %}
-                </div>
-
-                <div class="summary-row">
                     <span>Tax</span>
                     <span>₹{{ summary.tax|floatformat:2 }}</span>
                 </div>

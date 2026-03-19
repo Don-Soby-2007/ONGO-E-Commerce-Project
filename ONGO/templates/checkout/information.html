@@ -176,11 +176,13 @@
                 </div>
                 {% endif %}
 
+                {% if cart_summary.shipping != 2 %}
                 <div class="flex justify-between">
                     <span>Shipping</span>
                     <span class="text-green-600 font-medium">{% if cart_summary.shipping == 0 %}Free{% else %}
                         ₹{{ cart_summary.shipping }}{% endif %}</span>
                 </div>
+                {% endif %}
 
                 <div class="flex justify-between">
                     <span>Tax</span>
