@@ -1,4 +1,3 @@
-import json
 
 from django.http import JsonResponse
 import logging
@@ -60,10 +59,8 @@ def get_distance_to_customer(customer_pincode):
     return distance_between_location(loc1['latitude'], loc1['longitude'], loc2['latitude'], loc2['longitude'])
 
 
-def pincode_stats(request):
+def pincode_stats(request, pincode):
     if request.method == 'GET':
-        data = json.loads(request.body)
-        pincode = data.get('pincode', '').strip()
 
         location_info = location_stats(pincode)
         stats = {}

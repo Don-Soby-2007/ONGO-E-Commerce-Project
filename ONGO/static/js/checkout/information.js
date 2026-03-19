@@ -122,6 +122,11 @@ function setupModal() {
     const form = document.getElementById('add-address-form');
     const errorContainer = document.getElementById('modal-error-message');
 
+    // Pincode auto-fill elements
+    const postalCodeInput = document.getElementById('postalCode');
+    const districtInput = document.getElementById('district');
+    const stateInput = document.getElementById('state');
+
     if (!modal || !openBtn) return;
 
     // Open
@@ -166,6 +171,10 @@ function setupModal() {
             test: (value) => /^[a-zA-Z\s]+$/.test(value.trim()),
             message: 'State must contain only letters'
         },
+        district: {
+            test: (value) => /^[a-zA-Z\s]+$/.test(value.trim()),
+            message: 'District must contain only letters'
+        },
         postalCode: {
             test: (value) => /^\d{5,8}$/.test(value.trim()),
             message: 'Enter a valid pincode (5-8 digits)'
@@ -191,14 +200,10 @@ function setupModal() {
     };
 
     const showError = (input, msg) => {
-        // Remove existing error if any
         clearError(input);
-
-        // Style input
         input.classList.add('border-red-500', 'focus:ring-red-500');
         input.classList.remove('border-gray-300', 'focus:ring-black');
 
-        // Create error message
         const errorDiv = document.createElement('p');
         errorDiv.className = 'text-red-500 text-xs mt-1 ml-1 field-error';
         errorDiv.textContent = msg;
@@ -209,9 +214,7 @@ function setupModal() {
         input.classList.remove('border-red-500', 'focus:ring-red-500');
         input.classList.add('border-gray-300', 'focus:ring-black');
         const error = input.parentNode.querySelector('.field-error');
-        if (error) {
-            error.remove();
-        }
+        if (error) error.remove();
     };
 
     const clearAllErrors = () => {
@@ -222,23 +225,105 @@ function setupModal() {
         });
     };
 
-    // Real-time validation
+    //  Pincode Auto-Fill with Debounce
+    let pincodeDebounceTimer;
+    const fetchPincodeData = async (pincode) => {
+        if (!/^\d{5,8}$/.test(pincode.trim())) return;
+
+        // Show loading state
+        postalCodeInput.classList.add('border-blue-400', 'focus:ring-blue-400');
+        postalCodeInput.classList.remove('border-gray-300', 'focus:ring-black');
+        
+        try {
+            const response = await fetch(`/locations/pincode-stats/${pincode}/`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Auto-fill district and state if available
+                if (data.district && districtInput) {
+                    districtInput.value = data.district;
+                    clearError(districtInput);
+                    // Optionally make auto-filled fields readonly or add visual cue
+                    districtInput.classList.add('bg-gray-50');
+                }
+                if (data.state && stateInput) {
+                    stateInput.value = data.state;
+                    clearError(stateInput);
+                    stateInput.classList.add('bg-gray-50');
+                }
+                
+                // Reset pincode styling to success
+                postalCodeInput.classList.remove('border-blue-400', 'focus:ring-blue-400', 'border-red-500', 'focus:ring-red-500');
+                postalCodeInput.classList.add('border-green-500', 'focus:ring-green-500');
+                
+            } else if (response.status === 404) {
+                // Pincode not found - show warning but allow manual entry
+                showError(postalCodeInput, 'Pincode not found. Please enter valid pincode.');
+                // Allow manual editing of district/state
+                if (districtInput) districtInput.classList.remove('bg-gray-50');
+                if (stateInput) stateInput.classList.remove('bg-gray-50');
+            } else {
+                throw new Error('Unexpected response');
+            }
+        } catch (error) {
+            console.error('Pincode fetch error:', error);
+            // On error, allow manual entry
+            if (districtInput) districtInput.classList.remove('bg-gray-50');
+            if (stateInput) stateInput.classList.remove('bg-gray-50');
+            // Don't block form - just reset pincode styling
+            postalCodeInput.classList.remove('border-blue-400', 'focus:ring-blue-400');
+        }
+    };
+
+    if (postalCodeInput) {
+        postalCodeInput.addEventListener('input', (e) => {
+            clearTimeout(pincodeDebounceTimer);
+            const pincode = e.target.value.trim();
+            
+            // Only fetch if pincode looks valid (5-8 digits)
+            if (/^\d{6,8}$/.test(pincode)) {
+                pincodeDebounceTimer = setTimeout(() => {
+                    fetchPincodeData(pincode);
+                }, 500); // 500ms debounce
+            } else {
+                // Reset styling if pincode becomes invalid
+                postalCodeInput.classList.remove('border-blue-400', 'focus:ring-blue-400', 'border-green-500', 'focus:ring-green-500');
+                postalCodeInput.classList.add('border-gray-300', 'focus:ring-black');
+                // Re-enable manual editing
+                if (districtInput) districtInput.classList.remove('bg-gray-50');
+                if (stateInput) stateInput.classList.remove('bg-gray-50');
+            }
+        });
+
+        // Also fetch on blur as fallback
+        postalCodeInput.addEventListener('blur', (e) => {
+            const pincode = e.target.value.trim();
+            if (/^\d{5,8}$/.test(pincode)) {
+                fetchPincodeData(pincode);
+            }
+        });
+    }
+
+    // Real-time validation for other fields
     form.querySelectorAll('input, select').forEach(input => {
-        input.addEventListener('input', () => {
-
-            validateField(input);
-        });
-
-        input.addEventListener('blur', () => {
-            validateField(input);
-        });
+        // Skip postalCode since we handle it separately
+        if (input.id === 'postalCode') return;
+        
+        input.addEventListener('input', () => validateField(input));
+        input.addEventListener('blur', () => validateField(input));
     });
 
     // Form Submit
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Validate all
+        // Validate all fields
         let isFormValid = true;
         let firstInvalidInput = null;
 
@@ -271,7 +356,6 @@ function setupModal() {
             const data = await response.json();
 
             if (data.success) {
-
                 closeModal();
                 window.location.reload();
 
@@ -292,7 +376,6 @@ function setupModal() {
                     });
                 }
             } else {
-                // Backend Error
                 errorContainer.textContent = data.message || 'An error occurred. Please try again.';
                 errorContainer.classList.remove('hidden');
             }

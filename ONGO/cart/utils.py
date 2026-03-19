@@ -149,6 +149,8 @@ def get_cart_items_for_user(request, user):
         if get_distance is not None:
             if get_distance <= 50:
                 shipping = Decimal('50')
+            elif get_distance <= 75:
+                shipping = Decimal('75')
             elif get_distance <= 100:
                 shipping = Decimal('100')
             else:

@@ -1,5 +1,6 @@
 import re
 from .models import Address
+from locations.views import location_stats
 
 import logging
 
@@ -15,6 +16,7 @@ def create_address_from_request(request, redirect_on_success=True):
     street_address = request.POST.get('streetAddress', '').strip()
     phone_number = request.POST.get('phoneNumber', '').strip()
     city = request.POST.get('city', '').strip()
+    district = request.POST.get('district', '').strip()
     state = request.POST.get('state', '').strip()
     postal_code = request.POST.get('postalCode', '').strip()
     country = request.POST.get('country', '').strip()
@@ -35,6 +37,9 @@ def create_address_from_request(request, redirect_on_success=True):
     if not re.match(r'^[a-zA-Z\s]+$', city):
         return False, "City must contain only letters.", None
 
+    if not re.match(r'^[a-zA-Z\s]+$', district):
+        return False, "District must contain only letters.", None
+
     if not re.match(r'^[a-zA-Z\s]+$', state):
         return False, "State must contain only letters.", None
 
@@ -43,6 +48,13 @@ def create_address_from_request(request, redirect_on_success=True):
 
     if not country:
         return False, "Please select a country.", None
+
+    loc_stats = location_stats(postal_code)
+    if not loc_stats:
+        return False, "Pincode not found. Please enter a valid pincode.", None
+
+    if loc_stats.get('district', '').lower() != district.lower() or loc_stats.get('state', '').lower() != state.lower():
+        return False, "District/State does not match the pincode. Please check your entries.", None
 
     try:
         # Enforce default logic
@@ -57,6 +69,7 @@ def create_address_from_request(request, redirect_on_success=True):
             street_address=street_address,
             phone=phone_number,
             city=city,
+            district=district,
             state=state,
             country=country,
             postal_code=postal_code,
