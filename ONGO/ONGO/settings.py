@@ -33,6 +33,7 @@ DEBUG = os.getenv("DEBUG") == "True"
 ALLOWED_HOSTS = ['43.205.177.149', 'localhost', '127.0.0.1']
 
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
+CSRF_TRUSTED_ORIGINS = ['http://43.205.177.149']
 
 # Application definition
 
