@@ -30,10 +30,10 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG") == "True"
 
-ALLOWED_HOSTS = ['43.205.177.149', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['ongo-styles.online', '43.205.177.149', 'localhost', '127.0.0.1']
 
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
-CSRF_TRUSTED_ORIGINS = ['http://43.205.177.149']
+CSRF_TRUSTED_ORIGINS = ['http://43.205.177.149', 'http://localhost', 'http://ongo-styles.online/']
 
 # Application definition
 
