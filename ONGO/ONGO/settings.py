@@ -32,9 +32,9 @@ DEBUG = os.getenv("DEBUG") == "True"
 
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
-ALLOWED_HOSTS = ['43.205.177.149', 'yourdomain.com', 'www.yourdomain.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['43.205.177.149', 'ongo-styles.online', 'www.ongo-styles.online', 'localhost', '127.0.0.1']
 
-CSRF_TRUSTED_ORIGINS = ['http://43.205.177.149', 'http://yourdomain.com', 'https://yourdomain.com']
+CSRF_TRUSTED_ORIGINS = ['http://43.205.177.149', 'http://ongo-styles.online', 'https://ongo-styles.online']
 
 # Application definition
 
