@@ -44,10 +44,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def user_login_view(request):
-    return render(request, 'accounts/user-login.html')
-
-
 @method_decorator(never_cache, name='dispatch')
 class SignupView(View):
     template_name = 'accounts/user-signup.html'
