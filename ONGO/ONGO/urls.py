@@ -28,3 +28,8 @@ urlpatterns = [
     path('return/', include('returns.urls')),
     path('locations/', include('locations.urls')),
 ]
+
+handler404 = 'adminpanel.error_views.custom_404'
+handler500 = 'adminpanel.error_views.custom_500'
+handler403 = 'adminpanel.error_views.custom_403'
+handler400 = 'adminpanel.error_views.custom_400'
