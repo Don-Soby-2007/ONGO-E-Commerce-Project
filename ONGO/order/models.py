@@ -134,7 +134,6 @@ class Invoice(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='invoice')
     invoice_number = models.CharField(max_length=50, unique=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    pdf_file = models.FileField(upload_to='invoices/')
 
     def __str__(self):
         return f"Invoice {self.invoice_number} for Order {self.order.order_id}"

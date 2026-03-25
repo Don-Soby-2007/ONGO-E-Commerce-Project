@@ -12,7 +12,7 @@ from django.views import View
 
 from django.shortcuts import get_object_or_404
 
-from django.http import JsonResponse, FileResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponse
 # from django.views.decorators.csrf import csrf_exempt
 
 from django.contrib.auth.decorators import login_required
@@ -33,7 +33,12 @@ from products.models import ProductVariant
 from accounts.models import Address, WalletTransaction
 from coupons.models import Coupon, CouponUsage
 
-from .utils import validate_and_apply_coupon, create_razorpay_order, verify_razorpay_signature
+from .utils import (
+    validate_and_apply_coupon,
+    create_razorpay_order,
+    verify_razorpay_signature,
+    generate_invoice_pdf,
+)
 
 import logging
 import json
@@ -646,18 +651,14 @@ def download_invoice(request, order_id):
     if request.user != order.user and not request.user.is_staff:
         raise Http404("Order not found")
 
-    if not hasattr(order, 'invoice'):
-        # Just in case signals failed or old order, try generating it if delivered
-        if order.status == 'delivered':
-            from .utils import generate_invoice_pdf
-            generate_invoice_pdf(order)
-            order.refresh_from_db()
-        else:
-            raise Http404("Invoice not available yet")
-    try:
-        return FileResponse(order.invoice.pdf_file.open('rb'), content_type='application/pdf')
-    except FileNotFoundError:
-        raise Http404("Invoice file missing")
+    if order.status != 'delivered':
+        raise Http404("Invoice not available yet")
+
+    invoice, pdf_file = generate_invoice_pdf(order)
+
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Invoice_{invoice.invoice_number}.pdf"'
+    return response
 
 
 class ApplyCouponView(LoginRequiredMixin, View):

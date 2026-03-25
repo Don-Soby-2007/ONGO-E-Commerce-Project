@@ -1,6 +1,5 @@
 import weasyprint
 from django.template.loader import render_to_string
-from django.core.files.base import ContentFile
 from .models import Invoice
 from coupons.models import Coupon, CouponUsage
 from decimal import Decimal, ROUND_HALF_UP
@@ -42,10 +41,7 @@ def generate_invoice_pdf(order):
         base_url=None,
     ).write_pdf()
 
-    filename = f"Invoice_{invoice.invoice_number}.pdf"
-    invoice.pdf_file.save(filename, ContentFile(pdf_file), save=True)
-
-    return invoice
+    return invoice, pdf_file
 
 
 def validate_and_apply_coupon(user, coupon_code, base_total):

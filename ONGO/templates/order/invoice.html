@@ -1,159 +1,187 @@
 {% load static %}
+{% load product_extras %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice {{ invoice.invoice_number }}</title>
     {% if for_pdf %}
-    <!-- Inlined CSS for PDF generation -->
     <style>
         {{ css_content|safe }}
     </style>
     {% else %}
-    <!-- Linked CSS for browser viewing -->
     <link href="{% static 'css/order/invoice.css' %}" rel="stylesheet">
     {% endif %}
 </head>
 
 <body>
-
-    <!-- Header Section (Table Layout) -->
-    <table class="layout-table header-row">
-        <tr>
-            <td class="logo-cell">
-                <!-- Constrain Logo via IMG attributes + CSS class -->
-                <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="ONGO"
-                    class="logo-img" width="120">
-            </td>
-            <td class="company-info-cell">
-                <span class="company-name">ONGO STORE</span>
-                123 E-Commerce St.<br>
-                Tech City, TC 90210<br>
-                support@ongo.com<br>
-                +91 98765 43210
-            </td>
-        </tr>
-    </table>
-
-    <!-- Meta Data Section (Table Layout) -->
-    <table class="layout-table">
-        <tr>
-            <td style="width: 50%; vertical-align: top;">
-                <h1 class="invoice-title">INVOICE</h1>
-            </td>
-            <td style="width: 50%; vertical-align: top;">
-                <table class="meta-table">
-                    <tr>
-                        <td class="meta-label text-right">Invoice #:</td>
-                        <td class="meta-value text-right">{{ invoice.invoice_number|default:"PENDING" }}</td>
-                    </tr>
-                    <tr>
-                        <td class="meta-label text-right">Date:</td>
-                        <td class="meta-value text-right">{{ invoice.created_at|date:"F d, Y" }}</td>
-                    </tr>
-                    <tr>
-                        <td class="meta-label text-right">Order ID:</td>
-                        <td class="meta-value text-right">{{ order.order_id }}</td>
-                    </tr>
-                    <tr>
-                        <td class="meta-label text-right">Method:</td>
-                        <td class="meta-value text-right">{{ order.get_payment_method_display }}</td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-
-    <!-- Addresses (Table Layout) -->
-    <table class="layout-table">
-        <tr>
-            <td style="width: 50%; padding-right: 10px;">
-                <div class="address-box" style="height: 125px;padding-left: 20px;">
-                    <span class="address-header">Bill To</span>
-                    <span class="address-name">{{ user.get_full_name|default:user.username }}</span>
-                    <div>{{ user.email }}</div>
-                    {% if user.phone_number %}
-                    <div>{{ user.phone_number }}</div>
-                    {% endif %}
-                </div>
-            </td>
-            <td style="width: 50%; padding-left: 10px;">
-                <div class="address-box" style="height: 125px;padding-left: 20px;">
-                    <span class="address-header">Ship To</span>
-                    <span class="address-name">{{ order.address.name }}</span>
-                    <div>{{ order.address.street_address }}</div>
-                    <div>{{ order.address.city }}, {{ order.address.state }} {{ order.address.postal_code }}</div>
-                    <div>{{ order.address.country }}</div>
-                    <div>Phone: {{ order.address.phone }}</div>
-                </div>
-            </td>
-        </tr>
-    </table>
-
-    <!-- Items Table -->
-    <table class="items-table">
-        <thead>
+    <div class="invoice-container">
+        <!-- Header Section -->
+        <table class="invoice-header w-full">
             <tr>
-                <th style="width: 45%">Product</th>
-                <th style="width: 20%">Attributes</th>
-                <th style="width: 15%" class="text-right">Price</th>
-                <th style="width: 5%" class="text-center">Qty</th>
-                <th style="width: 15%" class="text-right">Total</th>
+                <td class="align-top">
+                    <img src="https://res.cloudinary.com/ddynxusw2/image/upload/v1766473856/Ongo_Logo_di7890.svg" alt="ONGO" class="logo-img">
+                </td>
+                <td class="company-details align-top">
+                    <span class="company-name">ONGO E-COMMERCE</span>
+                    123 Digital Plaza, Tech Hub<br>
+                    Bangalore, Karnataka 560001<br>
+                    support@ongo.com | +91 98765 43210
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            {% for item in items %}
+        </table>
+
+        <!-- Title & Meta Data Section -->
+        <table class="invoice-title-container w-full">
             <tr>
-                <td>
-                    <div class="item-name">{{ item.product_name }}</div>
+                <td class="align-top">
+                    <h1 class="invoice-label">Invoice</h1>
+                    <div class="meta-item">
+                        <span class="meta-label">Invoice #:</span>
+                        <span class="text-main font-bold">{{ invoice.invoice_number|default:"PENDING" }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Date:</span>
+                        <span class="text-main">{{ invoice.created_at|date:"d M Y" }}</span>
+                    </div>
                 </td>
-                <td>
-                    <div class="item-variant">Size: {{ item.variant_options.size }}</div>
-                    <div class="item-variant">Color: {{ item.variant_options.color }}</div>
+                <td class="text-right align-top">
+                    <div class="meta-item">
+                        <span class="meta-label">Order ID:</span>
+                        <span class="text-main">#{{ order.order_id|stringformat:".8s" }}...</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Payment:</span>
+                        <span class="text-main">{{ order.get_payment_method_display }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Status:</span>
+                        <span class="badge 
+                            {% if order.status == 'delivered' %}badge-success
+                            {% elif order.status == 'cancelled' or order.status == 'failed' %}badge-danger
+                            {% elif order.status == 'shipped' %}badge-info
+                            {% else %}badge-warning{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
                 </td>
-                <td class="text-right">₹{{ item.price_at_time_of_order }}</td>
-                <td class="text-center">{{ item.quantity }}</td>
-                <td class="text-right">₹{{ item.total_price }}</td>
             </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        </table>
 
-    <!-- Summary (Table Layout) -->
-    <table class="layout-table">
-        <tr>
-            <td style="width: 50%; color: #777; font-size: 9pt;">
-                <strong>Notes:</strong><br>
-                Thank you for shopping with ONGO!<br>
-                For support, contact support@ongo.com
-            </td>
-            <td style="width: 50%;">
-                <table class="totals-table">
-                    <tr>
-                        <td class="total-label">Subtotal</td>
-                        <td class="total-value">₹{{ order.sub_total }}</td>
-                    </tr>
-                    {% if order.discount_amount > 0 %}
-                    <tr>
-                        <td class="total-label" style="color: green;">Discount</td>
-                        <td class="total-value" style="color: green;">- ₹{{ order.discount_amount }}</td>
-                    </tr>
-                    {% endif %}
-                    <tr class="grand-total">
-                        <td class="total-label">Total Paid</td>
-                        <td class="total-value">₹{{ order.total_amount }}</td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
+        <!-- Address Section -->
+        <table class="address-section w-full">
+            <tr>
+                <td class="address-column align-top text-left">
+                    <div class="address-heading">Bill To</div>
+                    <div class="address-content">
+                        <span class="customer-name">{{ user.get_full_name|default:user.username }}</span>
+                        {{ user.email }}<br>
+                        {% if user.phone_number %}
+                        {{ user.phone_number }}
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="address-column align-top text-left" style="padding-left: 2rem;">
+                    <div class="address-heading">Ship To</div>
+                    <div class="address-content">
+                        <span class="customer-name">{{ order.address.name }}</span>
+                        {{ order.address.street_address }}<br>
+                        {{ order.address.city }}, {{ order.address.state }} {{ order.address.postal_code }}<br>
+                        {{ order.address.country }}<br>
+                        Phone: {{ order.address.phone }}
+                    </div>
+                </td>
+            </tr>
+        </table>
 
-    <!-- Footer -->
-    <div class="page-footer">
-        This is a computer-generated invoice. No signature is required. | ONGO Store &copy; {% now "Y" %}
+        <!-- Items Table -->
+        <table class="items-table w-full">
+            <thead>
+                <tr>
+                    <th class="text-left" style="width: 40%">Product Description</th>
+                    <th class="text-center" style="width: 15%">Price</th>
+                    <th class="text-center" style="width: 10%">Qty</th>
+                    <th class="text-center" style="width: 15%">Status</th>
+                    <th class="text-right" style="width: 20%">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td class="align-top">
+                        <div class="text-main font-bold">{{ item.product_name }}</div>
+                        <div class="item-sku">
+                            Size: {{ item.variant_options.size }} | Color: {{ item.variant_options.color }}
+                        </div>
+                    </td>
+                    <td class="text-center align-top">₹{{ item.price_at_purchase }}</td>
+                    <td class="text-center align-top">{{ item.quantity }}</td>
+                    <td class="text-center align-top">
+                        <span class="badge 
+                            {% if item.status == 'delivered' %}badge-success
+                            {% elif item.status == 'cancelled' or item.status == 'returned' or item.status == 'refunded' %}badge-danger
+                            {% elif item.status == 'shipped' %}badge-info
+                            {% elif item.status == 'return requested' %}badge-warning
+                            {% else %}badge-neutral{% endif %}">
+                            {{ item.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="text-right align-top font-bold">₹{{ item.price_at_purchase | multiply:item.quantity }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Summary Section -->
+        <table class="summary-container w-full">
+            <tr>
+                <td class="notes-cell align-top text-muted">
+                    <div class="address-heading">Notes & Terms</div>
+                    <div style="font-size: 8pt; line-height: 1.6;">
+                        1. This is a computer-generated invoice and does not require a physical signature.<br>
+                        2. All returns are subject to the ONGO Return Policy.<br>
+                        3. For any discrepancies, please contact us within 24 hours of delivery.<br>
+                        4. Thank you for choosing ONGO. We appreciate your business!
+                    </div>
+                </td>
+                <td class="totals-cell align-top">
+                    <table>
+                        <tr class="total-row">
+                            <td class="text-muted">Subtotal</td>
+                            <td class="text-right text-main font-bold">₹{{ order.sub_total }}</td>
+                        </tr>
+                        
+                        {% if order.promotional_discount > 0 or order.coupon_discount > 0 %}
+                        <tr class="total-row">
+                            <td class="text-muted">Discounts</td>
+                            <td class="text-right text-accent font-bold">- ₹{{ order.total_discount }}</td>
+                        </tr>
+                        {% endif %}
+
+                        <tr class="total-row">
+                            <td class="text-muted">Shipping</td>
+                            <td class="text-right text-main font-bold">₹{{ order.shipping }}</td>
+                        </tr>
+
+                        <tr class="grand-total-row">
+                            <td class="grand-total-label">Amount Paid</td>
+                            <td class="text-right font-bold">₹{{ order.total_amount }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <!-- Footer -->
+        <div class="footer">
+            ONGO E-Commerce Store | www.ongo.com | &copy; {% now "Y" %} All rights reserved.
+        </div>
     </div>
-
 </body>
+
+</html>
+>
 
 </html>

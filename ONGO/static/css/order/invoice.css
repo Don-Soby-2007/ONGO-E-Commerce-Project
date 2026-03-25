@@ -1,209 +1,250 @@
+/* 
+   ONGO Invoice Stylesheet
+   Modern, Professional, Real-world Design
+*/
+
 @page {
     size: A4;
-    margin: 1.5cm;
+    margin: 1cm;
+}
 
-    @bottom-center {
-        content: element(footer);
-    }
+:root {
+    --primary: #1e293b;
+    --secondary: #475569;
+    --accent: #ef4444; /* ONGO Brand Color */
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    --border: #e2e8f0;
+    --bg-light: #f8fafc;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
 }
 
 body {
-    font-family: 'Helvetica', 'Arial', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 10pt;
-    line-height: 1.4;
-    color: #111;
+    line-height: 1.5;
+    color: var(--text-main);
     margin: 0;
     padding: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
 }
 
-/* Base Layout Tables */
-.layout-table {
+/* Layout Utilities */
+.w-full { width: 100%; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.align-top { vertical-align: top; }
+.font-bold { font-weight: 700; }
+.text-muted { color: var(--text-muted); }
+.text-main { color: var(--text-main); }
+.text-accent { color: var(--accent); }
+
+/* Table Reset */
+table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
-    border: none;
+    border-spacing: 0;
 }
 
-.layout-table td {
-    padding: 0;
-    vertical-align: top;
-    border: none;
-}
-
-/* Header */
-.header-row td {
-    border-bottom: 2px solid #f1f1f1;
-    padding-bottom: 20px;
-}
-
-.logo-cell {
-    width: 60%;
-    text-align: left;
-    vertical-align: middle;
+/* Header Section */
+.invoice-header {
+    padding-bottom: 2rem;
+    border-bottom: 2px solid var(--primary);
+    margin-bottom: 2rem;
 }
 
 .logo-img {
-    width: 120px;
-    height: auto;
-    display: block;
+    height: 50px;
+    width: auto;
 }
 
-.company-info-cell {
-    width: 40%;
-    text-align: right;
+.company-details {
     font-size: 9pt;
-    color: #555;
-    vertical-align: middle;
+    line-height: 1.4;
+    text-align: right;
 }
 
 .company-name {
-    font-weight: bold;
     font-size: 14pt;
-    color: #ef4444;
-    /* ONGO Red */
-    margin-bottom: 5px;
+    font-weight: 800;
+    color: var(--primary);
     display: block;
+    margin-bottom: 0.25rem;
 }
 
-/* Meta Data */
-.invoice-title {
-    font-size: 24pt;
+/* Invoice Title & Meta */
+.invoice-title-container {
+    margin-bottom: 2rem;
+}
+
+.invoice-label {
+    font-size: 28pt;
     font-weight: 900;
-    color: #333;
-    letter-spacing: 1px;
-    margin: 0 0 10px 0;
+    letter-spacing: -0.02em;
+    color: var(--primary);
+    margin: 0;
+    text-transform: uppercase;
 }
 
-.meta-table {
-    width: 100%;
+.meta-item {
+    margin-bottom: 0.25rem;
 }
 
 .meta-label {
-    font-weight: bold;
-    color: #666;
-    padding-right: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    width: 100px;
+    display: inline-block;
 }
 
-.meta-value {
-    color: #000;
+/* Address Section */
+.address-section {
+    margin-bottom: 2rem;
 }
 
-/* Addresses */
-.address-box {
-    background-color: #fcfcfc;
-    border: 1px solid #eee;
-    padding: 15px;
-    border-radius: 4px;
-    height: 100px;
-    /* Min height to keep alignment */
-    width: 95%;
-    /* Spacing between cells */
+.address-column {
+    width: 50%;
 }
 
-.address-header {
+.address-heading {
     font-size: 8pt;
+    font-weight: 700;
     text-transform: uppercase;
-    color: #888;
-    font-weight: bold;
-    margin-bottom: 8px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 4px;
-    display: block;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.25rem;
 }
 
-.address-name {
-    font-weight: bold;
+.address-content {
+    font-size: 10pt;
+}
+
+.customer-name {
+    font-weight: 700;
     font-size: 11pt;
-    margin-bottom: 4px;
     display: block;
+    margin-bottom: 0.25rem;
 }
 
 /* Items Table */
 .items-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 30px;
-    page-break-inside: auto;
-}
-
-.items-table tr {
-    page-break-inside: avoid;
-    page-break-after: auto;
+    margin-bottom: 2rem;
 }
 
 .items-table th {
-    background-color: #f8f8f8;
-    color: #444;
-    font-weight: bold;
+    background-color: var(--primary);
+    color: white;
     text-transform: uppercase;
     font-size: 8pt;
-    text-align: left;
-    padding: 10px 8px;
-    border-bottom: 2px solid #ddd;
+    letter-spacing: 0.05em;
+    padding: 10px 12px;
+    font-weight: 600;
 }
 
 .items-table td {
-    padding: 10px 8px;
-    border-bottom: 1px solid #eee;
-    vertical-align: top;
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
 }
 
-.item-name {
-    font-weight: bold;
-    color: #000;
-}
-
-.item-variant {
+.item-sku {
     font-size: 8pt;
-    color: #777;
+    color: var(--text-muted);
+    margin-top: 2px;
 }
 
-.text-right {
-    text-align: right;
+.item-status-row {
+    font-size: 8pt;
+    margin-top: 4px;
 }
 
-.text-center {
-    text-align: center;
+/* Status Badges */
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 7pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
 }
 
-/* Totals */
-.totals-table {
+.badge-success { background-color: #d1fae5; color: #065f46; }
+.badge-warning { background-color: #fef3c7; color: #92400e; }
+.badge-danger { background-color: #fee2e2; color: #991b1b; }
+.badge-info { background-color: #dbeafe; color: #1e40af; }
+.badge-neutral { background-color: #f1f5f9; color: #475569; }
+
+/* Summary Section */
+.summary-container {
+    margin-top: 2rem;
+    page-break-inside: avoid;
+}
+
+.notes-cell {
+    width: 60%;
+    padding-right: 2rem;
+}
+
+.totals-cell {
     width: 40%;
-    margin-left: auto;
-    /* Push to right */
-    border-collapse: collapse;
 }
 
-.total-label {
-    font-weight: bold;
-    color: #666;
-    text-align: left;
-    padding: 5px 0;
+.total-row {
+    border-bottom: 1px solid var(--border);
 }
 
-.total-value {
-    text-align: right;
-    padding: 5px 0;
-    color: #333;
+.total-row td {
+    padding: 8px 0;
 }
 
-.grand-total td {
-    border-top: 2px solid #333;
-    padding-top: 10px;
-    margin-top: 5px;
-    font-size: 12pt;
-    font-weight: bold;
-    color: #ef4444;
+.grand-total-row {
+    border-top: 2px solid var(--primary);
+    background-color: var(--bg-light);
 }
 
-/* Footer */
-.page-footer {
-    position: running(footer);
-    display: block;
+.grand-total-row td {
+    padding: 12px 0 12px 12px;
+    font-size: 14pt;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.grand-total-label {
+    background-color: var(--primary);
+    color: white !important;
+    padding-left: 12px !important;
+}
+
+/* Footer Section */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
     text-align: center;
-    border-top: 1px solid #eee;
-    padding-top: 10px;
-    color: #999;
     font-size: 8pt;
-    width: 100%;
+    color: var(--text-muted);
+}
+
+/* Print Specifics */
+@media print {
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    .invoice-container {
+        padding: 0;
+    }
+    .badge {
+        border: 1px solid #ccc; /* Ensure visibility in case backgrounds are off */
+    }
 }
