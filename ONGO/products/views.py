@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.views.generic import ListView, DetailView
 from django.utils import timezone
 from django.db.models import Q
@@ -773,3 +773,15 @@ class ContactView(View):
                 'message': 'Failed to send email. Please try again later.',
                 'error': str(e) if settings.DEBUG else None  # Hide details in production
             }, status=500)
+
+
+class ReviewListView(LoginRequiredMixin, ListView):
+    model = ProductReview
+    template_name = "products/review_list.html"
+    context_object_name = 'reviews'
+    paginate_by = 10
+
+    def get_queryset(self):
+        product_id = self.kwargs.get('pro_id')
+        product = get_object_or_404(Product, pro_id=product_id, is_active=True)
+        return ProductReview.objects.filter(product=product).select_related('user').order_by('-created_at')

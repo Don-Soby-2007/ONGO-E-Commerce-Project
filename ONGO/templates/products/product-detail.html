@@ -329,10 +329,10 @@
             </div>
         </div>
 
-        <button class="mt-6 flex items-center text-orange-500 font-medium hover:underline">
+        <a href='{% url "product_review_list" product.pro_id %}' class="mt-6 flex items-center text-orange-500 font-medium hover:underline">
             View all {{ total_reviews }} review{{ total_reviews|pluralize }}
             <i data-lucide="chevron-right" class="ml-1 w-4 h-4"></i>
-        </button>
+        </a>
     </div>
 </div>
 {% endblock %}

@@ -8,6 +8,7 @@ urlpatterns = [
     path("product/detail/<uuid:pro_id>/", views.ProductDetailView.as_view(), name='product_detail'),
     path("product/detail/add-to-cart", views.AddToCartView.as_view(), name='add_to_cart'),
     path('product/toggle-wishlist/<int:variant_id>/', views.ToggleWishlistView.as_view(), name='toggle_wishlist'),
+    path('product/review/<uuid:pro_id>/', views.ReviewListView.as_view(), name='product_review_list'),
 
     path('legal/', views.legal_view, name='legal'),
 

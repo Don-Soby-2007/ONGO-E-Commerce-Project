@@ -1,0 +1,26 @@
+/* Custom styles for product reviews */
+
+.star-rating {
+    display: inline-flex;
+    color: #fbbf24;
+}
+
+.modal-open {
+    overflow: hidden;
+}
+
+#imageModal {
+    transition: opacity 0.3s ease-in-out;
+}
+
+#modalImage {
+    transition: transform 0.3s ease-in-out;
+}
+
+.hover-scale {
+    transition: transform 0.2s ease-in-out;
+}
+
+.hover-scale:hover {
+    transform: scale(1.05);
+}

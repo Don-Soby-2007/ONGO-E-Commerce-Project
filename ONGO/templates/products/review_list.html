@@ -1,0 +1,159 @@
+{% extends 'common/base_header.html' %}
+{% load static %}
+
+{% block title %}Product Reviews - ONGO{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/products/review_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 mt-20">
+    <!-- Breadcrumb & Back Link -->
+    <div class="mb-8 flex items-center justify-between mt-10">
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="{% url 'home' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-red-500">
+                        <i data-lucide="home" class="w-4 h-4 mr-2"></i>
+                        Home
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+                        <a href="{% url 'product_list' %}" class="ml-1 text-sm font-medium text-gray-700 hover:text-red-500 md:ml-2">Products</a>
+                    </div>
+                </li>
+                <li aria-current="page">
+                    <div class="flex items-center">
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+                        <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Reviews</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+        <a href="{% url 'product_detail' view.kwargs.pro_id %}" class="inline-flex items-center text-sm font-semibold text-red-500 hover:text-red-600 transition-colors">
+            <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i>
+            Back to Product
+        </a>
+    </div>
+
+    <!-- Page Header -->
+    <div class="mb-12">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            {% if reviews %}
+                Customer Reviews for <span class="text-red-500">{{ reviews.0.product.name }}</span>
+            {% else %}
+                Product Reviews
+            {% endif %}
+        </h1>
+        <p class="text-gray-600">See what our customers are saying about this product.</p>
+    </div>
+
+    <!-- Reviews Listing -->
+    <div class="grid grid-cols-1 gap-8">
+        {% for review in reviews %}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 transition-all hover:shadow-md">
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                <!-- User Info & Rating -->
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-500 font-bold text-lg">
+                        {{ review.user.username|first|upper }}
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-900">{{ review.user.username }}</h3>
+                        <div class="flex items-center mt-1">
+                            <div class="star-rating mr-2">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.star %}
+                                        <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                    {% else %}
+                                        <i data-lucide="star" class="w-4 h-4 text-gray-300"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <span class="text-xs text-gray-500">{{ review.created_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Variant Info Badge -->
+                <div class="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-xs font-medium text-gray-600">
+                    <span class="mr-1 font-semibold">Variant:</span>
+                    {{ review.variant.color }} | {{ review.variant.size }}
+                </div>
+            </div>
+
+            <!-- Review Text -->
+            <div class="mt-6">
+                <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ review.review }}</p>
+            </div>
+
+            <!-- Review Images -->
+            {% if review.images.all %}
+            <div class="mt-6 flex flex-wrap gap-3">
+                {% for img in review.images.all %}
+                <div class="group relative cursor-pointer" onclick="openImageModal('{{ img.image_url }}')">
+                    <img src="{{ img.image_url }}" alt="Review Image" class="w-24 h-24 object-cover rounded-lg border border-gray-200 transition-transform group-hover:scale-105">
+                    <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors rounded-lg"></div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
+            <i data-lucide="message-square" class="w-12 h-12 text-gray-300 mx-auto mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900">No reviews yet</h3>
+            <p class="text-gray-500 mt-1">Be the first one to review this product!</p>
+            <a href="{% url 'product_detail' view.kwargs.pro_id %}" class="mt-6 inline-block px-6 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors">
+                Go to Product
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-12 flex justify-center">
+        <nav class="flex items-center space-x-2" aria-label="Pagination">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                <i data-lucide="chevron-left" class="w-5 h-5"></i>
+            </a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="px-4 py-2 rounded-lg bg-red-500 text-white font-bold">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}" class="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                <i data-lucide="chevron-right" class="w-5 h-5"></i>
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/90 backdrop-blur-sm transition-opacity duration-300">
+    <button onclick="closeImageModal()" class="absolute top-6 right-6 text-white hover:text-gray-300 transition-colors">
+        <i data-lucide="x" class="w-8 h-8"></i>
+    </button>
+    <div class="max-w-4xl w-full h-full flex items-center justify-center">
+        <img id="modalImage" src="" alt="Full view" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl scale-95 transition-transform duration-300">
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/products/review_list.js' %}"></script>
+{% endblock %}
