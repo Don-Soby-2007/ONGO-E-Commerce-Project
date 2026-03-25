@@ -328,6 +328,11 @@ class ProductListView(ListView):
                         'value': offer.value
                     }
 
+            reviews = ProductReview.objects.filter(product=product).aggregate(avg_rating=Avg('star'),
+                                                                              total_reviews=Count('id'))
+            product.avg_rating_rounded = round(reviews['avg_rating']) if reviews['avg_rating'] else 0
+            product.total_reviews = reviews['total_reviews']
+
             product.offer_price = best_discount['price']
             product.offer_type = best_discount['type']
             product.offer_value = best_discount['value']
@@ -341,6 +346,7 @@ class ProductListView(ListView):
 
         # Current active filters (for UI state)
         context['selected_categories'] = self.request.GET.getlist('category')
+
         return context
 
 

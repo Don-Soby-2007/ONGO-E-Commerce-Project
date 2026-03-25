@@ -171,6 +171,20 @@
                         <!-- Product Info -->
                         <div class="p-4">
                             <h3 class="font-semibold text-gray-800 line-clamp-2">{{ product.name }}</h3>
+                            <div class="flex mt-1">
+                                <div class="flex text-amber-400 flex-shrink-0 mr-3">
+                                {% for _ in "12345"|make_list %}
+                                <i data-lucide="star" class="w-5 h-5 {% if forloop.counter <= product.avg_rating_rounded %}fill-current{% endif %}"></i>
+                                {% endfor %}
+                                </div>
+                                <h4 class="font-semibold text-gray-500 line-clamp-2">
+                                    ({% if total_reviews > 1000 %}
+                                        {{product.total_reviews |stringformat:"s"|slice:":1" }}K+
+                                    {% else %}
+                                        {{product.total_reviews}}
+                                    {% endif %})
+                                </h4>
+                            </div>
                             <div class="mt-2 flex items-baseline gap-2">
                             <span class="text-lg font-bold text-gray-900">₹{{ product.offer_price|floatformat:"0" }}</span>
                             {% if product.offer_price < product.get_display_price %}
