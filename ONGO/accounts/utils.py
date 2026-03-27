@@ -49,12 +49,12 @@ def create_address_from_request(request, redirect_on_success=True):
     if not country:
         return False, "Please select a country.", None
 
-    loc_stats = location_stats(postal_code)
-    if not loc_stats:
-        return False, "Pincode not found. Please enter a valid pincode.", None
+    # loc_stats = location_stats(postal_code)
+    # if not loc_stats:
+    #     return False, "Pincode not found. Please enter a valid pincode.", None
 
-    if loc_stats.get('district', '').lower() != district.lower() or loc_stats.get('state', '').lower() != state.lower():
-        return False, "District/State does not match the pincode. Please check your entries.", None
+    # if loc_stats.get('district', '').lower() != district.lower() or loc_stats.get('state', '').lower() != state.lower():
+    #     return False, "District/State does not match the pincode. Please check your entries.", None
 
     try:
         # Enforce default logic
