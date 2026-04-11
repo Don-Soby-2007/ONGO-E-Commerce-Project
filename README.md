@@ -21,7 +21,7 @@ ONGO is a fully functional e-commerce web application built with Django and Post
 | Layer      | Technology              |
 |------------|-------------------------|
 | Backend    | Python, Django          |
-| Database   | MySQL / PostgreSQL       |
+| Database   | PostgreSQL              |
 | Frontend   | HTML, CSS, JavaScript   |
 
 ---
@@ -30,20 +30,42 @@ ONGO is a fully functional e-commerce web application built with Django and Post
 
 ```
 ONGO-E-Commerce-Project/
-├── manage.py
+├── README.md
 ├── requirements.txt
-├── ongo/                  # Core Django project settings
-│   ├── settings.py
-│   ├── urls.py
-│   └── wsgi.py
-├── products/              # Product listing and detail views
-├── cart/                  # Shopping cart logic
-├── accounts/              # User auth and referral system
-├── orders/                # Order management
-├── payments/              # Payment integration
-├── reviews/               # Product review system
-├── templates/             # HTML templates
-└── static/                # CSS, JS, and images
+└── ONGO/
+    ├── manage.py
+    ├── ONGO/                 # Core Django project settings
+    │   ├── settings.py
+    │   ├── urls.py
+    │   ├── asgi.py
+    │   └── wsgi.py
+    ├── accounts/             # User auth, profiles, wallet, and referral system
+    ├── adminpanel/           # Admin dashboard, analytics, banners, and management views
+    ├── cart/                 # Shopping cart logic and checkout helpers
+    ├── coupons/              # Coupon creation, usage, and validation
+    ├── locations/            # Location and address-related features
+    ├── offers/               # Product, category, and global offer management
+    ├── order/                # Order, invoice, review, and order status management
+    ├── products/             # Product listing, detail views, categories, and utilities
+    ├── returns/              # Return request and return management flow
+    ├── invoices/             # Generated invoice PDF files
+    ├── templates/            # HTML templates grouped by app/feature
+    │   ├── accounts/
+    │   ├── adminpanel/
+    │   ├── cart/
+    │   ├── checkout/
+    │   ├── common/
+    │   ├── coupon/
+    │   ├── errors/
+    │   ├── includes/
+    │   ├── offers/
+    │   ├── order/
+    │   ├── products/
+    │   └── returns/
+    └── static/               # Source CSS, JavaScript, and image assets
+        ├── css/
+        ├── js/
+        └── images/
 ```
 
 > Note: Folder names may vary slightly from the actual repo structure.
@@ -116,7 +138,7 @@ ONGO-E-Commerce-Project/
 
 Access the Django admin dashboard at:
 ```
-http://127.0.0.1:8000/admin
+http://127.0.0.1:8000/admin/login
 ```
 Log in with the superuser credentials you created above.
 
