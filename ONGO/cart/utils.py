@@ -42,7 +42,6 @@ def get_cart_items_for_user(request, user):
         offer_value = None
         offer_scope = None
         has_offer = False
-        print('Debug: offer_price: ', offer_price)
 
         # PRODUCT OFFER
         product_offer = None
@@ -61,11 +60,8 @@ def get_cart_items_for_user(request, user):
             offer_scope = 'product'
 
             discounted = calculate_discount(original_price, product_offer)
-            print('Debug discounted:', discounted)
 
             offer_price = max(Decimal('0'), discounted)
-
-            print('DEBUG offer_price: ', offer_price)
 
         # CATEGORY OFFER
         category_offer = None
@@ -88,8 +84,6 @@ def get_cart_items_for_user(request, user):
                 offer_value = cat_value
                 has_offer = True
                 offer_scope = 'category'
-
-            print('Debug: offer_price: ', offer_price, offer_type, offer_value, offer_scope, cat_price)
 
         # IMAGE HANDLING
         image_obj = variant.images.filter(is_primary=True).first() or variant.images.first()
@@ -130,8 +124,6 @@ def get_cart_items_for_user(request, user):
             "applied_offer_value": float(_round_currency(offer_value)) if offer_value is not None else None,
         })
 
-        print('DEBUG cart_items: ', cart_items)
-
     # shipping amount caluclation based on pincode.
 
     shipping = Decimal('0')
@@ -158,7 +150,7 @@ def get_cart_items_for_user(request, user):
         else:
             shipping = Decimal('100')
     else:
-        shipping = Decimal('2')
+        shipping = Decimal('0')
 
     # Apply global offers
 
@@ -207,7 +199,6 @@ def get_cart_items_for_user(request, user):
         applied_global_offers.append(top_offer)
     else:
         total_payable_exact = _round_currency(total_payable_exact)
-    print("Debug befor applying the shipping: ", applied_global_offers)
 
     for offer in global_offers:
         if (
@@ -237,19 +228,17 @@ def get_cart_items_for_user(request, user):
             offer.discount_type == 'free_shipping' and offer.is_active_now()
             and _to_decimal(offer.min_cart_value) <= total_payable_exact
         ):
-            shipping = Decimal('0')
             applied_global_offers.append({
                 "id": offer.id,
                 "name": "Free Shipping",
                 "type": "free_shipping",
                 "value": 0.0,
-                "discount_amount": 100.0
+                "discount_amount": shipping
             })
+            shipping = Decimal('0')
             break
 
     cart_discount_exact = items_subtotal_exact - total_payable_exact
-
-    print("Debug after applying the shipping: ", applied_global_offers)
 
     if 'applied_coupon' in request.session:
         applied_coupon = request.session.get('applied_coupon')
