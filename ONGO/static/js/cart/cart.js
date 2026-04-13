@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Check for empty cart on load
     checkEmptyCart();
+    renderAppliedOffers(getInitialAppliedOffers());
 
     // Event Delegation for Quantity Buttons and Remove Buttons
     const cartItemsContainer = document.querySelector('.cart-items');
@@ -49,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
     async function updateQuantity(url, cartId, action) {
         try {
             const response = await fetch(url, {
-                method: 'POST',
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
@@ -63,8 +64,20 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
 
             if (response.ok && data.success) {
-                // Reload to update totals and UI from backend
-                location.reload();
+                const row = document.querySelector(`.cart-item[data-cart-id="${cartId}"]`);
+                if (row) {
+                    const qtyInput = row.querySelector('.qty-input');
+                    const subtotalEL = document.getElementById('subtotal');
+                    const totalEL = document.getElementById('total');
+                    const discountEL = document.getElementById('discount');
+
+                    if (qtyInput) qtyInput.value = data.new_quantity;
+                    if (subtotalEL) subtotalEL.textContent = data.summary.items_subtotal;
+                    if (totalEL) totalEL.textContent = data.summary.total_payable;
+                    if (discountEL) discountEL.textContent = data.summary.cart_discount;
+
+                    renderAppliedOffers(data.summary.applied_global_offers);
+                }
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -84,6 +97,50 @@ document.addEventListener('DOMContentLoaded', function () {
                 text: 'Please try again later.',
             });
         }
+    }
+
+    function getInitialAppliedOffers() {
+        const offersDataEl = document.getElementById('applied-offers-data');
+        if (!offersDataEl) return [];
+
+        try {
+            return JSON.parse(offersDataEl.textContent) || [];
+        } catch (error) {
+            console.error('Applied offers parse error:', error);
+            return [];
+        }
+    }
+
+    function renderAppliedOffers(offers) {
+        const container = document.getElementById('applied-offers-container');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (!Array.isArray(offers) || offers.length === 0) {
+            return;
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'mt-4 border-t pt-4';
+
+        const title = document.createElement('h3');
+        title.className = 'text-sm font-semibold text-gray-700 mb-2';
+        title.textContent = 'Applied Offers:';
+
+        const badges = document.createElement('div');
+        badges.className = 'flex flex-wrap gap-2';
+
+        offers.forEach((offer) => {
+            const badge = document.createElement('span');
+            badge.className = 'px-2 py-1 text-xs font-semibold rounded bg-purple-100 text-purple-800 border border-purple-200';
+            badge.textContent = offer.name;
+            badges.appendChild(badge);
+        });
+
+        wrapper.appendChild(title);
+        wrapper.appendChild(badges);
+        container.appendChild(wrapper);
     }
 
     function confirmRemove(url) {

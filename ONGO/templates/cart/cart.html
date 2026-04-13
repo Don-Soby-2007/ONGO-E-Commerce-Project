@@ -120,19 +120,8 @@
                     <span id="total">₹{{ summary.total_payable|floatformat:2 }}</span>
                 </div>
 
-                {% if summary.applied_global_offers %}
-                <div class="mt-4 border-t pt-4">
-                    <h3 class="text-sm font-semibold text-gray-700 mb-2">Applied Offers:</h3>
-                    <div class="flex flex-wrap gap-2">
-                        {% for offer in summary.applied_global_offers %}
-                        <span
-                            class="px-2 py-1 text-xs font-semibold rounded bg-purple-100 text-purple-800 border border-purple-200">
-                            {{ offer.name }}
-                        </span>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
+                <div id="applied-offers-container"></div>
+                {{ summary.applied_global_offers|json_script:"applied-offers-data" }}
 
                 <a href='{% url "checkout_information" %}' class="checkout-btn">
                     Proceed to Checkout

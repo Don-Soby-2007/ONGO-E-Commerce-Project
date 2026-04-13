@@ -55,7 +55,7 @@ class CartView(LoginRequiredMixin, TemplateView):
 @method_decorator(csrf_exempt, name="dispatch")
 class QtyChangeView(LoginRequiredMixin, View):
 
-    def post(self, request):
+    def patch(self, request):
         try:
             data = json.loads(request.body)
             cart_id = data.get('cart_id')
@@ -64,11 +64,16 @@ class QtyChangeView(LoginRequiredMixin, View):
             cart_item = Cart.objects.get(id=cart_id, user=request.user)
 
             if action == 'increase':
-                if cart_item.quantity < 5 and cart_item.product_variant.stock > cart_item.quantity:
+                if cart_item.product_variant.stock <= cart_item.quantity:
+                    return JsonResponse({
+                        'error': 'Max quantity reached'
+                    }, status=400)
+
+                if cart_item.quantity < 5:
                     cart_item.quantity += 1
                 else:
                     return JsonResponse({
-                        'error': 'Insufficient stock or ............. Max quantity reached'
+                        'error': 'Max quantity reached'
                     }, status=400)
             elif action == 'decrease':
                 if cart_item.quantity > 1:
@@ -81,11 +86,13 @@ class QtyChangeView(LoginRequiredMixin, View):
                 return JsonResponse({'error': 'Invalid action.'}, status=400)
 
             cart_item.save()
+            _, summary = get_cart_items_for_user(self.request, self.request.user)
 
             # Return updated values
             return JsonResponse({
                 'success': True,
                 'new_quantity': cart_item.quantity,
+                'summary': summary,
             })
 
         except Cart.DoesNotExist:
