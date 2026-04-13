@@ -72,9 +72,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     const discountEL = document.getElementById('discount');
 
                     if (qtyInput) qtyInput.value = data.new_quantity;
-                    if (subtotalEL) subtotalEL.textContent = data.summary.items_subtotal;
-                    if (totalEL) totalEL.textContent = data.summary.total_payable;
-                    if (discountEL) discountEL.textContent = data.summary.cart_discount;
+                    if (subtotalEL) subtotalEL.textContent = '₹' + data.summary.items_subtotal;
+                    if (totalEL) totalEL.textContent = '-₹' + data.summary.total_payable;
+                    if (discountEL) discountEL.textContent = '₹' + data.summary.cart_discount;
 
                     renderAppliedOffers(data.summary.applied_global_offers);
                 }
